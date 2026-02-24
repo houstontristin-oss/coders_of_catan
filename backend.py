@@ -40,6 +40,35 @@ class Node():
     
     # TODO comparison function
 
+    #check if node is a valid placement for settlement
+    def is_valid_settlement_placment(self, player):
+        if self.building:
+            return False
+        #loop through edges for edge cases
+        flag = False
+        for edge in self.edges:
+            #determine there is an edge the player owns connected to the node
+            if edge.player == player:
+                flag = True
+            #determine there is not another settlement within one edge of the node
+            for node in edge.nodes:
+                if node.player:
+                    flag = False 
+        return flag
+    
+    #after checking valid placement, actually place settlement
+    def place_settlement(self, player):
+        self.player = player
+        #self.building = "settlement" 
+        # NOTE: add check for if placement breaks another players longest road here
+    
+    # TODO: determine how to represent city
+    def place_city(self, player):
+        if self.player == player:
+            pass
+            #self.building = "city" #or another way to denote city
+
+
 class Edge():
     # edge represents the straight where 2 tiles intersect, a.k.a. roads
     def __init__(self, id:tuple):
@@ -48,6 +77,23 @@ class Edge():
         self.player = None # player who owns edge/road
     
     # TODO comparison function
+
+    #check if edge is a valid placement for road
+    def is_valid_road_palcement(self, player):
+        #if road already occupied by a player
+        if self.player:
+            return False
+        #determine if a edge of the two connected nodes is occupied by player
+        flag = False
+        for node in self.nodes:
+            for edge in node.edges:
+                if edge.payer == player:
+                    flag = True
+        return flag
+    
+    #after checking valid road, place road
+    def place_road(self, player):
+        self.player = player
 
 class CatanBoard:
     def __init__(self):
