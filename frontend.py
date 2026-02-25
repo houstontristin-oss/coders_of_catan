@@ -2,7 +2,7 @@ import arcade
 import math
 import os
 import pyglet
-
+from backend import CatanBoard
 
 # Absolute path to folder containing frontend.py
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -63,35 +63,6 @@ RESOURCE_COLORS = {
     "sheep":  (144, 238, 144),
     "desert": (210, 180, 140),
 }
-
-# All 19 Tiles: (cubic_x, cubic_y, cubic_z, resource)
-# Cubic coordinates from the drawn up blueprint, with a standard Catan resource layout
-TILE_DATA = [  # Temporary stand-in for Nick's board function
-    # Top row (3 tiles)
-    (-2,  0,  2, "forest"),
-    (-2,  1,  1, "wheat"),
-    (-2,  2,  0, "ore"),
-    # Second row (4 tiles)
-    (-1, -1,  2, "wheat"),
-    (-1,  0,  1, "forest"),
-    (-1,  1,  0, "brick"),
-    (-1,  2, -1, "sheep"),
-    # Middle row (5 tiles)
-    ( 0, -2,  2, "forest"),
-    ( 0, -1,  1, "brick"),
-    ( 0,  0,  0, "desert"),  # center tile — always desert
-    ( 0,  1, -1, "wheat"),
-    ( 0,  2, -2, "sheep"),
-    # Fourth row (4 tiles)
-    ( 1, -2,  1, "ore"),
-    ( 1, -1,  0, "sheep"),
-    ( 1,  0, -1, "forest"),
-    ( 1,  1, -2, "wheat"),
-    # Bottom row (3 tiles)
-    ( 2, -2,  0, "ore"),
-    ( 2, -1, -1, "brick"),
-    ( 2,  0, -2, "sheep"),
-]
 
 # --- Placeholder Player Data (will come from Apoorva's Player class later) ---
 PLAYERS = [
@@ -164,6 +135,9 @@ class CatanWindow(arcade.Window):
 
         # --- Load resource icon sprites ---
         self._load_resource_icons()
+
+        self.board = CatanBoard()
+        self.board.make_board()
 
     def _load_resource_icons(self):
         """
@@ -332,10 +306,11 @@ class CatanWindow(arcade.Window):
         self.clear()
 
         # --- Draw the board ---
-        for (cx, cy, cz, resource) in TILE_DATA:
+        for xyz, tile in self.board.tiles.items():
+            cx, cy, cz = xyz
             px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
             corners = get_hex_corners(px, py, HEX_SIZE)
-            arcade.draw_polygon_filled(corners, RESOURCE_COLORS[resource])
+            arcade.draw_polygon_filled(corners, RESOURCE_COLORS[tile.resource])
             arcade.draw_polygon_outline(corners, arcade.color.BLACK, 2)
 
         # --- Draw HUD ---
