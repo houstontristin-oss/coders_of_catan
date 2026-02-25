@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # --- Window Settings ---
 SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 600
+SCREEN_HEIGHT = 700
 SCREEN_TITLE = "Coders of Catan"
 
 # --- Hex Settings ---
