@@ -41,7 +41,7 @@ class Node():
     # TODO comparison function
 
     #check if node is a valid placement for settlement
-    def is_valid_settlement_placment(self, player):
+    def is_valid_settlement_placement(self, player):
         if self.building:
             return False
         #loop through edges for edge cases
@@ -79,11 +79,11 @@ class Edge():
     # TODO comparison function
 
     #check if edge is a valid placement for road
-    def is_valid_road_palcement(self, player):
+    def is_valid_road_placement(self, player):
         #if road already occupied by a player
         if self.player:
             return False
-        #determine if a edge of the two connected nodes is occupied by player
+        #determine if an edge of the two connected nodes is occupied by player
         flag = False
         for node in self.nodes:
             for edge in node.edges:
@@ -121,7 +121,7 @@ class CatanBoard:
             fz = round((z + (z+n1[2]) + (z+n2[2])) / 3.0, 3)
             node_id = (fx, fy, fz)
 
-            # Get or Create the Node if its not yet in the system
+            # Get or Create the Node if it's not yet in the system
             if node_id not in self.nodes:
                 self.nodes[node_id] = Node(node_id)
             
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     print("testing board")
     game_board = CatanBoard()
     # create tile at "center" of board with type dessert and of dice roll val 0
-    game_board.add_tile(0,0,0, "dessert", 0)
+    game_board.add_tile(0,0,0, "desert", 0)
     # add tile to the bottom left of center tile
-    game_board.add_tile(1,-1,0, "forrest", 2)
+    game_board.add_tile(1,-1,0, "forest", 2)
     print(f"{game_board}")
