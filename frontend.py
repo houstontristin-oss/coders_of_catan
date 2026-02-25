@@ -96,8 +96,8 @@ TILE_DATA = [  # Temporary stand-in for Nick's board function
 # --- Placeholder Player Data (will come from Apoorva's Player class later) ---
 PLAYERS = [
     {"name": "Player 1", "color": (231, 76,  60),  "resources": {"brick": 0, "ore": 0, "wheat": 0, "sheep": 0, "forest": 0}, "vp": 0},
-    {"name": "Player 2", "color": (52,  152, 219), "resources": {"brick": 0, "ore": 0, "wheat": 0, "sheep": 0, "forest": 0}, "vp": 0},
-    {"name": "Player 3", "color": (39,  174, 96),  "resources": {"brick": 0, "ore": 0, "wheat": 0, "sheep": 0, "forest": 0}, "vp": 0},
+    {"name": "Player 2", "color": (39,  174, 96), "resources": {"brick": 0, "ore": 0, "wheat": 0, "sheep": 0, "forest": 0}, "vp": 0},
+    {"name": "Player 3", "color": (219, 118, 51),  "resources": {"brick": 0, "ore": 0, "wheat": 0, "sheep": 0, "forest": 0}, "vp": 0},
     {"name": "Player 4", "color": (142, 68,  173), "resources": {"brick": 0, "ore": 0, "wheat": 0, "sheep": 0, "forest": 0}, "vp": 0},
 ]
 
