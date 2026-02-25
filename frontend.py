@@ -13,11 +13,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # --- Window Settings ---
 SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 800
+SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Coders of Catan"
 
 # --- Hex Settings ---
-HEX_SIZE = 70  # radius from center to corner
+HEX_SIZE = 60  # radius from center to corner
 
 # --- Board Center (screen pixels) ---
 BOARD_CENTER_X = SCREEN_WIDTH / 2
