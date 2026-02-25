@@ -1,4 +1,5 @@
 # Catan Backend File
+import random
 '''
 TODO 
 * start working on functions necessary to run game loop
@@ -100,9 +101,23 @@ class CatanBoard:
         self.tiles = {} # {(x,y,z): TileObjects}
         self.nodes = {} # {(fx,fy,fz): Node Object
 
-    
-    def add_tile(self, x,y,z, resource, number):
+    def make_board(self):
+        #make default board
+        resource = ["sheep","sheep","sheep","sheep", "brick","brick","brick", "ore", "ore","ore","wheat","wheat","wheat","wheat", "forest","forest","forest","forest", "desert"]
+        number = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12] 
+        xyz = [(-2,  0,  2), (-2,  1,  1), (-2,  2,  0), (-1, -1,  2), (-1,  0,  1), (-1,  1,  0), (-1,  2, -1), (0, -2,  2), (0, -1,  1), (0,  0,  0), (0,  1, -1), (0,  2, -2), (1, -2,  1), (1, -1,  0), (1,  0, -1), (1,  1, -2), (2, -2,  0), (2, -1, -1), (2,  0, -2)]
+        # randomize resource and number lists
+        random.shuffle(resource)
+        random.shuffle(number)
+        #19 add tile calls
+        for i in range(19):
+            r = resource.pop()
+            n = 0 if r == "desert" else number.pop()
+            self.add_tile(xyz[i], r, n)
+
+    def add_tile(self, xyz, resource, number):
         # add tile to registry
+        x, y, z = xyz
         new_tile = Tile((x,y,z), resource, number)
         self.tiles[(x,y,z)] = new_tile
         # define the 6 neighbor offsets for cube coordinates
@@ -146,7 +161,7 @@ if __name__ == "__main__":
     print("testing board")
     game_board = CatanBoard()
     # create tile at "center" of board with type dessert and of dice roll val 0
-    game_board.add_tile(0,0,0, "desert", 0)
+    game_board.add_tile((0,0,0), "dessert", 0)
     # add tile to the bottom left of center tile
-    game_board.add_tile(1,-1,0, "forest", 2)
+    game_board.add_tile((1,-1,0), "forrest", 2)
     print(f"{game_board}")
