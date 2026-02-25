@@ -163,5 +163,5 @@ if __name__ == "__main__":
     # create tile at "center" of board with type dessert and of dice roll val 0
     game_board.add_tile((0,0,0), "dessert", 0)
     # add tile to the bottom left of center tile
-    game_board.add_tile(1,-1,0, "forrest", 2)
+    game_board.add_tile((1,-1,0), "forrest", 2)
     print(f"{game_board}")
