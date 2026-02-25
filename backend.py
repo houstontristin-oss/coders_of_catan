@@ -88,7 +88,7 @@ class Edge():
         flag = False
         for node in self.nodes:
             for edge in node.edges:
-                if edge.payer == player:
+                if edge.player == player:
                     flag = True
         return flag
     
