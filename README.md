@@ -9,3 +9,5 @@ File sources:
 
 https://www.patreon.com/posts/bonus-catan-46683414
 https://game-icons.net/
+https://www.redblobgames.com/grids/hexagons/ 
+https://code.tutsplus.com/introduction-to-axial-coordinates-for-hexagonal-tile-based-games--cms-28820t
