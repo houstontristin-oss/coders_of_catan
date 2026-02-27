@@ -114,34 +114,42 @@ def fill_rect(left, bottom, width, height, color):
 def outline_rect(left, bottom, width, height, color, border=2):
     arcade.draw_lrbt_rectangle_outline(left, left + width, bottom, bottom + height, color, border)
 
-"""
-TODO for Amanda 
-- Make start game and end game views
-"""
+def draw_board(board):
+    for xyz, tile in board.tiles.items():
+            cx, cy, cz = xyz
+            px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
+            corners = get_hex_corners(px, py, HEX_SIZE)
+            arcade.draw_polygon_filled(corners, RESOURCE_COLORS[tile.resource])
+            arcade.draw_polygon_outline(corners, arcade.color.BLACK, 2)
+
+# ---------------------------------------------------------------------------
+# Start View
+# ---------------------------------------------------------------------------
 class StartView(arcade.View):
     def on_show_view(self):
-        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
         self._build_text_objects()
 
     def _build_text_objects(self):
         #TODO: set the title to be in the middle of the screen
         self.txt_title = arcade.Text("Welcome to Catan!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2, font_size=30, bold=True, font_name="MedievalSharp")
         self.txt_instructions = arcade.Text("Click anywhere to begin!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2 - 100, font_size=20, font_name="MedievalSharp")
+
     def on_draw(self):
         self.clear()
         self.txt_title.draw()
         self.txt_instructions.draw()
+
     def on_mouse_press(self, x, y, button, modifiers):
         # TODO: add buttons here for selection of number of players
         self.board = CatanBoard()
         self.board.make_board()
         # TODO: create players here
         self.players = PLAYERS
-        self.window.show_view(CatanView(self.board, self.players, 0))
+        self.window.show_view(SetupView(self.board, self.players, 0, 1))
 
 
 # ---------------------------------------------------------------------------
-# Main Window
+# Main View
 # ---------------------------------------------------------------------------
 class CatanView(arcade.View):
     def __init__(self, board, players, current_player):
@@ -152,9 +160,7 @@ class CatanView(arcade.View):
         # TODO: wire up to Amanda's turn logic later
         self.current_player = current_player
 
-    def on_show_view(self):
-        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
-        
+    def on_show_view(self):        
         # --- Pre-build all Text objects (avoids draw_text performance warning) ---
         self._build_text_objects()
 
@@ -379,15 +385,50 @@ class CatanView(arcade.View):
 """
 Adding empty game play views here
 TODO: Determine how we want trading to work
-Also maybe there is a way to make a base class for the Trade, Build and PlayCard views since they will all have similar setup?
+Also maybe there is a way to make a base class for the Trade, Build and PlayCard views since they will all have similar setup? 
+also maybe break into more functions for ex building the board could be a global helper function
 """
+# ---------------------------------------------------------------------------
+# Setup View
+# ---------------------------------------------------------------------------
 class SetupView(arcade.View):
-    def __init__(self, board, players): 
+    def __init__(self, board, players, current_player, round): 
         super().__init__()
         self.board = board
         self.players = players
+        self.current_player = current_player
+        self.round = round
 
+    def _build_text_objects(self):
+        player = self.players[self.current_player]
+        self.txt_title = arcade.Text(f"{player["name"]}: Place your Settlement", SCREEN_WIDTH / 4, SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30, color=player["color"])
 
+    def on_show_view(self):
+        self._build_text_objects()
+
+    def on_draw(self):
+        self.clear()
+        # --- Draw the board ---
+        draw_board(self.board)
+        self.txt_title.draw()
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        #TODO: Add in click logic for players placing their 
+        if self.round == 1 and self.current_player < len(self.players) - 1:
+            self.current_player += 1
+            self.window.show_view(SetupView(self.board, self.players, self.current_player, self.round))
+        elif self.round == 1 and self.current_player == len(self.players) - 1:
+            self.round += 1
+            self.window.show_view(SetupView(self.board, self.players, self.current_player, self.round))
+        elif self.round == 2 and self.current_player > 0:
+            self.current_player -= 1
+            self.window.show_view(SetupView(self.board, self.players, self.current_player, self.round))
+        else:
+            self.window.show_view(CatanView(self.board, self.players, 0))
+        
+# ---------------------------------------------------------------------------
+# Trade View
+# ---------------------------------------------------------------------------
 class TradeView(arcade.View):
     def __init__(self, board, players, current_player):
         super().__init__()
@@ -410,7 +451,6 @@ class TradeView(arcade.View):
         self.txt_back.draw()
 
     def on_show_view(self):
-        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
         self._build_text_objects()
 
     def on_draw(self):
@@ -423,6 +463,9 @@ class TradeView(arcade.View):
         if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
             self.window.show_view(CatanView(self.board, self.players, self.current_player))
 
+# ---------------------------------------------------------------------------
+# Build View
+# ---------------------------------------------------------------------------
 class BuildView(arcade.View):
     def __init__(self, board, players, current_player):
         super().__init__()
@@ -445,7 +488,6 @@ class BuildView(arcade.View):
         self.txt_back.draw()
 
     def on_show_view(self):
-        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
         self._build_text_objects()
 
     def on_draw(self):
@@ -457,7 +499,9 @@ class BuildView(arcade.View):
         btn_w = 150
         if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
             self.window.show_view(CatanView(self.board, self.players, self.current_player))
-
+# ---------------------------------------------------------------------------
+# Play Card View
+# ---------------------------------------------------------------------------
 class PlayCardView(arcade.View):
     def __init__(self, board, players, current_player):
         super().__init__()
@@ -480,7 +524,6 @@ class PlayCardView(arcade.View):
         self.txt_back.draw()
 
     def on_show_view(self):
-        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
         self._build_text_objects()
 
     def on_draw(self):
@@ -493,13 +536,16 @@ class PlayCardView(arcade.View):
         if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
             self.window.show_view(CatanView(self.board, self.players, self.current_player))
 
+# ---------------------------------------------------------------------------
+# End View
+# ---------------------------------------------------------------------------
 class EndView(arcade.View):
     def __init__(self, players, current_player):
         super().__init__()
         self.players = players
         self.winning_player = current_player
+
     def on_show_view(self):
-        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
         self._build_text_objects()
 
     def _build_text_objects(self):
@@ -507,16 +553,19 @@ class EndView(arcade.View):
         # set the color of the text to the players color and add the player number to the text
         self.txt_title = arcade.Text(f"Congratulations Player {self.winning_player}!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2, font_size=30, bold=True, font_name="MedievalSharp")  #color = self.players[self.winning_player].color
         self.txt_instructions = arcade.Text("Click anywhere to play again!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2 - 100, font_size=20, font_name="MedievalSharp")
+
     def on_draw(self):
         self.clear()
         self.txt_title.draw()
         self.txt_instructions.draw()
+
     def on_mouse_press(self, x, y, button, modifiers):
         self.window.show_view(StartView()) # Has to go back to start view to reset the board and players
 
 def main():
     pyglet.font.add_file('fonts/MedievalSharp-Regular.ttf')
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    window.background_color = arcade.color.OCEAN_BOAT_BLUE
     window.show_view(StartView())
     arcade.run()
 
