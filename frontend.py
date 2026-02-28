@@ -4,6 +4,13 @@ import os
 import pyglet
 from backend import CatanBoard
 
+# TODO: After clicking Build, player can hover over the map and hovered over nodes will highlight-
+# with a slightly opaque circle they can click, and if they have enough resources, it will
+# make a settlement which is a square on the node inbetween the tiles
+# and if they upgrade it to a city, given enough resources, then itll become a diamond shape
+# TODO: all of these shapes should be color coded according to the current player's color
+
+
 # Absolute path to folder containing frontend.py
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
