@@ -426,7 +426,7 @@ class CatanWindow(arcade.Window):
         )
         # VP
         self.txt_player_vp = arcade.Text(
-            f"VP: {player['vp']}",
+            f"Victory Points: {player['vp']}",
             panel_x + HUD_PANEL_WIDTH // 2,
             panel_top - 18 - row_h,
             TEXT_LIGHT_GRAY, 10,
@@ -528,7 +528,7 @@ class CatanWindow(arcade.Window):
         row_h     = 24
 
         for i, res in enumerate(order):
-            ry = panel_top - 18 - row_h * 2 - i * (ICON_SIZE + 4)
+            ry = panel_top - 25 - row_h * 2 - i * (ICON_SIZE + 5)
             sprite = self.resource_icons[res]
             sprite.center_x = panel_x + ICON_SIZE // 2 + 4
             sprite.center_y = ry
@@ -827,7 +827,7 @@ class CatanWindow(arcade.Window):
         player["vp"] += 1
         self._cancel_build()
         self._build_player_texts()
-        print(f"{player['name']} built a settlement! VP: {player['vp']}")
+        print(f"{player['name']} built a settlement! Victory Points: {player['vp']}")
 
     def _place_road(self, edge):
         player = PLAYERS[self.current_player_index]
