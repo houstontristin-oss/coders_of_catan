@@ -49,7 +49,7 @@ RESOURCE_SPRITES = {
     "forest": os.path.join(BASE_DIR, "sprites", "BW_icons", "wood-pile.png"),
 }
 
-PORT_SHIP_SPRITE = os.path.join(BASE_DIR, "sprites", "ports", "galley-ship.png")
+PORT_SHIP_SPRITE = os.path.join(BASE_DIR, "sprites", "ports", "galley_ship.png")
 
 # ---------------------------------------------------------------------------
 # Colors in HUD
@@ -321,22 +321,25 @@ class CatanWindow(arcade.Window):
         # --- Step 4: build render data ---
         for i, (angle_from_center, mx, my, x1, y1, x2, y2) in enumerate(port_edges):
             resource = PORT_TYPES[i]
-            label    = f"2:1\n{RESOURCE_ABBR[resource]}" if resource else "3:1"
+            label    = f"2:1 {RESOURCE_ABBR[resource]}" if resource else "3:1"
 
-            # Push ship outward from board center
+            # Push ship outward into the water past the tile edge
             dx   = mx - BOARD_CENTER_X
             dy   = my - BOARD_CENTER_Y
             dist = math.hypot(dx, dy) or 1
-            push = HEX_SIZE * 0.95
-            ship_x = mx + dx / dist * push
-            ship_y = my + dy / dist * push
+            ship_x = mx + dx / dist * (HEX_SIZE * 0.75)
+            ship_y = my + dy / dist * (HEX_SIZE * 0.75)
 
-            # Sprite angle: face the board center
+            # Label pushed a bit further out than the ship
+            label_x = mx + dx / dist * (HEX_SIZE * 1.3)
+            label_y = my + dy / dist * (HEX_SIZE * 1.3)
+
+            # Sprite angle: face inward toward the board center
             sprite_angle = math.degrees(math.atan2(dy, dx)) + 90
 
-            self._port_render_data.append((ship_x, ship_y, sprite_angle, label))
+            self._port_render_data.append((ship_x, ship_y, sprite_angle, label, label_x, label_y))
 
-            # Add sprite to SpriteList now (created once, not per frame)
+            # Add sprite to SpriteList once at init (Arcade 3.x requirement)
             if self._ship_ok:
                 ship = arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
                 ship.center_x = ship_x
@@ -444,7 +447,7 @@ class CatanWindow(arcade.Window):
             self.txt_resources.append(
                 arcade.Text(
                     f"{labels[res]}: {player['resources'][res]}",
-                    panel_x + ICON_SIZE + 10, ry,
+                    panel_x + ICON_SIZE + 25, ry,
                     TEXT_WHITE, 9,
                     anchor_y="center",
                     font_name="MedievalSharp"
@@ -562,20 +565,19 @@ class CatanWindow(arcade.Window):
     # Port drawing
     # -----------------------------------------------------------------------
     def _draw_ports(self):
-        # Draw all ship sprites via the SpriteList (Arcade 3.x requirement)
+        # Ship sprites sit on the tile edge — drawn via SpriteList
         if self._ship_ok:
             self.port_sprite_list.draw()
 
-        # Draw labels and fallback markers separately
-        for i, (ship_x, ship_y, angle, label) in enumerate(self._port_render_data):
+        # Labels are pushed outward so they're never covered by the tile
+        for (ship_x, ship_y, angle, label, label_x, label_y) in self._port_render_data:
             if not self._ship_ok:
-                # Fallback: brown circle when sprite is missing
-                arcade.draw_circle_filled(ship_x, ship_y, 12, (80, 60, 30))
-                arcade.draw_circle_outline(ship_x, ship_y, 12, TEXT_GOLD, 2)
+                arcade.draw_circle_filled(ship_x, ship_y, 10, (80, 60, 30))
+                arcade.draw_circle_outline(ship_x, ship_y, 10, TEXT_GOLD, 2)
 
             arcade.draw_text(
                 label,
-                ship_x, ship_y - 18,
+                label_x, label_y,
                 TEXT_GOLD, 8, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp"
@@ -678,9 +680,6 @@ class CatanWindow(arcade.Window):
         if self.bg_list:
             self.bg_list.draw()
 
-        # Ports (behind tiles so they peek out from under the board edge)
-        self._draw_ports()
-
         # Hex tiles
         for xyz, tile in self.board.tiles.items():
             cx, cy, cz = xyz
@@ -692,6 +691,9 @@ class CatanWindow(arcade.Window):
             # Number token (skip desert, which has number=0)
             if tile.number > 0:
                 draw_number_token(px, py, tile.number)
+
+        # Ports drawn after tiles — ships sit on outer tile edges, labels clear outward
+        self._draw_ports()
 
         # Ghost highlights
         if self.build_choice == BUILD_SETTLEMENT:
