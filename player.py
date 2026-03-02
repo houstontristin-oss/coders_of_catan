@@ -2,7 +2,7 @@ import arcade.color
 
 
 class Player:
-    def __init__(self, color):
+    def __init__(self, color, name):
         self.victory_points = 0
         self.resource_cards = {'WOOD':0, 'WHEAT':0, 'BRICK': 0, 'SHEEP': 0, 'ORE':0}
         self.development_cards = [] # we'll come back to this
@@ -10,6 +10,7 @@ class Player:
         self.total_settlements = 5
         self.total_cities = 4
         self.color = color
+        self.name = name
 
     def accept_trade(self): #option to accept a trade from a player
         pass

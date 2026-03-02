@@ -2,6 +2,7 @@ import arcade
 import math
 import os
 import pyglet
+from player import Player
 from backend import CatanBoard
 
 # TODO: Render 9 randomized ports around the board perimeter, visually correct, future-ready for backend trade logic.  This needs to be implemented in a way to ensure that im not stepping on the toes of those who are working on backend.py, main.py, and player.py
@@ -148,6 +149,12 @@ PLAYERS = [
     {"name": "Player 4", "color": (142, 68,  173), "resources": {"brick": 2, "ore": 0, "wheat": 1, "sheep": 1, "forest": 2}, "vp": 0},
 ]
 
+PLAYERS_TWO = [
+    Player((231, 76,  60), "Player 1"),
+    Player((39, 174, 96), "Player 2"),
+    Player((219, 118, 51), "Player 3"),
+    Player((142, 68, 173), "Player 4"),
+]
 
 # ===========================================================================
 # Coordinate helpers
