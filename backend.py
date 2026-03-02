@@ -7,6 +7,7 @@ TODO
 * work on comparison operators for checking if node/edge is able to be built on
 * player class
 '''
+#   Currently, we only have .tiles for nodes, but Edge objects does not
 # graph representation
 class Tile():
     # tiles represent the hexagonal piece that make up the full board
@@ -39,7 +40,6 @@ class Node():
     def __repr__(self):
         return self.__str__()
     
-    # TODO comparison function
 
     #check if node is a valid placement for settlement
     def is_valid_settlement_placement(self, player):
@@ -74,10 +74,9 @@ class Edge():
     # edge represents the straight where 2 tiles intersect, a.k.a. roads
     def __init__(self, id:tuple):
         self.id = id # e.g., tuple of 2 connected nodes
-        self.nodes = [] #list of surrounding nodes
+        self.nodes = [] # list of surrounding nodes (expected len 2)
+        self.tiles = [] # list of adjacent tiles (expected len 2)
         self.player = None # player who owns edge/road
-    
-    # TODO comparison function
 
     #check if edge is a valid placement for road
     def is_valid_road_placement(self, player):
@@ -96,10 +95,15 @@ class Edge():
     def place_road(self, player):
         self.player = player
 
+    def str(self):
+        return (f"|Edge:{self.id}:{self.nodes}|")
+
+
 class CatanBoard:
     def __init__(self):
         self.tiles = {} # {(x,y,z): TileObjects}
-        self.nodes = {} # {(fx,fy,fz): Node Object
+        self.nodes = {} # {(fx,fy,fz): Node Object}
+        self.edges = {} # {((x1,x2,x3),(x2,y2,z2)) : Edge Object}
 
     def make_board(self):
         #make default board
@@ -115,11 +119,13 @@ class CatanBoard:
             n = 0 if r == "desert" else number.pop()
             self.add_tile(xyz[i], r, n)
 
-    def add_tile(self, xyz, resource, number):
+    def add_tile(self, xyz:tuple, resource:str, number:int):
         # add tile to registry
-        x, y, z = xyz
-        new_tile = Tile((x,y,z), resource, number)
-        self.tiles[(x,y,z)] = new_tile
+        new_tile = Tile(xyz, resource, number)
+        self.tiles[xyz] = new_tile
+        tile_nodes = []
+        x,y,z = xyz
+        # Create Nodes for the Tile
         # define the 6 neighbor offsets for cube coordinates
         neighbor_offsets = [
             (1, -1, 0), (1, 0, -1), (0, 1, -1),
@@ -144,8 +150,36 @@ class CatanBoard:
             node_obj = self.nodes[node_id]
 
             # Cross-reference them
+            tile_nodes.append(node_obj) # list of edges for edge creation
             new_tile.nodes.append(node_obj)
             node_obj.tiles.append(new_tile)
+
+        # Create Edges for the Tile
+        for i in range(6):
+            # an edge connects two nodes
+            n1 = tile_nodes[i]
+            n2 = tile_nodes[(i + 1) % 6]
+
+            # use two node ids as id for edge
+            edge_id = tuple(sorted((n1.id, n2.id)))
+
+            # Get or Create the edge if it's not yet in the system
+            if edge_id not in self.edges:
+                self.edges[edge_id] = Edge(edge_id)
+
+            edge_obj = self.edges[edge_id]
+
+            # Cross-refrerence them 
+            # NOTE not checked! im also not sure how necessary this is
+            # just giving each node, edge, tile lists of connected ones for
+            # potential use. - Nick 
+            edge_obj.tiles.append(new_tile)
+            new_tile.edges.append(edge_obj)
+            n1.edges.append(edge_obj)
+            n2.edges.append(edge_obj)
+            edge_obj.nodes.append(n1)
+            edge_obj.nodes.append(n2)
+            
 
     def __str__(self):
         tile_strings = []
