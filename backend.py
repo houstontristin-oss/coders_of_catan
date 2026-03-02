@@ -7,7 +7,6 @@ TODO
 * work on comparison operators for checking if node/edge is able to be built on
 * player class
 '''
-# TODO: Need to store adjacent tiles within Edge in order to implement Port images properly
 #   Currently, we only have .tiles for nodes, but Edge objects does not
 # graph representation
 class Tile():
@@ -41,7 +40,6 @@ class Node():
     def __repr__(self):
         return self.__str__()
     
-    # TODO comparison function
 
     #check if node is a valid placement for settlement
     def is_valid_settlement_placement(self, player):
@@ -71,8 +69,6 @@ class Node():
             pass
             #self.building = "city" #or another way to denote city
 
-
-
 # TODO : FRONTEND PORT SUPPORT REQUIREMENTS
 # ============================================================ # ============================================================
 #   The frontend port system currently detects coastline edges using:
@@ -98,10 +94,9 @@ class Edge():
     # edge represents the straight where 2 tiles intersect, a.k.a. roads
     def __init__(self, id:tuple):
         self.id = id # e.g., tuple of 2 connected nodes
-        self.nodes = [] #list of surrounding nodes
+        self.nodes = [] # list of surrounding nodes (expected len 2)
+        self.tiles = [] # list of adjacent tiles (expected len 2)
         self.player = None # player who owns edge/road
-    
-    # TODO comparison function
 
     #check if edge is a valid placement for road
     def is_valid_road_placement(self, player):
@@ -198,6 +193,7 @@ class CatanBoard:
             # NOTE not checked! im also not sure how necessary this is
             # just giving each node, edge, tile lists of connected ones for
             # potential use. - Nick 
+            edge_obj.tiles.append(new_tile)
             new_tile.edges.append(edge_obj)
             n1.edges.append(edge_obj)
             n2.edges.append(edge_obj)
