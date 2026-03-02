@@ -4,6 +4,18 @@ import os
 import pyglet
 from backend import CatanBoard
 
+# TODO: /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/arcade/exceptions.py:138: PerformanceWarning: draw_text is an extremely slow function for displaying text. Consider using Text objects instead.
+#   warnings.warn(message, warning_type)
+# TODO: CHANGE the font style for the ports to contrast with the background.  The text is stuck in gold color, slightly
+#   opaque, and barely any outline
+# TODO:  Remove the sprites and logic for the ports.  Redo it all in order to have the port sprites right side up, a little
+#   bit off the coast of the board.  One might need to make each port separately or make the ports appear
+#  in two groups, the top and bottom ports which can line up well; and the right and left side ports, which can align with each other well
+#  All ports should be properly labeled.  Each port and respective label should be randomized alongside the board every launch of the game.
+# TODO:  self.txt_player_vp = arcade.Text(
+#         self.txt_resources = []
+#   Shift the text and sprites within these two definitions over to the right about 10 pixels to center within the display box
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ---------------------------------------------------------------------------
@@ -202,6 +214,27 @@ def fill_rect(left, bottom, width, height, color):
 def outline_rect(left, bottom, width, height, color, border=2):
     arcade.draw_lrbt_rectangle_outline(left, left + width, bottom, bottom + height, color, border)
 
+def draw_port_label(label_x, label_y, label):
+    """Port label with a dark pill background so it's always legible."""
+    font_size = 13
+    pad_x     = 10
+    pad_y     = 6
+    text_w    = len(label) * 8 + pad_x * 2
+    text_h    = font_size + pad_y * 2
+    left      = label_x - text_w / 2
+    bottom    = label_y - text_h / 2
+
+    arcade.draw_lrbt_rectangle_filled(left, left + text_w, bottom, bottom + text_h, (10, 10, 30, 230))
+    arcade.draw_lrbt_rectangle_outline(left, left + text_w, bottom, bottom + text_h, TEXT_GOLD, 1)
+    arcade.draw_text(
+        label,
+        label_x, label_y,
+        (15, 40, 90, 255), font_size,   # dark navy — high contrast on light blue
+        bold=True,
+        anchor_x="center", anchor_y="center",
+        font_name="MedievalSharp"
+    )
+
 
 # ===========================================================================
 # Main Window
@@ -327,16 +360,19 @@ class CatanWindow(arcade.Window):
             dx   = mx - BOARD_CENTER_X
             dy   = my - BOARD_CENTER_Y
             dist = math.hypot(dx, dy) or 1
-            ship_x = mx + dx / dist * (HEX_SIZE * 0.75)
-            ship_y = my + dy / dist * (HEX_SIZE * 0.75)
+            norm_x = dx / dist
+            norm_y = dy / dist
 
-            # Label pushed a bit further out than the ship
-            label_x = mx + dx / dist * (HEX_SIZE * 1.3)
-            label_y = my + dy / dist * (HEX_SIZE * 1.3)
+            ship_x = mx + norm_x * (HEX_SIZE * 0.65)
+            ship_y = my + norm_y * (HEX_SIZE * 0.65)
+
+            label_x = mx + norm_x * (HEX_SIZE * 1.1)
+            label_y = my + norm_y * (HEX_SIZE * 1.1)
 
             # Sprite angle: face inward toward the board center
-            sprite_angle = math.degrees(math.atan2(dy, dx)) + 90
-
+            # atan2(dy,dx) gives angle of outward direction from board center.
+            # Arcade rotates counter-clockwise from "right", so subtract 90 to align top.
+            sprite_angle = math.degrees(math.atan2(dy, dx)) - 90
             self._port_render_data.append((ship_x, ship_y, sprite_angle, label, label_x, label_y))
 
             # Add sprite to SpriteList once at init (Arcade 3.x requirement)
