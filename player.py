@@ -36,6 +36,11 @@ class Player:
 
         pass
 
+    def build_road_setup(self, board, edge):
+        if edge.is_valid_road_placement(board):
+            self.total_roads -= 1
+            edge.place_road(board)
+
     def build_settlement(self, board, node):
 
         # check if player has sufficient resources
@@ -50,6 +55,11 @@ class Player:
                 self.total_settlements -= 1
                 node.place_settlement(board)
         pass
+
+    def build_settlement_setup(self, board, node):
+        if node.is_valid_settlement_placement(board):
+            self.total_settlements -= 1
+            node.place_settlement(board)
 
     def build_city(self, settlement):
 
