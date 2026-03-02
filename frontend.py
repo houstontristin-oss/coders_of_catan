@@ -4,17 +4,29 @@ import os
 import pyglet
 from backend import CatanBoard
 
-# TODO: /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/arcade/exceptions.py:138: PerformanceWarning: draw_text is an extremely slow function for displaying text. Consider using Text objects instead.
-#   warnings.warn(message, warning_type)
-# TODO: CHANGE the font style for the ports to contrast with the background.  The text is stuck in gold color, slightly
-#   opaque, and barely any outline
-# TODO:  Remove the sprites and logic for the ports.  Redo it all in order to have the port sprites right side up, a little
-#   bit off the coast of the board.  One might need to make each port separately or make the ports appear
-#  in two groups, the top and bottom ports which can line up well; and the right and left side ports, which can align with each other well
-#  All ports should be properly labeled.  Each port and respective label should be randomized alongside the board every launch of the game.
-# TODO:  self.txt_player_vp = arcade.Text(
-#         self.txt_resources = []
-#   Shift the text and sprites within these two definitions over to the right about 10 pixels to center within the display box
+# TODO: Render 9 randomized ports around the board perimeter, visually correct, future-ready for backend trade logic.  This needs to be implemented in a way to ensure that im not stepping on the toes of those who are working on backend.py, main.py, and player.py
+#   This should safely implement our port system without overwriting other existing systems or changing how the already coded game functions.  This is just a display of the ports, which should be ready for future implementation of the port logic
+#   Ports must render:
+#   1)  After tiles 2)  Before placed roads/settlements 3)  Ship sprites via SpriteList 4)  Text labels via pre-built Text objects
+#   Store visual + future logical representation.
+#   Do NOT implement trading logic yet.
+#   Detect Coastline Edges (Compatible With Current Backend)
+#   Use node tile counts (since Edge has no .tiles).  (IF THIS WORKS BEST)
+#   Coastline rule:  if any(len(node.tiles) < 3 for node in edge_obj.nodes)
+#   This defines boundary edges using existing backend structure.
+#   Evenly Space 9 Ports  -  Steps:  Collect coastline edges.  For each, compute midpoint angle from board center:
+#   angle = math.atan2(my - BOARD_CENTER_Y, mx - BOARD_CENTER_X)    -   Sort by angle ascending.
+#   Select 9 evenly spaced edges:  step = len(outer_edges) / 9
+#   selected = [outer_edges[round(i * step) % len(outer_edges)] for i in range(9)]
+#   Randomize Port Types
+#   Distribution must be:  5 × resource ports (brick, ore, wheat, sheep, forest)  -   4 × generic (None)
+#   Align Ship Sprites Correctly
+#   Ships must: 1) Align parallel to coast edge 2) Sit slightly in ocean  3) Face along edge direction
+#   Create Text Labels
+#   Label rule: label = f"2:1 {RESOURCE_ABBR[resource]}" if resource else "3:1"
+#   Use prebuilt arcade.Text objects.   Font:  MedievalSharp
+#   Bold,  TEXT_GOLD (Or whatever contrasts best with blue), Anchor center, text 12 size font
+#
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -199,14 +211,14 @@ def draw_number_token(cx, cy, number):
         px = pip_start_x + i * pip_gap
         arcade.draw_circle_filled(px, cy - 7, pip_r, txt_col)
 
-    arcade.draw_text(
+    arcade.Text(
         str(number),
         cx, cy + 2,
         txt_col, 11,
         bold=True,
         anchor_x="center", anchor_y="center",
         font_name="MedievalSharp"
-    )
+    ).draw()
 
 def fill_rect(left, bottom, width, height, color):
     arcade.draw_lrbt_rectangle_filled(left, left + width, bottom, bottom + height, color)
@@ -226,14 +238,14 @@ def draw_port_label(label_x, label_y, label):
 
     arcade.draw_lrbt_rectangle_filled(left, left + text_w, bottom, bottom + text_h, (10, 10, 30, 230))
     arcade.draw_lrbt_rectangle_outline(left, left + text_w, bottom, bottom + text_h, TEXT_GOLD, 1)
-    arcade.draw_text(
+    arcade.Text(
         label,
         label_x, label_y,
         (15, 40, 90, 255), font_size,   # dark navy — high contrast on light blue
         bold=True,
         anchor_x="center", anchor_y="center",
         font_name="MedievalSharp"
-    )
+    ).draw()
 
 
 # ===========================================================================
@@ -260,6 +272,7 @@ class CatanWindow(arcade.Window):
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
         self._port_render_data = []   # list of (ship_x, ship_y, angle, label)
+        self.txt_port_labels = []
 
         # Load background
         self._load_background()
@@ -375,6 +388,18 @@ class CatanWindow(arcade.Window):
             sprite_angle = math.degrees(math.atan2(dy, dx)) - 90
             self._port_render_data.append((ship_x, ship_y, sprite_angle, label, label_x, label_y))
 
+            # Pre-build Text object for this port label (avoids draw_text perf warning)
+            self.txt_port_labels.append(
+                arcade.Text(
+                    label,
+                    label_x, label_y,
+                    (15, 40, 90, 255), 13,
+                    bold=True,
+                    anchor_x="center", anchor_y="center",
+                    font_name="MedievalSharp"
+                )
+            )
+
             # Add sprite to SpriteList once at init (Arcade 3.x requirement)
             if self._ship_ok:
                 ship = arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
@@ -445,6 +470,28 @@ class CatanWindow(arcade.Window):
         self.txt_die1       = arcade.Text("?", dx+(DICE_AREA_WIDTH-2*40-12)/2+20,     dy+22+20, TEXT_WHITE, 18, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
         self.txt_die2       = arcade.Text("?", dx+(DICE_AREA_WIDTH-2*40-12)/2+20+54,  dy+22+20, TEXT_WHITE, 18, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
 
+        # Build submenu labels (x/y updated at draw time via .x / .y)
+        self.txt_submenu_settlement = arcade.Text("Settlement", 0, 0, TEXT_WHITE, 9, bold=True,
+                                                   anchor_x="center", anchor_y="center",
+                                                   font_name="MedievalSharp")
+        self.txt_submenu_road       = arcade.Text("Road",       0, 0, TEXT_WHITE, 9, bold=True,
+                                                   anchor_x="center", anchor_y="center",
+                                                   font_name="MedievalSharp")
+
+        # Confirm popup labels
+        self.txt_popup_title   = arcade.Text("", 0, 0, TEXT_GOLD,  10, bold=True,
+                                              anchor_x="center", anchor_y="center",
+                                              font_name="MedievalSharp")
+        self.txt_popup_confirm = arcade.Text("", 0, 0, TEXT_WHITE,  9, bold=True,
+                                              anchor_x="center", anchor_y="center",
+                                              font_name="MedievalSharp")
+        self.txt_popup_cancel  = arcade.Text("Cancel", 0, 0, TEXT_WHITE, 9, bold=True,
+                                              anchor_x="center", anchor_y="center",
+                                              font_name="MedievalSharp")
+
+        # Port labels (rebuilt when port data changes)
+        self.txt_port_labels = []
+
         self._build_player_texts()
 
     def _build_player_texts(self):
@@ -466,7 +513,7 @@ class CatanWindow(arcade.Window):
         # VP
         self.txt_player_vp = arcade.Text(
             f"Victory Points: {player['vp']}",
-            panel_x + HUD_PANEL_WIDTH // 2,
+            panel_x + HUD_PANEL_WIDTH // 2 + 10,
             panel_top - 18 - row_h,
             TEXT_LIGHT_GRAY, 10,
             anchor_x="center", anchor_y="center",
@@ -483,7 +530,7 @@ class CatanWindow(arcade.Window):
             self.txt_resources.append(
                 arcade.Text(
                     f"{labels[res]}: {player['resources'][res]}",
-                    panel_x + ICON_SIZE + 25, ry,
+                    panel_x + ICON_SIZE + 35, ry,
                     TEXT_WHITE, 9,
                     anchor_y="center",
                     font_name="MedievalSharp"
@@ -538,13 +585,15 @@ class CatanWindow(arcade.Window):
 
         s_col = (39, 174, 96) if self._can_afford(SETTLEMENT_COST) else (70, 70, 70)
         fill_rect(bx+8, by+44, menu_w-16, 28, s_col)
-        arcade.draw_text("Settlement", bx+menu_w/2, by+58, TEXT_WHITE, 9, bold=True,
-                         anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_submenu_settlement.x = bx + menu_w / 2
+        self.txt_submenu_settlement.y = by + 58
+        self.txt_submenu_settlement.draw()
 
         r_col = (52, 152, 219) if self._can_afford(ROAD_COST) else (70, 70, 70)
         fill_rect(bx+8, by+8, menu_w-16, 28, r_col)
-        arcade.draw_text("Road", bx+menu_w/2, by+22, TEXT_WHITE, 9, bold=True,
-                         anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_submenu_road.x = bx + menu_w / 2
+        self.txt_submenu_road.y = by + 22
+        self.txt_submenu_road.draw()
 
     def _draw_player_panel(self):
         """Slim single-column panel in top-left."""
@@ -605,19 +654,12 @@ class CatanWindow(arcade.Window):
         if self._ship_ok:
             self.port_sprite_list.draw()
 
-        # Labels are pushed outward so they're never covered by the tile
-        for (ship_x, ship_y, angle, label, label_x, label_y) in self._port_render_data:
+        # Labels drawn via pre-built Text objects (no draw_text performance hit)
+        for txt in self.txt_port_labels:
             if not self._ship_ok:
-                arcade.draw_circle_filled(ship_x, ship_y, 10, (80, 60, 30))
-                arcade.draw_circle_outline(ship_x, ship_y, 10, TEXT_GOLD, 2)
-
-            arcade.draw_text(
-                label,
-                label_x, label_y,
-                TEXT_GOLD, 8, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp"
-            )
+                # fallback dot at ship position stored alongside label
+                pass
+            txt.draw()
 
     # -----------------------------------------------------------------------
     # Board pieces (always drawn)
@@ -692,19 +734,22 @@ class CatanWindow(arcade.Window):
 
         fill_rect(pop_left, cy, popup_w, popup_h, (20, 20, 40, 220))
         outline_rect(pop_left, cy, popup_w, popup_h, TEXT_GOLD, 2)
-        arcade.draw_text(label, cx, cy+popup_h-14, TEXT_GOLD, 10, bold=True,
-                         anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_popup_title.text = label
+        self.txt_popup_title.x    = cx
+        self.txt_popup_title.y    = cy + popup_h - 14
+        self.txt_popup_title.draw()
 
         btn_col = (39, 174, 96) if can else (80, 80, 80)
         fill_rect(pop_left+8,          cy+8, 66, 30, btn_col)
-        arcade.draw_text("Confirm" if can else "No Res.",
-                         pop_left+41, cy+23, TEXT_WHITE, 9, bold=True,
-                         anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_popup_confirm.text = "Confirm" if can else "No Res."
+        self.txt_popup_confirm.x    = pop_left + 41
+        self.txt_popup_confirm.y    = cy + 23
+        self.txt_popup_confirm.draw()
 
         fill_rect(pop_left+popup_w-74, cy+8, 66, 30, (180, 50, 50))
-        arcade.draw_text("Cancel",
-                         pop_left+popup_w-41, cy+23, TEXT_WHITE, 9, bold=True,
-                         anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_popup_cancel.x = pop_left + popup_w - 41
+        self.txt_popup_cancel.y = cy + 23
+        self.txt_popup_cancel.draw()
 
     # -----------------------------------------------------------------------
     # on_draw

@@ -7,6 +7,8 @@ TODO
 * work on comparison operators for checking if node/edge is able to be built on
 * player class
 '''
+# TODO: Need to store adjacent tiles within Edge in order to implement Port images properly
+#   Currently, we only have .tiles for nodes, but Edge objects does not
 # graph representation
 class Tile():
     # tiles represent the hexagonal piece that make up the full board
@@ -69,6 +71,28 @@ class Node():
             pass
             #self.building = "city" #or another way to denote city
 
+
+
+# TODO : FRONTEND PORT SUPPORT REQUIREMENTS
+# ============================================================ # ============================================================
+#   The frontend port system currently detects coastline edges using:
+#   any(len(node.tiles) < 3 for node in edge.nodes)
+#
+#   The frontend would benefit from Edge objects storing explicit tile adjacency
+#
+#   If you've got time please implement this improvement
+#   In Edge.__init__:
+#         self.tiles = []
+#
+#   During board construction (in add_tile):
+#     When a tile is created, append it to each edge it borders.
+#
+#   Then coastline detection can be simplified to:
+#     len(edge.tiles) == 1
+#   This would make perimeter detection mathematically correct and remove dependency on node tile counts.
+#   No trade logic required yet.
+#   This is strictly structural support for frontend rendering.
+# ============================================================ # ============================================================
 
 class Edge():
     # edge represents the straight where 2 tiles intersect, a.k.a. roads
