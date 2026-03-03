@@ -247,17 +247,6 @@ def draw_port_label(label_x, label_y, label):
         font_name="MedievalSharp"
     ).draw()
 
-
-# ===========================================================================
-# Main Window
-# ===========================================================================
-class CatanWindow(arcade.Window):
-
-    def __init__(self):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-        pyglet.font.add_file('fonts/MedievalSharp-Regular.ttf')
-
-        self.current_player_index = 0
 def draw_board(board):
     for xyz, tile in board.tiles.items():
             cx, cy, cz = xyz
@@ -1019,9 +1008,7 @@ class CatanView(arcade.View):
         print(f"Turn ended. Now it's {PLAYERS[self.current_player]['name']}'s turn.")
 
 """
-Adding empty game play views here
 TODO: Determine how we want trading to work
-Also maybe there is a way to make a base class for the Trade, Build and PlayCard views since they will all have similar setup? 
 also maybe break into more functions for ex building the board could be a global helper function
 """
 # ---------------------------------------------------------------------------
@@ -1044,7 +1031,8 @@ class SetupView(arcade.View):
 
     def on_draw(self):
         self.clear()
-        # --- Draw the board ---
+        # --- Draw the board --- 
+        #TODO: Make a helper function from the code thats in CatanView to build a board with all the ports and numbers.
         draw_board(self.board)
         self.txt_title.draw()
 
