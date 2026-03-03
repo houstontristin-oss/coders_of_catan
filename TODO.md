@@ -5,4 +5,4 @@ Tristin: implement node_to_pixel in frontend.py
 make hoverable circles
 
 
-Amanda: add setup phase flag and connect the placement validation to the actual Player objects
+Amanda: MERGE VIEWS INTO MAIN. add setup phase flag and connect the placement validation to the actual Player objects. Make road and settlement placement helper functions so that it can be used in both setup and catan views without duplicating all of the code (need help from Tristin)
