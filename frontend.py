@@ -289,6 +289,7 @@ class StartView(arcade.View):
         self.board.make_board()
         # TODO: create players here
         self.players = PLAYERS
+        # show setupview starting with player at index 0 and round 1 of play
         self.window.show_view(SetupView(self.board, self.players, 0, 1))
 
 
@@ -301,7 +302,6 @@ class CatanView(arcade.View):
         self.board = board
         self.players = players
         # Track whose turn it is (index into PLAYERS list)
-        # TODO: wire up to Amanda's turn logic later
         self.current_player = current_player
 
         # Build mode state
@@ -332,8 +332,6 @@ class CatanView(arcade.View):
         self._load_port_sprite()
 
         # Build the board (number tokens assigned inside)
-        self.board = CatanBoard()
-        self.board.make_board()
         self._assign_number_tokens()
 
         # Build pixel caches
@@ -847,7 +845,32 @@ class CatanView(arcade.View):
         self._draw_player_panel()
         self._draw_dice_area()
         self._draw_bottom_bar()
+        self._draw_build_submenu()
 
+# -----------------------------------------------------------------------
+# Mouse motion
+# -----------------------------------------------------------------------
+    def on_mouse_motion(self, x, y, dx, dy):
+        if self.show_confirm:
+            return
+        if self.build_choice == BUILD_SETTLEMENT:
+            closest, closest_dist = None, float("inf")
+            for node_id, (npx, npy) in self._node_pixel_cache.items():
+                d = math.hypot(x-npx, y-npy)
+                if d < NODE_SNAP_RADIUS and d < closest_dist:
+                    node = self.board.nodes[node_id]
+                    if node.player is None:
+                        closest, closest_dist = node, d
+            self.hovered_node = closest
+        elif self.build_choice == BUILD_ROAD:
+            closest, closest_dist = None, float("inf")
+            for edge_id, (mx, my, *_) in self._edge_pixel_cache.items():
+                d = math.hypot(x-mx, y-my)
+                if d < EDGE_SNAP_RADIUS and d < closest_dist:
+                    edge = self.board.edges[edge_id]
+                    if edge.player is None:
+                        closest, closest_dist = edge, d
+            self.hovered_edge = closest
 
     def on_mouse_press(self, x, y, button, modifiers):
         """
@@ -858,14 +881,129 @@ class CatanView(arcade.View):
         btn_w = 150
         gap = 20
         total_w = 3 * btn_w + 2 * gap
-        start_x = (SCREEN_WIDTH - total_w) / 2
-        if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
+        sx = (SCREEN_WIDTH - total_w) / 2
+        # End Turn
+        if (SCREEN_WIDTH-btn_w-15 <= x <= SCREEN_WIDTH-15) and (y <= HUD_BOTTOM_HEIGHT):
             self._end_turn()
-        if (start_x <= x <= start_x + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
-            self.window.show_view(TradeView(self.board, self.players, self.current_player))
+            return
 
-        if (start_x + 2*(btn_w + gap) <= x <= start_x + 2*(btn_w + gap) + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
+        # Build button
+        build_left = sx + btn_w + gap
+        if (build_left <= x <= build_left + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
+            if self.build_mode:
+                self._cancel_build()
+            else:
+                self.build_mode   = True
+                self.build_choice = BUILD_NONE
+            return
+
+        # Sub-menu
+        if self.build_mode and self.build_choice == BUILD_NONE:
+            bx     = sx + btn_w + gap
+            by     = HUD_BOTTOM_HEIGHT
+            menu_w = btn_w
+            if (bx+8 <= x <= bx+menu_w-8) and (by+44 <= y <= by+72):
+                if self._can_afford(SETTLEMENT_COST):
+                    self.build_choice = BUILD_SETTLEMENT
+                return
+            if (bx+8 <= x <= bx+menu_w-8) and (by+8 <= y <= by+36):
+                if self._can_afford(ROAD_COST):
+                    self.build_choice = BUILD_ROAD
+                return
+
+        # Confirmation popup
+        if self.show_confirm:
+            if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
+                pcx, pcy = self._node_pixel_cache[self.selected_node.id]
+                pcy     += 18
+            elif self.build_choice == BUILD_ROAD and self.selected_edge:
+                mx, my, *_ = self._edge_pixel_cache[self.selected_edge.id]
+                pcx, pcy   = mx, my + 18
+            else:
+                self.show_confirm = False
+                return
+
+            popup_w  = 160
+            pop_left = pcx - popup_w / 2
+
+            if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
+                if self.build_choice == BUILD_SETTLEMENT and self._can_afford(SETTLEMENT_COST):
+                    self._place_settlement(self.selected_node)
+                elif self.build_choice == BUILD_ROAD and self._can_afford(ROAD_COST):
+                    self._place_road(self.selected_edge)
+                return
+            if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
+                self.selected_node = None
+                self.selected_edge = None
+                self.show_confirm  = False
+                return
+            self.selected_node = None
+            self.selected_edge = None
+            self.show_confirm  = False
+            return
+
+        if self.build_choice == BUILD_SETTLEMENT and self.hovered_node:
+            self.selected_node = self.hovered_node
+            self.show_confirm  = True
+            return
+        if self.build_choice == BUILD_ROAD and self.hovered_edge:
+            self.selected_edge = self.hovered_edge
+            self.show_confirm  = True
+            return
+        #Trade View
+        if (sx <= x <= sx + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
+            self.window.show_view(TradeView(self.board, self.players, self.current_player))
+        #Play Card View
+        if (sx + 2*(btn_w + gap) <= x <= sx + 2*(btn_w + gap) + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
             self.window.show_view(PlayCardView(self.board, self.players, self.current_player))
+    # -----------------------------------------------------------------------
+    # Placement
+    # -----------------------------------------------------------------------
+    def _place_settlement(self, node):
+        player = PLAYERS[self.current_player]
+        for res, amt in SETTLEMENT_COST.items():
+            player["resources"][res] -= amt
+        node.player   = self.current_player
+        node.building = "settlement"
+        player["vp"] += 1
+        self._cancel_build()
+        self._build_player_texts()
+        print(f"{player['name']} built a settlement! Victory Points: {player['vp']}")
+
+    def _place_road(self, edge):
+        player = PLAYERS[self.current_player]
+        idx    = self.current_player
+        connected = False
+        for node in edge.nodes:
+            if node.player == idx:
+                connected = True
+                break
+            for neighbour_edge in node.edges:
+                if neighbour_edge is not edge and neighbour_edge.player == idx:
+                    connected = True
+                    break
+            if connected:
+                break
+        if not connected:
+            print(f"{player['name']} — road must connect to your settlement or existing road.")
+            self.show_confirm  = False
+            self.selected_edge = None
+            return
+        for res, amt in ROAD_COST.items():
+            player["resources"][res] -= amt
+        edge.player = self.current_player
+        self._cancel_build()
+        self._build_player_texts()
+        print(f"{player['name']} built a road!")
+
+    def _cancel_build(self):
+        self.build_mode    = False
+        self.build_choice  = BUILD_NONE
+        self.hovered_node  = None
+        self.hovered_edge  = None
+        self.selected_node = None
+        self.selected_edge = None
+        self.show_confirm  = False
 
     def _end_turn(self):
         """
