@@ -83,6 +83,7 @@ class SetupView(arcade.View):
     # -----------------------------------------------------------------------
     # Ghost highlights
     # TODO: Make only valid settlement and road placements highlighted
+    # NOTE: Currently if you place a road on a not valid spot during setup it will disappear and if you place a settlement on a not valid spot it will violate the rules
     # -----------------------------------------------------------------------
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color
@@ -272,10 +273,11 @@ class SetupView(arcade.View):
                     elif self.cycle == 2 and self.current_player > 0:
                         self.current_player -= 1
                     elif self.cycle == 2 and self.current_player == 0:
+                        #TODO: Give each player their resources from their most recently built settlement
                         from .catan_view import CatanView
                         self.window.show_view(CatanView(self.board, self.players, 0))
                         return
-                        
+      
                     self.window.show_view(SetupView(self.board, self.players, self.current_player, self.cycle))
                 return
             if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
