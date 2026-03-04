@@ -2,8 +2,8 @@ import arcade
 import math
 import os
 import pyglet
-from backend import Player
-from backend import CatanBoard
+from backend.Player import Player
+from backend.CatanBoard import CatanBoard
 
 # TODO: Render 9 randomized ports around the board perimeter, visually correct, future-ready for backend trade logic.  This needs to be implemented in a way to ensure that im not stepping on the toes of those who are working on backend.py, main.py, and player.py
 #   This should safely implement our port system without overwriting other existing systems or changing how the already coded game functions.  This is just a display of the ports, which should be ready for future implementation of the port logic
@@ -590,7 +590,7 @@ class CatanView(arcade.View):
     # Affordability
     # -----------------------------------------------------------------------
     def _can_afford(self, cost_dict):
-        res = PLAYERS_TWO[self.current_player_index].resource_cards
+        res = PLAYERS_TWO[self.current_player].resource_cards
         return all(res.get(r, 0) >= amt for r, amt in cost_dict.items())
 
     # -----------------------------------------------------------------------
@@ -647,7 +647,7 @@ class CatanView(arcade.View):
     def _draw_player_panel(self):
         player = PLAYERS[self.current_player]
         """Slim single-column panel in top-left."""
-        player  = PLAYERS_TWO[self.current_player_index]
+        player  = PLAYERS_TWO[self.current_player]
         panel_x = 8
         panel_y = SCREEN_HEIGHT - HUD_PANEL_HEIGHT - 8
 
@@ -729,7 +729,7 @@ class CatanView(arcade.View):
     # Ghost highlights
     # -----------------------------------------------------------------------
     def _draw_node_highlights(self):
-        player_color = PLAYERS_TWO[self.current_player_index].color
+        player_color = PLAYERS_TWO[self.current_player].color
         for node_id, node_obj in self.board.nodes.items():
             if node_obj.player is not None:
                 continue
@@ -746,7 +746,7 @@ class CatanView(arcade.View):
                 arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
 
     def _draw_edge_highlights(self):
-        player_color = PLAYERS_TWO[self.current_player_index].color
+        player_color = PLAYERS_TWO[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
             if edge_obj.player is not None:
                 continue
@@ -958,19 +958,19 @@ class CatanView(arcade.View):
     # Placement
     # -----------------------------------------------------------------------
     def _place_settlement(self, node):
-        player = PLAYERS_TWO[self.current_player_index]
+        player = PLAYERS_TWO[self.current_player]
         player.build_settlement(CatanBoard, node)
-        node.player = self.current_player_index
+        node.player = self.current_player
         node.building = "settlement"
         player.victory_points += 1
         self._cancel_build()
         self._build_player_texts()
         print(f"{player.name} built a settlement! Victory Points: {player.victory_points}")
 
-       # player = PLAYERS[self.current_player_index]
+       # player = PLAYERS[self.current_player]
        # for res, amt in SETTLEMENT_COST.items():
       #      player["resources"][res] -= amt
-      #  node.player   = self.current_player_index
+      #  node.player   = self.current_player
       #  node.building = "settlement"
        # player["vp"] += 1
        # self._cancel_build()
@@ -978,8 +978,8 @@ class CatanView(arcade.View):
        # print(f"{player['name']} built a settlement! Victory Points: {player['vp']}")
 
     def _place_road(self, edge):
-        player = PLAYERS_TWO[self.current_player_index]
-        idx = self.current_player_index
+        player = PLAYERS_TWO[self.current_player]
+        idx = self.current_player
         connected = False
         for node in edge.nodes:
             if node.player == idx:
@@ -997,13 +997,13 @@ class CatanView(arcade.View):
             self.selected_edge = None
             return
         player.build_road(CatanBoard, edge)
-        edge.player = self.current_player_index
+        edge.player = self.current_player
         self._cancel_build()
         self._build_player_texts()
         print(f"{player.name} built a road!")
 
-        #player = PLAYERS[self.current_player_index]
-       # idx    = self.current_player_index
+        #player = PLAYERS[self.current_player]
+       # idx    = self.current_player
        # connected = False
        # for node in edge.nodes:
        #     if node.player == idx:
@@ -1022,7 +1022,7 @@ class CatanView(arcade.View):
            # return
       #  for res, amt in ROAD_COST.items():
           #  player["resources"][res] -= amt
-       # edge.player = self.current_player_index
+       # edge.player = self.current_player
        # self._cancel_build()
        # self._build_player_texts()
        # print(f"{player['name']} built a road!")
@@ -1037,10 +1037,10 @@ class CatanView(arcade.View):
         self.show_confirm  = False
 
     def _end_turn(self):
-        self.current_player_index = (self.current_player_index + 1) % len(PLAYERS_TWO)
+        self.current_player = (self.current_player + 1) % len(PLAYERS_TWO)
         self._cancel_build()
         self._build_player_texts()
-        print(f"Turn ended. Now it's {PLAYERS_TWO[self.current_player_index].name}'s turn.")
+        print(f"Turn ended. Now it's {PLAYERS_TWO[self.current_player].name}'s turn.")
 
         # TODO: check for VPs to end game
         # if self.players[self.current_player].vp == 10:
