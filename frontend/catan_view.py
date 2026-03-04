@@ -488,12 +488,12 @@ class CatanView(arcade.View):
         if not self.show_confirm:
             return
         if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
-            cx, cy = self._node_pixel_cache[self.selected_node.id]
+            cx, cy = self._node_pixel_cache[self.selected_node.node_id]
             cy    += 18
             can    = self._can_afford(SETTLEMENT_COST)
             label  = "Build Settlement?"
         elif self.build_choice == BUILD_ROAD and self.selected_edge:
-            mx, my, *_ = self._edge_pixel_cache[self.selected_edge.id]
+            mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
             cx, cy = mx, my + 18
             can    = self._can_afford(ROAD_COST)
             label  = "Build Road?"
@@ -634,10 +634,10 @@ class CatanView(arcade.View):
         # Confirmation popup
         if self.show_confirm:
             if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
-                pcx, pcy = self._node_pixel_cache[self.selected_node.id]
+                pcx, pcy = self._node_pixel_cache[self.selected_node.node_id]
                 pcy     += 18
             elif self.build_choice == BUILD_ROAD and self.selected_edge:
-                mx, my, *_ = self._edge_pixel_cache[self.selected_edge.id]
+                mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
                 pcx, pcy   = mx, my + 18
             else:
                 self.show_confirm = False
