@@ -991,10 +991,10 @@ class CatanWindow(arcade.Window):
     # End turn
     # -----------------------------------------------------------------------
     def _end_turn(self):
-        self.current_player_index = (self.current_player_index + 1) % len(PLAYERS)
+        self.current_player_index = (self.current_player_index + 1) % len(PLAYERS_TWO)
         self._cancel_build()
         self._build_player_texts()
-        print(f"Turn ended. Now it's {PLAYERS[self.current_player_index]['name']}'s turn.")
+        print(f"Turn ended. Now it's {PLAYERS_TWO[self.current_player_index].name}'s turn.")
 
 
 def main():
