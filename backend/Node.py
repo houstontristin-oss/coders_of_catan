@@ -1,6 +1,10 @@
-class Node():
+class Node:
     """
     node represents the axis between tiles where settlements can be placed
+
+    Args:
+        node_id (tuple): a unique identifier for the node, e.g. the average of 
+        the surrounding tile's coordinates
     """
     def __init__(self, node_id:tuple):
         self.node_id = node_id # e.g. tuple of the averages of the surrounding node's ids
@@ -16,6 +20,14 @@ class Node():
 
     #check if node is a valid placement for settlement
     def is_valid_settlement_placement(self, player):
+        """
+        A settlement can be placed on a node if:
+            1. The node is not already occupied by another settlement or city.
+            2. There are no adjacent settlements (i.e., no other settlements on directly connected nodes).
+        
+        Args: 
+            player: The player who is attempting to place the settlement.
+        """
         if self.building:
             return False
         #loop through edges for edge cases
@@ -32,12 +44,26 @@ class Node():
     
     #after checking valid placement, actually place settlement
     def place_settlement(self, player):
+        """
+        Place a settlement on the node if the placement is valid.
+
+        Args:
+            player: The player who is placing the settlement.
+        """
         self.player = player
-        #self.building = "settlement" 
+        #self.building = "settlement"
         # NOTE: add check for if placement breaks another players longest road here
-    
-    # TODO: determine how to represent city
+
     def place_city(self, player):
+        """assign player to node if they have a settlement there, 
+        and upgrade to city
+        
+        A city can be placed on a node if:
+            1. The node already has a settlement owned by the same player. 
+
+        Args:
+            player: The player who is placing the city.
+        """
         if self.player == player:
             pass
             #self.building = "city" #or another way to denote city
