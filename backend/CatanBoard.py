@@ -72,7 +72,7 @@ class CatanBoard:
             n2 = tile_nodes[(i + 1) % 6]
 
             # use two node ids as id for edge
-            edge_id = tuple(sorted((n1.id, n2.id)))
+            edge_id = tuple(sorted((n1.node_id, n2.node_id)))
 
             # Get or Create the edge if it's not yet in the system
             if edge_id not in self.edges:

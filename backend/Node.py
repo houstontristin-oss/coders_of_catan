@@ -1,18 +1,18 @@
 class Node():
-    # node represents the axis between tiles where settlements can be placed
-    def __init__(self, id:tuple):
-        self.id = id # e.g. tuple of the averages of the surrounding node's ids
+    """
+    node represents the axis between tiles where settlements can be placed
+    """
+    def __init__(self, node_id:tuple):
+        self.node_id = node_id # e.g. tuple of the averages of the surrounding node's ids
         self.tiles = [] # List of tile objects
         self.edges = [] # list of edge objects
         self.building = None # e.g., settlement/city
         self.player = None # player who owns node/settle/city
 
     def __str__(self):
-        return f"Node: {self.id}"
-    
+        return f"Node: {self.node_id}"
     def __repr__(self):
         return self.__str__()
-    
 
     #check if node is a valid placement for settlement
     def is_valid_settlement_placement(self, player):
