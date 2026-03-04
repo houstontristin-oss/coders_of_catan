@@ -1,16 +1,19 @@
 import random
-import backend.Tile as Tile
-import backend.Node as Node
-import backend.Edge as Edge
-'''
-TODO 
-* start working on functions necessary to run game loop
-* add in necessary arcade architecture for creating frontend
-* work on comparison operators for checking if node/edge is able to be built on
-* player class
-'''
+import tile as Tile
+import node as Node
+import edge as Edge
+
 class CatanBoard:
-    # Catan Board handles all tiles, nodes, and edges of the catan board
+    """Catan Board handles all tiles, nodes, and edges of the catan board
+
+    Attributes:
+        tiles: a dictionary mapping tile IDs 
+            (e.g., (x,y,z) cubic coordinates) to Tile objects
+        nodes: a dictionary mapping node IDs 
+            (e.g., (fx,fy,fz) fractional coordinates) to Node objects
+        edges: a dictionary mapping edge IDs 
+            (e.g.,((x1,y1,z1),(x2,y2,z2)) sorted tuple of node IDs) to Edge objs
+    """
     def __init__(self):
         self.tiles = {} # {(x,y,z): TileObjects}
         self.nodes = {} # {(fx,fy,fz): Node Object}
@@ -18,9 +21,15 @@ class CatanBoard:
 
     def make_board(self):
         #make default board
-        resource = ["sheep","sheep","sheep","sheep", "brick","brick","brick", "ore", "ore","ore","wheat","wheat","wheat","wheat", "forest","forest","forest","forest", "desert"]
-        number = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12] 
-        xyz = [(-2,  0,  2), (-2,  1,  1), (-2,  2,  0), (-1, -1,  2), (-1,  0,  1), (-1,  1,  0), (-1,  2, -1), (0, -2,  2), (0, -1,  1), (0,  0,  0), (0,  1, -1), (0,  2, -2), (1, -2,  1), (1, -1,  0), (1,  0, -1), (1,  1, -2), (2, -2,  0), (2, -1, -1), (2,  0, -2)]
+        resource = ["sheep","sheep","sheep","sheep", "brick","brick","brick",
+                    "ore", "ore","ore","wheat","wheat","wheat","wheat", 
+                    "forest","forest","forest","forest", "desert"]
+        number = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
+        xyz = [(-2,  0,  2), (-2,  1,  1), (-2,  2,  0), (-1, -1,  2),
+               (-1,  0,  1), (-1,  1,  0), (-1,  2, -1), (0, -2,  2),
+               (0, -1,  1), (0,  0,  0), (0,  1, -1), (0,  2, -2), (1, -2,  1),
+               (1, -1,  0), (1,  0, -1), (1,  1, -2), (2, -2,  0), (2, -1, -1),
+               (2,  0, -2)]
         # randomize resource and number lists
         random.shuffle(resource)
         random.shuffle(number)
@@ -46,7 +55,7 @@ class CatanBoard:
             # A node is at the intersection of the current tile & two neighbors
             n1 = neighbor_offsets[i]
             n2 = neighbor_offsets[(i + 1) % 6]
-            
+
             # Use the average of 3 tile centers as the unique Node ID
             fx = round((x + (x+n1[0]) + (x+n2[0])) / 3.0, 3)
             fy = round((y + (y+n1[1]) + (y+n2[1])) / 3.0, 3)
@@ -56,7 +65,7 @@ class CatanBoard:
             # Get or Create the Node if it's not yet in the system
             if node_id not in self.nodes:
                 self.nodes[node_id] = Node.Node(node_id)
-            
+
             # create a node object
             node_obj = self.nodes[node_id]
 
@@ -80,23 +89,22 @@ class CatanBoard:
 
             edge_obj = self.edges[edge_id]
 
-            # Cross-refrerence them 
+            # Cross-refrerence them
             # NOTE not checked! im also not sure how necessary this is
             # just giving each node, edge, tile lists of connected ones for
-            # potential use. - Nick 
+            # potential use. - Nick
             edge_obj.tiles.append(new_tile)
             new_tile.edges.append(edge_obj)
             n1.edges.append(edge_obj)
             n2.edges.append(edge_obj)
             edge_obj.nodes.append(n1)
             edge_obj.nodes.append(n2)
-            
 
     def __str__(self):
         tile_strings = []
         for tile_obj in self.tiles.values(): # .values() gets the Tile objects
             tile_strings.append(str(tile_obj))
-        
+
         # Combine all tile strings separated by a dashed line
         divider = "\n" + "-"*30 + "\n"
         return f"=== Catan Board ===\n{divider.join(tile_strings)}"
