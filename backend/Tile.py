@@ -1,4 +1,4 @@
-class Tile():
+class Tile:
     """tiles represent the hexagonal piece that make up the full board
     
     Attributes:
