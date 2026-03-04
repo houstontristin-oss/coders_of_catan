@@ -586,8 +586,6 @@ class CatanView(arcade.View):
     def on_mouse_press(self, x, y, button, modifiers):
         """
         Skeleton click handler.
-        TODO: Apoorva will flesh out node/edge detection here.
-        TODO: Wire End Turn button to Amanda's turn logic.
         """
         btn_w = 150
         gap = 20
