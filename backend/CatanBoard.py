@@ -1,5 +1,7 @@
-# Catan Backend File
 import random
+import backend.Tile as Tile
+import backend.Node as Node
+import backend.Edge as Edge
 '''
 TODO 
 * start working on functions necessary to run game loop
@@ -7,99 +9,8 @@ TODO
 * work on comparison operators for checking if node/edge is able to be built on
 * player class
 '''
-#   Currently, we only have .tiles for nodes, but Edge objects does not
-# graph representation
-class Tile():
-    # tiles represent the hexagonal piece that make up the full board
-    def __init__(self, id:tuple, resource:str, number:int):
-        self.id = id # e.g. (x,y,z) cubic coord
-        self.resource = resource # terrain/resource tile yields
-        self.number = number # number when dice rolled will yield resource
-        self.nodes = [] # list of node objects
-        self.edges = [] # list of edge objects
-    
-    def __str__(self):
-        rtn_str = ""
-        for node in self.nodes:
-            rtn_str += str(node)
-
-        return f"Tile:{self.id} | {self.resource} | {self.number}\n{rtn_str}" 
-
-class Node():
-    # node represents the axis between tiles where settlements can be placed
-    def __init__(self, id:tuple):
-        self.id = id # e.g. tuple of the averages of the surrounding node's ids
-        self.tiles = [] # List of tile objects
-        self.edges = [] # list of edge objects
-        self.building = None # e.g., settlement/city
-        self.player = None # player who owns node/settle/city
-
-    def __str__(self):
-        return f"Node: {self.id}"
-    
-    def __repr__(self):
-        return self.__str__()
-    
-
-    #check if node is a valid placement for settlement
-    def is_valid_settlement_placement(self, player):
-        if self.building:
-            return False
-        #loop through edges for edge cases
-        flag = False
-        for edge in self.edges:
-            #determine there is an edge the player owns connected to the node
-            if edge.player == player:
-                flag = True
-            #determine there is not another settlement within one edge of the node
-            for node in edge.nodes:
-                if node.player:
-                    flag = False 
-        return flag
-    
-    #after checking valid placement, actually place settlement
-    def place_settlement(self, player):
-        self.player = player
-        #self.building = "settlement" 
-        # NOTE: add check for if placement breaks another players longest road here
-    
-    # TODO: determine how to represent city
-    def place_city(self, player):
-        if self.player == player:
-            pass
-            #self.building = "city" #or another way to denote city
-
-
-class Edge():
-    # edge represents the straight where 2 tiles intersect, a.k.a. roads
-    def __init__(self, id:tuple):
-        self.id = id # e.g., tuple of 2 connected nodes
-        self.nodes = [] # list of surrounding nodes (expected len 2)
-        self.tiles = [] # list of adjacent tiles (expected len 2)
-        self.player = None # player who owns edge/road
-
-    #check if edge is a valid placement for road
-    def is_valid_road_placement(self, player):
-        #if road already occupied by a player
-        if self.player:
-            return False
-        #determine if an edge of the two connected nodes is occupied by player
-        flag = False
-        for node in self.nodes:
-            for edge in node.edges:
-                if edge.player == player:
-                    flag = True
-        return flag
-    
-    #after checking valid road, place road
-    def place_road(self, player):
-        self.player = player
-
-    def str(self):
-        return (f"|Edge:{self.id}:{self.nodes}|")
-
-
 class CatanBoard:
+    # Catan Board handles all tiles, nodes, and edges of the catan board
     def __init__(self):
         self.tiles = {} # {(x,y,z): TileObjects}
         self.nodes = {} # {(fx,fy,fz): Node Object}
@@ -121,7 +32,7 @@ class CatanBoard:
 
     def add_tile(self, xyz:tuple, resource:str, number:int):
         # add tile to registry
-        new_tile = Tile(xyz, resource, number)
+        new_tile = Tile.Tile(xyz, resource, number)
         self.tiles[xyz] = new_tile
         tile_nodes = []
         x,y,z = xyz
@@ -144,7 +55,7 @@ class CatanBoard:
 
             # Get or Create the Node if it's not yet in the system
             if node_id not in self.nodes:
-                self.nodes[node_id] = Node(node_id)
+                self.nodes[node_id] = Node.Node(node_id)
             
             # create a node object
             node_obj = self.nodes[node_id]
@@ -165,7 +76,7 @@ class CatanBoard:
 
             # Get or Create the edge if it's not yet in the system
             if edge_id not in self.edges:
-                self.edges[edge_id] = Edge(edge_id)
+                self.edges[edge_id] = Edge.Edge(edge_id)
 
             edge_obj = self.edges[edge_id]
 

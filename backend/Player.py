@@ -1,6 +1,5 @@
 import arcade.color
 
-
 class Player:
     def __init__(self, color, name):
         self.victory_points = 0
