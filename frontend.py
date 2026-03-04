@@ -2,7 +2,8 @@ import arcade
 import math
 import os
 import pyglet
-from backend import CatanBoard
+from backend.CatanBoard import CatanBoard
+from backend.Player import Player
 
 # TODO: Render 9 randomized ports around the board perimeter, visually correct, future-ready for backend trade logic.  This needs to be implemented in a way to ensure that im not stepping on the toes of those who are working on backend.py, main.py, and player.py
 #   This should safely implement our port system without overwriting other existing systems or changing how the already coded game functions.  This is just a display of the ports, which should be ready for future implementation of the port logic
