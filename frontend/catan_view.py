@@ -1,298 +1,22 @@
-import arcade
+"""
+Contains CatanView Class
+"""
 import math
-import os
-import pyglet
-from backend.player import Player
+import arcade
+
 from backend.catan_board import CatanBoard
 
-# TODO: Render 9 randomized ports around the board perimeter, visually correct, future-ready for backend trade logic.  This needs to be implemented in a way to ensure that im not stepping on the toes of those who are working on backend.py, main.py, and player.py
-#   This should safely implement our port system without overwriting other existing systems or changing how the already coded game functions.  This is just a display of the ports, which should be ready for future implementation of the port logic
-#   Ports must render:
-#   1)  After tiles 2)  Before placed roads/settlements 3)  Ship sprites via SpriteList 4)  Text labels via pre-built Text objects
-#   Store visual + future logical representation.
-#   Do NOT implement trading logic yet.
-#   Detect Coastline Edges (Compatible With Current Backend)
-#   Use node tile counts (since Edge has no .tiles).  (IF THIS WORKS BEST)
-#   Coastline rule:  if any(len(node.tiles) < 3 for node in edge_obj.nodes)
-#   This defines boundary edges using existing backend structure.
-#   Evenly Space 9 Ports  -  Steps:  Collect coastline edges.  For each, compute midpoint angle from board center:
-#   angle = math.atan2(my - BOARD_CENTER_Y, mx - BOARD_CENTER_X)    -   Sort by angle ascending.
-#   Select 9 evenly spaced edges:  step = len(outer_edges) / 9
-#   selected = [outer_edges[round(i * step) % len(outer_edges)] for i in range(9)]
-#   Randomize Port Types
-#   Distribution must be:  5 × resource ports (brick, ore, wheat, sheep, forest)  -   4 × generic (None)
-#   Align Ship Sprites Correctly
-#   Ships must: 1) Align parallel to coast edge 2) Sit slightly in ocean  3) Face along edge direction
-#   Create Text Labels
-#   Label rule: label = f"2:1 {RESOURCE_ABBR[resource]}" if resource else "3:1"
-#   Use prebuilt arcade.Text objects.   Font:  MedievalSharp
-#   Bold,  TEXT_GOLD (Or whatever contrasts best with blue), Anchor center, text 12 size font
-#
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# ---------------------------------------------------------------------------
-# Window Size  -  Trying to make it wider not taller for laptops
-# ---------------------------------------------------------------------------
-SCREEN_WIDTH  = 1280
-SCREEN_HEIGHT = 680
-SCREEN_TITLE  = "Coders of Catan"
-
-# ---------------------------------------------------------------------------
-# Background image
-# Change this filename to swap backgrounds — file must live in sprites/background/
-# ---------------------------------------------------------------------------
-BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "ocean_background.png")
-
-# ---------------------------------------------------------------------------
-# Hex & board layout
-# ---------------------------------------------------------------------------
-HEX_SIZE      = 58
-BOARD_CENTER_X = SCREEN_WIDTH  / 2
-BOARD_CENTER_Y = SCREEN_HEIGHT / 2 + 10
-
-# ---------------------------------------------------------------------------
-# HUD dimensions  — slim left panel, single column
-# ---------------------------------------------------------------------------
-HUD_BOTTOM_HEIGHT = 70
-HUD_PANEL_WIDTH   = 155     # Change for resource columns (155 narrow --> 250 wide)
-HUD_PANEL_HEIGHT  = 210
-DICE_AREA_WIDTH   = 160
-DICE_AREA_HEIGHT  = 110
-
-# ---------------------------------------------------------------------------
-# Sprite / icon settings
-# ---------------------------------------------------------------------------
-ICON_SIZE    = 22           # smaller icons to fit single-column panel (22)
-SPRITE_SCALE = ICON_SIZE / 512
-
-RESOURCE_SPRITES = {
-    "brick":  os.path.join(BASE_DIR, "sprites", "BW_icons", "brick-pile.png"),
-    "ore":    os.path.join(BASE_DIR, "sprites", "BW_icons", "stone-pile.png"),
-    "wheat":  os.path.join(BASE_DIR, "sprites", "BW_icons", "wheat.png"),
-    "sheep":  os.path.join(BASE_DIR, "sprites", "BW_icons", "sheep.png"),
-    "forest": os.path.join(BASE_DIR, "sprites", "BW_icons", "wood-pile.png"),
-}
-
-PORT_SHIP_SPRITE = os.path.join(BASE_DIR, "sprites", "ports", "galley_ship.png")
-
-# ---------------------------------------------------------------------------
-# Colors in HUD
-# ---------------------------------------------------------------------------
-HUD_BG           = (30,  30,  50,  210)
-HUD_PANEL_BG     = (20,  20,  40,  220)
-BTN_TRADE        = (52,  152, 219)
-BTN_BUILD        = (39,  174, 96)
-BTN_BUILD_ACTIVE = (100, 220, 130)
-BTN_CARD         = (142, 68,  173)
-BTN_ENDTURN      = (231, 76,  60)
-TEXT_WHITE       = (255, 255, 255)
-TEXT_LIGHT_GRAY  = (180, 180, 180)
-TEXT_GOLD        = (255, 215, 0)
-TOKEN_RED        = (200, 50,  50)    # color for unique 6 and 8 number tokens
-
-RESOURCE_COLORS = {
-    "forest": (34,  139, 34),
-    "wheat":  (255, 215, 0),
-    "ore":    (112, 128, 144),
-    "brick":  (178, 34,  34),
-    "sheep":  (144, 238, 144),
-    "desert": (210, 180, 140),
-}
-
-# Resource name -> display abbreviation shown on port labels
-RESOURCE_ABBR = {
-    "brick":  "Brick",
-    "ore":    "Ore",
-    "wheat":  "Wheat",
-    "sheep":  "Sheep",
-    "forest": "Wood",
-}
-
-# ---------------------------------------------------------------------------
-# Catan number token distribution
-# 18 tokens for 18 non-desert tiles:
-#   2×1, 3×2, 4×2, 5×2, 6×2, 8×2, 9×2, 10×2, 11×2, 12×1
-# ---------------------------------------------------------------------------
-NUMBER_POOL = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
-
-# ---------------------------------------------------------------------------
-# Port types assigned clockwise from the top around the board perimeter.
-# None = 3:1 generic port, string = 2:1 specific resource port.
-# The 9 slots are spaced evenly among the ~18 outer edges automatically.
-PORT_TYPES = ["ore", None, "wheat", None, None, "brick", None, "sheep", "forest"]
-
-# ---------------------------------------------------------------------------
-# Build choices
-# ---------------------------------------------------------------------------
-BUILD_NONE       = None
-BUILD_SETTLEMENT = "settlement"
-BUILD_ROAD       = "road"
-
-# ---------------------------------------------------------------------------
-# Costs
-# ---------------------------------------------------------------------------
-SETTLEMENT_COST = {"BRICK": 1, "WOOD": 1, "WHEAT": 1, "SHEEP": 1}
-ROAD_COST       = {"BRICK": 1, "WOOD": 1}
-
-# Snap radii (pixels)
-NODE_SNAP_RADIUS = 18
-EDGE_SNAP_RADIUS = 14
-
-# ---------------------------------------------------------------------------
-# Placeholder players
-# ---------------------------------------------------------------------------
-PLAYERS = [
-    {"name": "Player 1", "color": (231, 76,  60),  "resources": {"brick": 2, "ore": 0, "wheat": 1, "sheep": 1, "forest": 2}, "vp": 0},
-    {"name": "Player 2", "color": (39,  174, 96),  "resources": {"brick": 2, "ore": 0, "wheat": 1, "sheep": 1, "forest": 2}, "vp": 0},
-    {"name": "Player 3", "color": (219, 118, 51),  "resources": {"brick": 2, "ore": 0, "wheat": 1, "sheep": 1, "forest": 2}, "vp": 0},
-    {"name": "Player 4", "color": (142, 68,  173), "resources": {"brick": 2, "ore": 0, "wheat": 1, "sheep": 1, "forest": 2}, "vp": 0},
-]
-
-PLAYERS_TWO = [
-    Player((231, 76,  60), "Player 1"),
-    Player((39, 174, 96), "Player 2"),
-    Player((219, 118, 51), "Player 3"),
-    Player((142, 68, 173), "Player 4"),
-]
-
-# ===========================================================================
-# Coordinate helpers
-# ===========================================================================
-def cubic_to_pixel(cx, cz, hex_size=HEX_SIZE, origin_x=BOARD_CENTER_X, origin_y=BOARD_CENTER_Y):
-    px = origin_x + hex_size * (3 / 2) * cx
-    py = origin_y + hex_size * (math.sqrt(3) / 2 * cx + math.sqrt(3) * cz)
-    return px, py
-
-def node_to_pixel(node_id, hex_size=HEX_SIZE, origin_x=BOARD_CENTER_X, origin_y=BOARD_CENTER_Y):
-    fx, fy, fz = node_id
-    px = origin_x + hex_size * (3 / 2) * fx
-    py = origin_y + hex_size * (math.sqrt(3) / 2 * fx + math.sqrt(3) * fz)
-    return px, py
-
-def get_hex_corners(center_x, center_y, size):
-    corners = []
-    for i in range(6):
-        angle_rad = math.radians(60 * i)
-        corners.append((center_x + size * math.cos(angle_rad),
-                         center_y + size * math.sin(angle_rad)))
-    return corners
+from .play_card_view import PlayCardView
+from .trade_view import TradeView
+from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
+from .drawing import draw_number_token, fill_rect, outline_rect, draw_settlement, draw_road
+from .constants import BUILD_NONE, BACKGROUND_IMAGE, SCREEN_WIDTH, SCREEN_HEIGHT, BOARD_CENTER_X, BOARD_CENTER_Y,RESOURCE_ABBR, PORT_TYPES, HEX_SIZE, PORT_SHIP_SPRITE, RESOURCE_SPRITES, SPRITE_SCALE, TEXT_WHITE,TEXT_GOLD, TEXT_LIGHT_GRAY, HUD_BOTTOM_HEIGHT, HUD_BG, DICE_AREA_HEIGHT, DICE_AREA_WIDTH, HUD_PANEL_HEIGHT, HUD_PANEL_BG, HUD_PANEL_WIDTH, ICON_SIZE, BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE, BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST, RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS
 
 
-# ===========================================================================
-# Shape / drawing helpers
-# ===========================================================================
-def draw_settlement(cx, cy, size, color):
-    half = size / 2
-    pts  = [(cx-half, cy-half), (cx+half, cy-half),
-            (cx+half, cy+half), (cx-half, cy+half)]
-    arcade.draw_polygon_filled(pts, color)
-    arcade.draw_polygon_outline(pts, arcade.color.BLACK, 2)
-
-def draw_road(x1, y1, x2, y2, color, width=6):
-    arcade.draw_line(x1, y1, x2, y2, arcade.color.WHITE, width + 4)
-    arcade.draw_line(x1, y1, x2, y2, arcade.color.BLACK, width + 2)
-    arcade.draw_line(x1, y1, x2, y2, color, width)
-
-def draw_number_token(cx, cy, number):
-    """Draw a classic Catan number token — cream circle with number inside.
-    6 and 8 are drawn in red (high-probability numbers)."""
-    is_hot   = number in (6, 8)
-    bg_color = (240, 220, 170)          # cream
-    txt_col  = TOKEN_RED if is_hot else (20, 20, 20)
-    radius   = 14
-
-    arcade.draw_circle_filled(cx, cy, radius, bg_color)
-    arcade.draw_circle_outline(cx, cy, radius, (100, 80, 40), 2)
-
-    # Probability dots below the number (pips)
-    # Standard Catan pip counts: 2→1, 3→2, 4→3, 5→4, 6→5, 8→5, 9→4, 10→3, 11→2, 12→1
-    pip_map = {2:1, 3:2, 4:3, 5:4, 6:5, 8:5, 9:4, 10:3, 11:2, 12:1}
-    pips    = pip_map.get(number, 0)
-    pip_r   = 1.5
-    pip_gap = 4
-    pip_total_w = pips * (pip_r * 2) + (pips - 1) * (pip_gap - pip_r * 2)
-    pip_start_x = cx - pip_total_w / 2 + pip_r
-
-    for i in range(pips):
-        px = pip_start_x + i * pip_gap
-        arcade.draw_circle_filled(px, cy - 7, pip_r, txt_col)
-
-    arcade.Text(
-        str(number),
-        cx, cy + 2,
-        txt_col, 11,
-        bold=True,
-        anchor_x="center", anchor_y="center",
-        font_name="MedievalSharp"
-    ).draw()
-
-def fill_rect(left, bottom, width, height, color):
-    arcade.draw_lrbt_rectangle_filled(left, left + width, bottom, bottom + height, color)
-
-def outline_rect(left, bottom, width, height, color, border=2):
-    arcade.draw_lrbt_rectangle_outline(left, left + width, bottom, bottom + height, color, border)
-
-def draw_port_label(label_x, label_y, label):
-    """Port label with a dark pill background so it's always legible."""
-    font_size = 13
-    pad_x     = 10
-    pad_y     = 6
-    text_w    = len(label) * 8 + pad_x * 2
-    text_h    = font_size + pad_y * 2
-    left      = label_x - text_w / 2
-    bottom    = label_y - text_h / 2
-
-    arcade.draw_lrbt_rectangle_filled(left, left + text_w, bottom, bottom + text_h, (10, 10, 30, 230))
-    arcade.draw_lrbt_rectangle_outline(left, left + text_w, bottom, bottom + text_h, TEXT_GOLD, 1)
-    arcade.Text(
-        label,
-        label_x, label_y,
-        (15, 40, 90, 255), font_size,   # dark navy — high contrast on light blue
-        bold=True,
-        anchor_x="center", anchor_y="center",
-        font_name="MedievalSharp"
-    ).draw()
-
-def draw_board(board):
-    for xyz, tile in board.tiles.items():
-            cx, cy, cz = xyz
-            px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-            corners = get_hex_corners(px, py, HEX_SIZE)
-            arcade.draw_polygon_filled(corners, RESOURCE_COLORS[tile.resource])
-            arcade.draw_polygon_outline(corners, arcade.color.BLACK, 2)
-
-# ---------------------------------------------------------------------------
-# Start View
-# ---------------------------------------------------------------------------
-class StartView(arcade.View):
-    def on_show_view(self):
-        self._build_text_objects()
-
-    def _build_text_objects(self):
-        #TODO: set the title to be in the middle of the screen
-        self.txt_title = arcade.Text("Welcome to Catan!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2, font_size=30, bold=True, font_name="MedievalSharp")
-        self.txt_instructions = arcade.Text("Click anywhere to begin!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2 - 100, font_size=20, font_name="MedievalSharp")
-
-    def on_draw(self):
-        self.clear()
-        self.txt_title.draw()
-        self.txt_instructions.draw()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        # TODO: add buttons here for selection of number of players
-        self.board = CatanBoard()
-        self.board.make_board()
-        # TODO: create players here
-        self.players = PLAYERS
-        # show setupview starting with player at index 0 and round 1 of play
-        self.window.show_view(SetupView(self.board, self.players, 0, 1))
-
-
-# ---------------------------------------------------------------------------
-# Main View
-# ---------------------------------------------------------------------------
 class CatanView(arcade.View):
+    """
+    CatanView Class
+    """
     def __init__(self, board, players, current_player):
         super().__init__()
         self.board = board
@@ -318,8 +42,8 @@ class CatanView(arcade.View):
         # Load background
         self._load_background()
 
-        # Load HUD icons and ship sprite
-    def on_show_view(self):        
+    #     # Load HUD icons and ship sprite
+    # def on_show_view(self):        
         # --- Pre-build all Text objects (avoids draw_text performance warning) ---
         self._build_text_objects()
 
@@ -543,9 +267,8 @@ class CatanView(arcade.View):
         Build/rebuild Text objects for the current player panel.
         Called on init and every time _end_turn() fires.
         """
-        player = PLAYERS_TWO[self.current_player] #Single-column player info panel.
-
-        player    = PLAYERS_TWO[self.current_player]
+        """Single-column player info panel."""
+        player    = self.players[self.current_player]
         panel_x   = 8
         panel_top = SCREEN_HEIGHT - 8   # top of panel in screen coords
         row_h     = 24                  # vertical spacing per row
@@ -590,7 +313,7 @@ class CatanView(arcade.View):
     # Affordability
     # -----------------------------------------------------------------------
     def _can_afford(self, cost_dict):
-        res = PLAYERS_TWO[self.current_player].resource_cards
+        res = self.players[self.current_player].resource_cards
         return all(res.get(r, 0) >= amt for r, amt in cost_dict.items())
 
     # -----------------------------------------------------------------------
@@ -645,9 +368,8 @@ class CatanView(arcade.View):
         self.txt_submenu_road.draw()
 
     def _draw_player_panel(self):
-        player = PLAYERS[self.current_player]
         """Slim single-column panel in top-left."""
-        player  = PLAYERS_TWO[self.current_player]
+        player  = self.players[self.current_player]
         panel_x = 8
         panel_y = SCREEN_HEIGHT - HUD_PANEL_HEIGHT - 8
 
@@ -718,18 +440,18 @@ class CatanView(arcade.View):
         for edge_id, edge_obj in self.board.edges.items():
             if edge_obj.player is not None:
                 mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
-                draw_road(x1, y1, x2, y2, PLAYERS_TWO[edge_obj.player].color)
+                draw_road(x1, y1, x2, y2, self.players[edge_obj.player].color)
 
         for node_id, node_obj in self.board.nodes.items():
             if node_obj.player is not None:
                 npx, npy = self._node_pixel_cache[node_id]
-                draw_settlement(npx, npy, 14, PLAYERS_TWO[node_obj.player].color)
+                draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
 
     # -----------------------------------------------------------------------
     # Ghost highlights
     # -----------------------------------------------------------------------
     def _draw_node_highlights(self):
-        player_color = PLAYERS_TWO[self.current_player].color
+        player_color = self.players[self.current_player].color
         for node_id, node_obj in self.board.nodes.items():
             if node_obj.player is not None:
                 continue
@@ -746,7 +468,7 @@ class CatanView(arcade.View):
                 arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
 
     def _draw_edge_highlights(self):
-        player_color = PLAYERS_TWO[self.current_player].color
+        player_color = self.players[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
             if edge_obj.player is not None:
                 continue
@@ -766,12 +488,12 @@ class CatanView(arcade.View):
         if not self.show_confirm:
             return
         if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
-            cx, cy = self._node_pixel_cache[self.selected_node.node_id]
+            cx, cy = self._node_pixel_cache[self.selected_node.id]
             cy    += 18
             can    = self._can_afford(SETTLEMENT_COST)
             label  = "Build Settlement?"
         elif self.build_choice == BUILD_ROAD and self.selected_edge:
-            mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
+            mx, my, *_ = self._edge_pixel_cache[self.selected_edge.id]
             cx, cy = mx, my + 18
             can    = self._can_afford(ROAD_COST)
             label  = "Build Road?"
@@ -813,7 +535,7 @@ class CatanView(arcade.View):
 
         # Hex tiles
         for xyz, tile in self.board.tiles.items():
-            cx, cy, cz = xyz
+            cx, _, cz = xyz
             px, py = cubic_to_pixel(cx, cz)
             corners = get_hex_corners(px, py, HEX_SIZE)
             arcade.draw_polygon_filled(corners, RESOURCE_COLORS[tile.resource])
@@ -912,10 +634,10 @@ class CatanView(arcade.View):
         # Confirmation popup
         if self.show_confirm:
             if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
-                pcx, pcy = self._node_pixel_cache[self.selected_node.node_id]
+                pcx, pcy = self._node_pixel_cache[self.selected_node.id]
                 pcy     += 18
             elif self.build_choice == BUILD_ROAD and self.selected_edge:
-                mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
+                mx, my, *_ = self._edge_pixel_cache[self.selected_edge.id]
                 pcx, pcy   = mx, my + 18
             else:
                 self.show_confirm = False
@@ -958,7 +680,7 @@ class CatanView(arcade.View):
     # Placement
     # -----------------------------------------------------------------------
     def _place_settlement(self, node):
-        player = PLAYERS_TWO[self.current_player]
+        player = self.players[self.current_player]
         player.build_settlement(CatanBoard, node)
         node.player = self.current_player
         node.building = "settlement"
@@ -978,7 +700,7 @@ class CatanView(arcade.View):
        # print(f"{player['name']} built a settlement! Victory Points: {player['vp']}")
 
     def _place_road(self, edge):
-        player = PLAYERS_TWO[self.current_player]
+        player = self.players[self.current_player]
         idx = self.current_player
         connected = False
         for node in edge.nodes:
@@ -1037,165 +759,10 @@ class CatanView(arcade.View):
         self.show_confirm  = False
 
     def _end_turn(self):
-        self.current_player = (self.current_player + 1) % len(PLAYERS_TWO)
+        self.current_player = (self.current_player + 1) % len(self.players)
         self._cancel_build()
         self._build_player_texts()
-        print(f"Turn ended. Now it's {PLAYERS_TWO[self.current_player].name}'s turn.")
-
+        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn.")
         # TODO: check for VPs to end game
         # if self.players[self.current_player].vp == 10:
             # self.window.show_view(EndView())
-        print(f"Turn ended. Now it's {PLAYERS[self.current_player]['name']}'s turn.")
-
-"""
-TODO: Determine how we want trading to work
-also maybe break into more functions for ex building the board could be a global helper function
-"""
-# ---------------------------------------------------------------------------
-# Setup View
-# ---------------------------------------------------------------------------
-class SetupView(arcade.View):
-    def __init__(self, board, players, current_player, round): 
-        super().__init__()
-        self.board = board
-        self.players = players
-        self.current_player = current_player
-        self.round = round
-
-    def _build_text_objects(self):
-        player = self.players[self.current_player]
-        self.txt_title = arcade.Text(f"{player["name"]}: Place your Settlement", SCREEN_WIDTH / 4, SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30, color=player["color"])
-
-    def on_show_view(self):
-        self._build_text_objects()
-
-    def on_draw(self):
-        self.clear()
-        # --- Draw the board --- 
-        #TODO: Make a helper function from the code thats in CatanView to build a board with all the ports and numbers.
-        draw_board(self.board)
-        self.txt_title.draw()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        #TODO: Add in click logic for players placing their 
-        if self.round == 1 and self.current_player < len(self.players) - 1:
-            self.current_player += 1
-            self.window.show_view(SetupView(self.board, self.players, self.current_player, self.round))
-        elif self.round == 1 and self.current_player == len(self.players) - 1:
-            self.round += 1
-            self.window.show_view(SetupView(self.board, self.players, self.current_player, self.round))
-        elif self.round == 2 and self.current_player > 0:
-            self.current_player -= 1
-            self.window.show_view(SetupView(self.board, self.players, self.current_player, self.round))
-        else:
-            self.window.show_view(CatanView(self.board, self.players, 0))
-        
-# ---------------------------------------------------------------------------
-# Trade View
-# ---------------------------------------------------------------------------
-class TradeView(arcade.View):
-    def __init__(self, board, players, current_player):
-        super().__init__()
-        self.board= board
-        self.players = players
-        self.current_player = current_player
-    
-    def _build_text_objects(self):
-        bar_center_y = HUD_BOTTOM_HEIGHT / 2
-        btn_w = 150
-        self.txt_back = arcade.Text("Back to Board",  SCREEN_WIDTH - btn_w * 0.5 - 20,    bar_center_y, TEXT_WHITE, 13, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
-
-    def _draw_bottom_bar(self):
-        fill_rect(0, 0, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_BG)
-
-        btn_w, btn_h = 150, 50
-        btn_bottom = (HUD_BOTTOM_HEIGHT - btn_h) / 2
-
-        fill_rect(SCREEN_WIDTH - btn_w - 20, btn_bottom, btn_w, btn_h, BTN_ENDTURN)
-        self.txt_back.draw()
-
-    def on_show_view(self):
-        self._build_text_objects()
-
-    def on_draw(self):
-        self.clear()
-        self._draw_bottom_bar()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        #NOTE: Would it be a good idea to make the btn_w and btn_h global variable?
-        btn_w = 150
-        if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
-            self.window.show_view(CatanView(self.board, self.players, self.current_player))
-
-# ---------------------------------------------------------------------------
-# Play Card View
-# ---------------------------------------------------------------------------
-class PlayCardView(arcade.View):
-    def __init__(self, board, players, current_player):
-        super().__init__()
-        self.board= board
-        self.players = players
-        self.current_player = current_player
-    
-    def _build_text_objects(self):
-        bar_center_y = HUD_BOTTOM_HEIGHT / 2
-        btn_w = 150
-        self.txt_back = arcade.Text("Back to Board",  SCREEN_WIDTH - btn_w * 0.5 - 20,    bar_center_y, TEXT_WHITE, 13, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
-
-    def _draw_bottom_bar(self):
-        fill_rect(0, 0, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_BG)
-
-        btn_w, btn_h = 150, 50
-        btn_bottom = (HUD_BOTTOM_HEIGHT - btn_h) / 2
-
-        fill_rect(SCREEN_WIDTH - btn_w - 20, btn_bottom, btn_w, btn_h, BTN_ENDTURN)
-        self.txt_back.draw()
-
-    def on_show_view(self):
-        self._build_text_objects()
-
-    def on_draw(self):
-        self.clear()
-        self._draw_bottom_bar()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        #NOTE: Would it be a good idea to make the btn_w and btn_h global variable?
-        btn_w = 150
-        if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
-            self.window.show_view(CatanView(self.board, self.players, self.current_player))
-
-# ---------------------------------------------------------------------------
-# End View
-# ---------------------------------------------------------------------------
-class EndView(arcade.View):
-    def __init__(self, players, current_player):
-        super().__init__()
-        self.players = players
-        self.winning_player = current_player
-
-    def on_show_view(self):
-        self._build_text_objects()
-
-    def _build_text_objects(self):
-        #TODO: set the title to be in the middle of the screen and figure out how to customize to winning player
-        # set the color of the text to the players color and add the player number to the text
-        self.txt_title = arcade.Text(f"Congratulations Player {self.winning_player}!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2, font_size=30, bold=True, font_name="MedievalSharp")  #color = self.players[self.winning_player].color
-        self.txt_instructions = arcade.Text("Click anywhere to play again!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2 - 100, font_size=20, font_name="MedievalSharp")
-
-    def on_draw(self):
-        self.clear()
-        self.txt_title.draw()
-        self.txt_instructions.draw()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        self.window.show_view(StartView()) # Has to go back to start view to reset the board and players
-
-def main():
-    pyglet.font.add_file('fonts/MedievalSharp-Regular.ttf')
-    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    window.background_color = arcade.color.OCEAN_BOAT_BLUE
-    window.show_view(StartView())
-    arcade.run()
-
-if __name__ == "__main__":
-    main()

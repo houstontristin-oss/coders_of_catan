@@ -1,0 +1,32 @@
+"""
+Contains EndView Class
+"""
+import arcade
+from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from .start_view import StartView
+
+class EndView(arcade.View):
+    """
+    EndView Class
+    """
+    def __init__(self, players, current_player):
+        super().__init__()
+        self.players = players
+        self.winning_player = current_player
+
+    def on_show_view(self):
+        self._build_text_objects()
+
+    def _build_text_objects(self):
+        #TODO: set the title to be in the middle of the screen and figure out how to customize to winning player
+        # set the color of the text to the players color and add the player number to the text
+        self.txt_title = arcade.Text(f"Congratulations Player {self.winning_player}!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2, font_size=30, bold=True, font_name="MedievalSharp")  #color = self.players[self.winning_player].color
+        self.txt_instructions = arcade.Text("Click anywhere to play again!", SCREEN_WIDTH / 2, SCREEN_HEIGHT/2 - 100, font_size=20, font_name="MedievalSharp")
+
+    def on_draw(self):
+        self.clear()
+        self.txt_title.draw()
+        self.txt_instructions.draw()
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        self.window.show_view(StartView()) # Has to go back to start view to reset the board and players
