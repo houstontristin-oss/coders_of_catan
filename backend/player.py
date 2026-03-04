@@ -1,5 +1,20 @@
 # pylint: disable=C0114,C0116
 class Player:
+    """Represents a player for Catan
+
+    This class is used to create Player objects and
+    manage Player actions and inventory.
+
+    Attributes:
+        victory_points: total victory points
+        resource_cards: resources in player's possession
+        development_cards: development cards in player's possession
+        total_roads: roads left player can build
+        total_settlements: settlements left player can build
+        total_cities: cities left player can build
+        color: color of player
+        name: name of player
+    """
     def __init__(self, color, name):
         self.victory_points = 0
         self.resource_cards = {'WOOD':2, 'WHEAT':1, 'BRICK': 2, 'SHEEP': 1, 'ORE':0}
@@ -61,5 +76,6 @@ class Player:
     def build_city(self, settlement):
 
         # check if player has sufficient resources
-        if self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3 and self.total_settlements>0:
+        if (self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3
+                and self.total_settlements>0):
             pass
