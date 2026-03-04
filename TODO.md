@@ -19,4 +19,5 @@ Amanda:
 
 Nick:
 
-* 
+* make it so only valid road placements will highlight when hovered
+* do the above thing for settlement placement as well
