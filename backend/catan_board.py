@@ -1,7 +1,7 @@
 import random
-import tile as Tile
-import node as Node
-import edge as Edge
+import backend.tile as Tile
+import backend.node as Node
+import backend.edge as Edge
 
 class CatanBoard:
     """Catan Board handles all tiles, nodes, and edges of the catan board
