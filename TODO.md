@@ -2,7 +2,8 @@
 
 Apoorva:
 
-* 
+* work on setup phase placement logic (resource addition for second settlement?)
+* consider moving placement functionality to player class from catan_view
 
 Tristin:
 
