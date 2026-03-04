@@ -2,8 +2,10 @@
 Contains SetupView Class
 """
 import arcade
-from .drawing import draw_board
-from .constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from backend.catan_board import CatanBoard
+from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect
+from .board_utils import node_to_pixel
+from .constants import SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH, DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD
 
 class SetupView(arcade.View):
     """
@@ -15,18 +17,203 @@ class SetupView(arcade.View):
         self.players = players
         self.current_player = current_player
         self.round = round
+
+        #Build node states
+        self.build_mode    = False
+        self.build_choice  = BUILD_SETTLEMENT
+        self.hovered_node  = None
+        self.hovered_edge  = None
+        self.selected_node = None
+        self.selected_edge = None
+        self.show_confirm  = False
+
+        self._node_pixel_cache = {}
+        self._edge_pixel_cache = {}
         self._build_text_objects()
         
     def _build_text_objects(self):
         player = self.players[self.current_player]
         self.txt_title = arcade.Text(f"{player.name}: Place your Settlement", SCREEN_WIDTH / 4, SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30, color=player.color)
+        # Confirm popup labels
+        self.txt_popup_title   = arcade.Text("", 0, 0, TEXT_GOLD,  10, bold=True,
+                                              anchor_x="center", anchor_y="center",
+                                              font_name="MedievalSharp")
+        self.txt_popup_confirm = arcade.Text("", 0, 0, TEXT_WHITE,  9, bold=True,
+                                              anchor_x="center", anchor_y="center",
+                                              font_name="MedievalSharp")
+        self.txt_popup_cancel  = arcade.Text("Cancel", 0, 0, TEXT_WHITE, 9, bold=True,
+                                              anchor_x="center", anchor_y="center",
+                                              font_name="MedievalSharp")
+
+
+
+ # -----------------------------------------------------------------------
+    # Caches
+    # -----------------------------------------------------------------------
+    def _build_node_pixel_cache(self):
+        for node_id in self.board.nodes:
+            px, py = node_to_pixel(node_id)
+            self._node_pixel_cache[node_id] = (px, py)
+
+    def _build_edge_pixel_cache(self):
+        for edge_id in self.board.edges:
+            n1_id, n2_id = edge_id
+            x1, y1 = self._node_pixel_cache[n1_id]
+            x2, y2 = self._node_pixel_cache[n2_id]
+            mx = (x1 + x2) / 2
+            my = (y1 + y2) / 2
+            self._edge_pixel_cache[edge_id] = (mx, my, x1, y1, x2, y2)
+
+    # -----------------------------------------------------------------------
+    # Board pieces (always drawn)
+    # -----------------------------------------------------------------------
+    def _draw_placed_pieces(self):
+        for edge_id, edge_obj in self.board.edges.items():
+            if edge_obj.player is not None:
+                mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
+                draw_road(x1, y1, x2, y2, self.players[edge_obj.player].color)
+
+        for node_id, node_obj in self.board.nodes.items():
+            if node_obj.player is not None:
+                npx, npy = self._node_pixel_cache[node_id]
+                draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
         
+ # -----------------------------------------------------------------------
+    # Ghost highlights
+    # -----------------------------------------------------------------------
+    def _draw_node_highlights(self):
+        player_color = self.players[self.current_player].color
+        for node_id, node_obj in self.board.nodes.items():
+            if node_obj.player is not None:
+                continue
+            npx, npy = self._node_pixel_cache[node_id]
+            if npy < HUD_BOTTOM_HEIGHT + 5:
+                continue
+            if npx < HUD_PANEL_WIDTH + 5 or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - 15:
+                continue
+            if node_obj is self.hovered_node:
+                arcade.draw_circle_filled(npx, npy, 12, (*player_color, 180))
+                arcade.draw_circle_outline(npx, npy, 14, player_color, 3)
+            else:
+                arcade.draw_circle_filled(npx, npy, 8, (255, 255, 255, 60))
+                arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
+
+    def _draw_edge_highlights(self):
+        player_color = self.players[self.current_player].color
+        for edge_id, edge_obj in self.board.edges.items():
+            if edge_obj.player is not None:
+                continue
+            mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
+            if my < HUD_BOTTOM_HEIGHT + 5:
+                continue
+            if edge_obj is self.hovered_edge:
+                arcade.draw_line(x1, y1, x2, y2, (*player_color, 200), 6)
+                arcade.draw_circle_filled(mx, my, 7, (*player_color, 220))
+            else:
+                arcade.draw_line(x1, y1, x2, y2, (255, 255, 255, 50), 3)
+# -----------------------------------------------------------------------
+    # Confirmation popup
+    # -----------------------------------------------------------------------
+    def _draw_confirm_popup(self):
+        if not self.show_confirm:
+            return
+        if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
+            cx, cy = self._node_pixel_cache[self.selected_node.node_id]
+            cy    += 18
+            label  = "Build Settlement?"
+        elif self.build_choice == BUILD_ROAD and self.selected_edge:
+            mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
+            cx, cy = mx, my + 18
+            label  = "Build Road?"
+        else:
+            return
+
+        popup_w  = 160
+        popup_h  = 70
+        pop_left = cx - popup_w / 2
+
+        fill_rect(pop_left, cy, popup_w, popup_h, (20, 20, 40, 220))
+        outline_rect(pop_left, cy, popup_w, popup_h, TEXT_GOLD, 2)
+        self.txt_popup_title.text = label
+        self.txt_popup_title.x    = cx
+        self.txt_popup_title.y    = cy + popup_h - 14
+        self.txt_popup_title.draw()
+
+        btn_col = (39, 174, 96)
+        fill_rect(pop_left+8,          cy+8, 66, 30, btn_col)
+        self.txt_popup_confirm.text = "Confirm"
+        self.txt_popup_confirm.x    = pop_left + 41
+        self.txt_popup_confirm.y    = cy + 23
+        self.txt_popup_confirm.draw()
+
+        fill_rect(pop_left+popup_w-74, cy+8, 66, 30, (180, 50, 50))
+        self.txt_popup_cancel.x = pop_left + popup_w - 41
+        self.txt_popup_cancel.y = cy + 23
+        self.txt_popup_cancel.draw()
+
+    # -----------------------------------------------------------------------
+    # Placement
+    # -----------------------------------------------------------------------
+    def _place_settlement(self, node):
+        player = self.players[self.current_player]
+        player.build_settlement(CatanBoard, node)
+        node.player = self.current_player
+        node.building = "settlement"
+        player.victory_points += 1
+        self._cancel_build()
+        print(f"{player.name} built a settlement! Victory Points: {player.victory_points}")
+
+    def _place_road(self, edge):
+        player = self.players[self.current_player]
+        idx = self.current_player
+        connected = False
+        for node in edge.nodes:
+            if node.player == idx:
+                connected = True
+                break
+            for neighbor_edge in node.edges:
+                if neighbor_edge is not edge and neighbor_edge.player == idx:
+                    connected = True
+                    break
+            if connected:
+                break
+        if not connected:
+            print(f"{player.name} — road must connect to your settlement or existing road.")
+            self.show_confirm = False
+            self.selected_edge = None
+            return
+        player.build_road(CatanBoard, edge)
+        edge.player = self.current_player
+        self._cancel_build()
+        print(f"{player.name} built a road!")
+
+    def _cancel_build(self):
+        self.build_mode    = False
+        self.build_choice  = BUILD_SETTLEMENT
+        self.hovered_node  = None
+        self.hovered_edge  = None
+        self.selected_node = None
+        self.selected_edge = None
+        self.show_confirm  = False
+
     def on_draw(self):
         self.clear()
         # --- Draw the board --- 
-        #TODO: Make a helper function from the code thats in CatanView to build a board with all the ports and numbers.
         draw_board(self.board)
         self.txt_title.draw()
+
+        # Ghost highlights
+        if self.build_choice == BUILD_SETTLEMENT:
+            self._draw_node_highlights()
+        elif self.build_choice == BUILD_ROAD:
+            self._draw_edge_highlights()
+
+        # Placed pieces
+        self._draw_placed_pieces()
+
+        # Confirmation popup
+        if self.show_confirm:
+            self._draw_confirm_popup()
 
     def on_mouse_press(self, x, y, button, modifiers):
         #TODO: Add in click logic for players placing their 

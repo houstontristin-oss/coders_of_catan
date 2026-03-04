@@ -9,7 +9,7 @@ from backend.catan_board import CatanBoard
 from .play_card_view import PlayCardView
 from .trade_view import TradeView
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
-from .drawing import draw_number_token, fill_rect, outline_rect, draw_settlement, draw_road
+from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board
 from .constants import BUILD_NONE, BACKGROUND_IMAGE, SCREEN_WIDTH, SCREEN_HEIGHT, BOARD_CENTER_X, BOARD_CENTER_Y,RESOURCE_ABBR, PORT_TYPES, HEX_SIZE, PORT_SHIP_SPRITE, RESOURCE_SPRITES, SPRITE_SCALE, TEXT_WHITE,TEXT_GOLD, TEXT_LIGHT_GRAY, HUD_BOTTOM_HEIGHT, HUD_BG, DICE_AREA_HEIGHT, DICE_AREA_WIDTH, HUD_PANEL_HEIGHT, HUD_PANEL_BG, HUD_PANEL_WIDTH, ICON_SIZE, BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE, BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST, RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS
 
 
@@ -533,17 +533,8 @@ class CatanView(arcade.View):
         if self.bg_list:
             self.bg_list.draw()
 
-        # Hex tiles
-        for xyz, tile in self.board.tiles.items():
-            cx, _, cz = xyz
-            px, py = cubic_to_pixel(cx, cz)
-            corners = get_hex_corners(px, py, HEX_SIZE)
-            arcade.draw_polygon_filled(corners, RESOURCE_COLORS[tile.resource])
-            arcade.draw_polygon_outline(corners, arcade.color.BLACK, 2)
-
-            # Number token (skip desert, which has number=0)
-            if tile.number > 0:
-                draw_number_token(px, py, tile.number)
+        # Draw Board
+        draw_board(self.board)
 
         # Ports drawn after tiles — ships sit on outer tile edges, labels clear outward
         self._draw_ports()

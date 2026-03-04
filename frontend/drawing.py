@@ -81,8 +81,11 @@ def draw_port_label(label_x, label_y, label):
 
 def draw_board(board):
     for xyz, tile in board.tiles.items():
-            cx, cy, cz = xyz
+            cx, _, cz = xyz
             px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
             corners = get_hex_corners(px, py, HEX_SIZE)
             arcade.draw_polygon_filled(corners, RESOURCE_COLORS[tile.resource])
             arcade.draw_polygon_outline(corners, arcade.color.BLACK, 2)
+            # Number token (skip desert, which has number=0)
+            if tile.number > 0:
+                draw_number_token(px, py, tile.number)
