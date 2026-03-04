@@ -23,7 +23,8 @@ class Node:
         """
         A settlement can be placed on a node if:
             1. The node is not already occupied by another settlement or city.
-            2. There are no adjacent settlements (i.e., no other settlements on directly connected nodes).
+            2. There are no adjacent settlements (i.e., no other settlements on 
+            directly connected nodes).
         
         Args: 
             player: The player who is attempting to place the settlement.
@@ -39,9 +40,9 @@ class Node:
             #determine there is not another settlement within one edge of the node
             for node in edge.nodes:
                 if node.player:
-                    flag = False 
+                    flag = False
         return flag
-    
+
     #after checking valid placement, actually place settlement
     def place_settlement(self, player):
         """
