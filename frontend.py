@@ -132,8 +132,8 @@ BUILD_ROAD       = "road"
 # ---------------------------------------------------------------------------
 # Costs
 # ---------------------------------------------------------------------------
-SETTLEMENT_COST = {"brick": 1, "forest": 1, "wheat": 1, "sheep": 1}
-ROAD_COST       = {"brick": 1, "forest": 1}
+SETTLEMENT_COST = {"BRICK": 1, "WOOD": 1, "WHEAT": 1, "SHEEP": 1}
+ROAD_COST       = {"BRICK": 1, "WOOD": 1}
 
 # Snap radii (pixels)
 NODE_SNAP_RADIUS = 18
@@ -503,14 +503,14 @@ class CatanWindow(arcade.Window):
 
     def _build_player_texts(self):
         """Single-column player info panel."""
-        player    = PLAYERS[self.current_player_index]
+        player    = PLAYERS_TWO[self.current_player_index]
         panel_x   = 8
         panel_top = SCREEN_HEIGHT - 8   # top of panel in screen coords
         row_h     = 24                  # vertical spacing per row
 
         # Name
         self.txt_player_name = arcade.Text(
-            player["name"],
+            player.name,
             panel_x + HUD_PANEL_WIDTH // 2,
             panel_top - 18,
             TEXT_GOLD, 12, bold=True,
@@ -519,7 +519,7 @@ class CatanWindow(arcade.Window):
         )
         # VP
         self.txt_player_vp = arcade.Text(
-            f"Victory Points: {player['vp']}",
+            f"Victory Points: {player.victory_points}",
             panel_x + HUD_PANEL_WIDTH // 2 + 10,
             panel_top - 18 - row_h,
             TEXT_LIGHT_GRAY, 10,
@@ -528,15 +528,15 @@ class CatanWindow(arcade.Window):
         )
 
         # Resources — single column, icon + "Label: N" per row
-        order  = ["brick", "ore", "wheat", "sheep", "forest"]
-        labels = {"brick":"Brick","ore":"Ore","wheat":"Wheat","sheep":"Sheep","forest":"Wood"}
+        order  = ["BRICK", "ORE", "WHEAT", "SHEEP", "WOOD"]
+        labels = {"BRICK":"Brick","ORE":"Ore","WHEAT":"Wheat","SHEEP":"Sheep","WOOD":"Wood"}
 
         self.txt_resources = []
         for i, res in enumerate(order):
             ry = panel_top - 18 - row_h * 2 - i * (ICON_SIZE + 4) - ICON_SIZE // 2
             self.txt_resources.append(
                 arcade.Text(
-                    f"{labels[res]}: {player['resources'][res]}",
+                    f"{labels[res]}: {player.resource_cards.get(res)}",
                     panel_x + ICON_SIZE + 35, ry,
                     TEXT_WHITE, 9,
                     anchor_y="center",
@@ -548,7 +548,7 @@ class CatanWindow(arcade.Window):
     # Affordability
     # -----------------------------------------------------------------------
     def _can_afford(self, cost_dict):
-        res = PLAYERS[self.current_player_index]["resources"]
+        res = PLAYERS_TWO[self.current_player_index].resource_cards
         return all(res.get(r, 0) >= amt for r, amt in cost_dict.items())
 
     # -----------------------------------------------------------------------
@@ -604,15 +604,15 @@ class CatanWindow(arcade.Window):
 
     def _draw_player_panel(self):
         """Slim single-column panel in top-left."""
-        player  = PLAYERS[self.current_player_index]
+        player  = PLAYERS_TWO[self.current_player_index]
         panel_x = 8
         panel_y = SCREEN_HEIGHT - HUD_PANEL_HEIGHT - 8
 
         fill_rect(panel_x, panel_y, HUD_PANEL_WIDTH, HUD_PANEL_HEIGHT, HUD_PANEL_BG)
-        outline_rect(panel_x, panel_y, HUD_PANEL_WIDTH, HUD_PANEL_HEIGHT, player["color"])
+        outline_rect(panel_x, panel_y, HUD_PANEL_WIDTH, HUD_PANEL_HEIGHT, player.color)
 
         # Color dot
-        arcade.draw_circle_filled(panel_x + 14, panel_y + HUD_PANEL_HEIGHT - 18, 7, player["color"])
+        arcade.draw_circle_filled(panel_x + 14, panel_y + HUD_PANEL_HEIGHT - 18, 7, player.color)
 
         self.txt_player_name.draw()
         self.txt_player_vp.draw()
@@ -675,18 +675,18 @@ class CatanWindow(arcade.Window):
         for edge_id, edge_obj in self.board.edges.items():
             if edge_obj.player is not None:
                 mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
-                draw_road(x1, y1, x2, y2, PLAYERS[edge_obj.player]["color"])
+                draw_road(x1, y1, x2, y2, PLAYERS_TWO[edge_obj.player].color)
 
         for node_id, node_obj in self.board.nodes.items():
             if node_obj.player is not None:
                 npx, npy = self._node_pixel_cache[node_id]
-                draw_settlement(npx, npy, 14, PLAYERS[node_obj.player]["color"])
+                draw_settlement(npx, npy, 14, PLAYERS_TWO[node_obj.player].color)
 
     # -----------------------------------------------------------------------
     # Ghost highlights
     # -----------------------------------------------------------------------
     def _draw_node_highlights(self):
-        player_color = PLAYERS[self.current_player_index]["color"]
+        player_color = PLAYERS_TWO[self.current_player_index].color
         for node_id, node_obj in self.board.nodes.items():
             if node_obj.player is not None:
                 continue
@@ -703,7 +703,7 @@ class CatanWindow(arcade.Window):
                 arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
 
     def _draw_edge_highlights(self):
-        player_color = PLAYERS[self.current_player_index]["color"]
+        player_color = PLAYERS_TWO[self.current_player_index].color
         for edge_id, edge_obj in self.board.edges.items():
             if edge_obj.player is not None:
                 continue
@@ -909,41 +909,74 @@ class CatanWindow(arcade.Window):
     # Placement
     # -----------------------------------------------------------------------
     def _place_settlement(self, node):
-        player = PLAYERS[self.current_player_index]
-        for res, amt in SETTLEMENT_COST.items():
-            player["resources"][res] -= amt
-        node.player   = self.current_player_index
+        player = PLAYERS_TWO[self.current_player_index]
+        player.build_settlement(CatanBoard, node)
+        node.player = self.current_player_index
         node.building = "settlement"
-        player["vp"] += 1
+        player.victory_points += 1
         self._cancel_build()
         self._build_player_texts()
-        print(f"{player['name']} built a settlement! Victory Points: {player['vp']}")
+        print(f"{player.name} built a settlement! Victory Points: {player.victory_points}")
+
+       # player = PLAYERS[self.current_player_index]
+       # for res, amt in SETTLEMENT_COST.items():
+      #      player["resources"][res] -= amt
+      #  node.player   = self.current_player_index
+      #  node.building = "settlement"
+       # player["vp"] += 1
+       # self._cancel_build()
+        #self._build_player_texts()
+       # print(f"{player['name']} built a settlement! Victory Points: {player['vp']}")
 
     def _place_road(self, edge):
-        player = PLAYERS[self.current_player_index]
-        idx    = self.current_player_index
+        player = PLAYERS_TWO[self.current_player_index]
+        idx = self.current_player_index
         connected = False
         for node in edge.nodes:
             if node.player == idx:
                 connected = True
                 break
-            for neighbour_edge in node.edges:
-                if neighbour_edge is not edge and neighbour_edge.player == idx:
+            for neighbor_edge in node.edges:
+                if neighbor_edge is not edge and neighbor_edge.player == idx:
                     connected = True
                     break
             if connected:
                 break
         if not connected:
-            print(f"{player['name']} — road must connect to your settlement or existing road.")
-            self.show_confirm  = False
+            print(f"{player.name} — road must connect to your settlement or existing road.")
+            self.show_confirm = False
             self.selected_edge = None
             return
-        for res, amt in ROAD_COST.items():
-            player["resources"][res] -= amt
+        player.build_road(CatanBoard, edge)
         edge.player = self.current_player_index
         self._cancel_build()
         self._build_player_texts()
-        print(f"{player['name']} built a road!")
+        print(f"{player.name} built a road!")
+
+        #player = PLAYERS[self.current_player_index]
+       # idx    = self.current_player_index
+       # connected = False
+       # for node in edge.nodes:
+       #     if node.player == idx:
+       #         connected = True
+        #        break
+        #    for neighbour_edge in node.edges:
+        #        if neighbour_edge is not edge and neighbour_edge.player == idx:
+         #           connected = True
+         #           break
+         #   if connected:
+          #      break
+       # if not connected:
+           # print(f"{player['name']} — road must connect to your settlement or existing road.")
+           # self.show_confirm  = False
+           # self.selected_edge = None
+           # return
+      #  for res, amt in ROAD_COST.items():
+          #  player["resources"][res] -= amt
+       # edge.player = self.current_player_index
+       # self._cancel_build()
+       # self._build_player_texts()
+       # print(f"{player['name']} built a road!")
 
     def _cancel_build(self):
         self.build_mode    = False
