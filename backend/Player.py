@@ -1,5 +1,4 @@
-import arcade.color
-
+# pylint: disable=C0114,C0116
 class Player:
     def __init__(self, color, name):
         self.victory_points = 0
@@ -21,7 +20,6 @@ class Player:
         if (self.resource_cards['WHEAT'] > 0 and self.resource_cards['SHEEP'] > 0
          and self.resource_cards['ORE'] > 0):
             pass
-        pass
 
     def build_road(self, board, edge):
 
@@ -37,8 +35,6 @@ class Player:
                 #self.resource_cards['BRICK'] -= 1
                 #self.total_roads -= 1
                 #edge.place_road(board)
-
-        pass
 
     def build_road_setup(self, board, edge):
         if edge.is_valid_road_placement(board):
@@ -56,12 +52,6 @@ class Player:
             self.resource_cards['WHEAT'] -= 1
             self.total_settlements -= 1
             node.place_settlement(board)
-            # if a settlement can be placed, deduct resources and 1 from total_settlements, then place
-            #if node.is_valid_settlement_placement(board):
-
-
-
-        pass
 
     def build_settlement_setup(self, board, node):
         if node.is_valid_settlement_placement(board):
@@ -71,6 +61,5 @@ class Player:
     def build_city(self, settlement):
 
         # check if player has sufficient resources
-        if self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3:
+        if self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3 and self.total_settlements>0:
             pass
-        pass

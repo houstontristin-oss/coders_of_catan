@@ -543,8 +543,8 @@ class CatanView(arcade.View):
         Build/rebuild Text objects for the current player panel.
         Called on init and every time _end_turn() fires.
         """
-        player = PLAYERS[self.current_player]
-        """Single-column player info panel."""
+        player = PLAYERS_TWO[self.current_player] #Single-column player info panel.
+
         player    = PLAYERS_TWO[self.current_player]
         panel_x   = 8
         panel_top = SCREEN_HEIGHT - 8   # top of panel in screen coords
