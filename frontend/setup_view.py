@@ -6,7 +6,7 @@ import arcade
 from backend.catan_board import CatanBoard
 from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect
 from .board_utils import node_to_pixel
-from .constants import SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH, DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,EDGE_SNAP_RADIUS, NODE_SNAP_RADIUS
+from .constants import SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH, DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,EDGE_SNAP_RADIUS, NODE_SNAP_RADIUS, RESOURCE_ABBR
 
 class SetupView(arcade.View):
     """
@@ -261,6 +261,11 @@ class SetupView(arcade.View):
 
             if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
                 if self.build_choice == BUILD_SETTLEMENT:
+                    if self.cycle == 2:
+                        for tile in self.selected_node.tiles:
+                            if tile.resource != 'desert':
+                                resource = RESOURCE_ABBR[tile.resource]
+                                self.players[self.current_player].resource_cards[resource.upper()] += 1
                     self._place_settlement(self.selected_node)
                     self.build_choice = BUILD_ROAD
                     self.txt_title.text = f"{self.players[self.current_player].name}: Place your Road"
