@@ -11,7 +11,7 @@ class Edge():
         self.edge_id = edge_id # e.g., tuple of 2 connected nodes
         self.nodes = [] # list of surrounding nodes (expected len 2)
         self.tiles = [] # list of adjacent tiles (expected len 2)
-        self.player = None # player who owns edge/road
+        self.player = None # player who owns edge/road ex. '1', '2', '3', '4'
 
     #check if edge is a valid placement for road
     def is_valid_road_placement(self, player):
@@ -25,8 +25,30 @@ class Edge():
                 if edge.player == player:
                     flag = True
         return flag
-    #after checking valid road, place road
+    
+    def is_valid_setup_road_placement(self, player_idx):
+        """
+        During setup, road just needs to connect to the current player's settlement.
+        
+        Args:
+            player_idx: The index of the player who is attempting to place the road.
+        
+        Returns:
+            bool: True if the road can be placed, False otherwise.
+        """
+        if self.player is not None: # edge not owned yet
+            return False
+        for node in self.nodes:
+            if node.player == player_idx: # check if neighbor node is occupied by current player
+                return True
+            for edge in node.edges:
+                if edge is not self and edge.player == player_idx: 
+                    # check if neighbor edge is occupied by current player
+                    return True
+        return False
+    
     def place_road(self, player):
+        #after checking valid road, place road
         self.player = player
 
     def str(self):

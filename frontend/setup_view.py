@@ -15,9 +15,9 @@ class SetupView(arcade.View):
     def __init__(self, board, players, current_player, cycle): 
         super().__init__()
         self.board = board # CatanBoard instance
-        self.players = players
-        self.current_player = current_player
-        self.cycle = cycle
+        self.players = players # list of Player instances
+        self.current_player = current_player # index of current player in players list
+        self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
 
         #Build node states
         self.build_choice  = BUILD_SETTLEMENT
@@ -105,7 +105,7 @@ class SetupView(arcade.View):
     def _draw_edge_highlights(self):
         player_color = self.players[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
-            if edge_obj.player is not None:
+            if not edge_obj.is_valid_setup_road_placement(self.current_player):  # skip invalid edges
                 continue
             mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
             if my < HUD_BOTTOM_HEIGHT + 5:
@@ -239,7 +239,7 @@ class SetupView(arcade.View):
                 d = math.hypot(x-mx, y-my)
                 if d < EDGE_SNAP_RADIUS and d < closest_dist:
                     edge = self.board.edges[edge_id]
-                    if edge.player is None:
+                    if edge.player is None and edge.is_valid_setup_road_placement(self.current_player):
                         closest, closest_dist = edge, d
             self.hovered_edge = closest
 
