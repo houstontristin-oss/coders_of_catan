@@ -18,6 +18,7 @@ class SetupView(arcade.View):
         self.players = players # list of Player instances
         self.current_player = current_player # index of current player in players list
         self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
+        self.last_placed_settlement = None # track last placed settlement for edge verification during road placement in setup
 
         #Build node states
         self.build_choice  = BUILD_SETTLEMENT
@@ -105,7 +106,7 @@ class SetupView(arcade.View):
     def _draw_edge_highlights(self):
         player_color = self.players[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
-            if not edge_obj.is_valid_setup_road_placement(self.current_player):  # skip invalid edges
+            if not edge_obj.is_valid_setup_road_placement(self.last_placed_settlement):  # skip invalid edges
                 continue
             mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
             if my < HUD_BOTTOM_HEIGHT + 5:
@@ -163,6 +164,7 @@ class SetupView(arcade.View):
         player.build_settlement_setup(CatanBoard, node)
         node.player = self.current_player
         node.building = "settlement"
+        self.last_placed_settlement = node # can be used to verify correct road placement in setup
         player.victory_points += 1
         self._cancel_build()
         print(f"{player.name} built a settlement! Victory Points: {player.victory_points}")
@@ -239,7 +241,7 @@ class SetupView(arcade.View):
                 d = math.hypot(x-mx, y-my)
                 if d < EDGE_SNAP_RADIUS and d < closest_dist:
                     edge = self.board.edges[edge_id]
-                    if edge.player is None and edge.is_valid_setup_road_placement(self.current_player):
+                    if edge.player is None and edge.is_valid_setup_road_placement(self.last_placed_settlement):
                         closest, closest_dist = edge, d
             self.hovered_edge = closest
 
@@ -261,7 +263,7 @@ class SetupView(arcade.View):
 
             if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
                 if self.build_choice == BUILD_SETTLEMENT:
-                    if self.cycle == 2:
+                    if self.cycle == 2: # distribute resources for second settlement placements
                         for tile in self.selected_node.tiles:
                             if tile.resource != 'desert':
                                 resource = RESOURCE_ABBR[tile.resource]
