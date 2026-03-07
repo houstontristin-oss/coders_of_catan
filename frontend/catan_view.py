@@ -453,7 +453,8 @@ class CatanView(arcade.View):
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color
         for node_id, node_obj in self.board.nodes.items():
-            if node_obj.player is not None:
+            if not node_obj.is_valid_settlement_placement(self.players[self.current_player]):  
+                # skip invalid nodes
                 continue
             npx, npy = self._node_pixel_cache[node_id]
             if npy < HUD_BOTTOM_HEIGHT + 5:
@@ -470,7 +471,8 @@ class CatanView(arcade.View):
     def _draw_edge_highlights(self):
         player_color = self.players[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
-            if edge_obj.player is not None:
+            if not edge_obj.is_valid_road_placement(self.current_player):
+                # skip invalid edges
                 continue
             mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
             if my < HUD_BOTTOM_HEIGHT + 5:
@@ -570,7 +572,9 @@ class CatanView(arcade.View):
                 d = math.hypot(x-npx, y-npy)
                 if d < NODE_SNAP_RADIUS and d < closest_dist:
                     node = self.board.nodes[node_id]
-                    if node.player is None:
+                    if (node.player is None and 
+                        node.is_valid_settlement_location(self.players[self.current_player])):
+                        # only snap to a node if its a valid settlement option
                         closest, closest_dist = node, d
             self.hovered_node = closest
         elif self.build_choice == BUILD_ROAD:
@@ -579,7 +583,9 @@ class CatanView(arcade.View):
                 d = math.hypot(x-mx, y-my)
                 if d < EDGE_SNAP_RADIUS and d < closest_dist:
                     edge = self.board.edges[edge_id]
-                    if edge.player is None:
+                    if (edge.player is None and 
+                        edge.is_valid_road_placement(self.current_player)):
+                        # onlt snap to an edge if its a valid road option
                         closest, closest_dist = edge, d
             self.hovered_edge = closest
 

@@ -13,18 +13,25 @@ class Edge():
         self.tiles = [] # list of adjacent tiles (expected len 2)
         self.player = None # player who owns edge/road ex. '1', '2', '3', '4'
 
-    #check if edge is a valid placement for road
     def is_valid_road_placement(self, player):
-        #if road already occupied by a player
-        if self.player:
+        """
+        During building, road needs to connect to an 
+        existing road or settlement of the current player.
+        
+        Args:
+            player: The player index (e.g., '1', '2', '3', '4') 
+                    for whom we are checking the road placement.
+        
+        Returns:
+            bool: True if the road can be placed, False otherwise.
+        """
+        if self.player: # if its currenltly occupied, can't place road
             return False
-        #determine if an edge of the two connected nodes is occupied by player
-        flag = False
-        for node in self.nodes:
+        for node in self.nodes: # find if an edge of the two connected nodes is occupied by player
             for edge in node.edges:
                 if edge.player == player:
-                    flag = True
-        return flag
+                    return True
+        return False
 
     def is_valid_setup_road_placement(self, node_obj):
         """
