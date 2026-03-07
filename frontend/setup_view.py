@@ -6,19 +6,22 @@ import arcade
 from backend.catan_board import CatanBoard
 from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect
 from .board_utils import node_to_pixel
-from .constants import SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH, DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,EDGE_SNAP_RADIUS, NODE_SNAP_RADIUS, RESOURCE_ABBR
+from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
+DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,EDGE_SNAP_RADIUS,
+NODE_SNAP_RADIUS, RESOURCE_ABBR)
 
 class SetupView(arcade.View):
     """
     SetupView Class
     """
-    def __init__(self, board, players, current_player, cycle): 
+    def __init__(self, board, players, current_player, cycle):
         super().__init__()
         self.board = board # CatanBoard instance
         self.players = players # list of Player instances
         self.current_player = current_player # index of current player in players list
         self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
-        self.last_placed_settlement = None # track last placed settlement for edge verification during road placement in setup
+        self.last_placed_settlement = None # track last placed settlement for edge verification
+        # during road placement in setup
 
         #Build node states
         self.build_choice  = BUILD_SETTLEMENT
@@ -38,7 +41,9 @@ class SetupView(arcade.View):
 
     def _build_text_objects(self):
         player = self.players[self.current_player]
-        self.txt_title = arcade.Text(f"{player.name}: Place your Settlement", SCREEN_WIDTH / 4, SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30, color=player.color)
+        self.txt_title = arcade.Text(f"{player.name}: Place your Settlement", SCREEN_WIDTH / 4,
+                                     SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30,
+                                     color=player.color)
         # Confirm popup labels
         self.txt_popup_title   = arcade.Text("", 0, 0, TEXT_GOLD,  10, bold=True,
                                               anchor_x="center", anchor_y="center",
@@ -84,7 +89,8 @@ class SetupView(arcade.View):
     # -----------------------------------------------------------------------
     # Ghost highlights
     # TODO: Make only valid settlement and road placements highlighted
-    # NOTE: Currently if you place a road on a not valid spot during setup it will disappear and if you place a settlement on a not valid spot it will violate the rules
+    # NOTE: Currently if you place a road on a not valid spot during setup it will disappear and if
+    # you place a settlement on a not valid spot it will violate the rules
     # -----------------------------------------------------------------------
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color
@@ -106,7 +112,8 @@ class SetupView(arcade.View):
     def _draw_edge_highlights(self):
         player_color = self.players[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
-            if not edge_obj.is_valid_setup_road_placement(self.last_placed_settlement):  # skip invalid edges
+            if not edge_obj.is_valid_setup_road_placement(self.last_placed_settlement):
+                # skip invalid edges
                 continue
             mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
             if my < HUD_BOTTOM_HEIGHT + 5:
@@ -203,7 +210,7 @@ class SetupView(arcade.View):
 
     def on_draw(self):
         self.clear()
-        # --- Draw the board --- 
+        # --- Draw the board ---
         draw_board(self.board)
         self.txt_title.draw()
 
@@ -241,7 +248,8 @@ class SetupView(arcade.View):
                 d = math.hypot(x-mx, y-my)
                 if d < EDGE_SNAP_RADIUS and d < closest_dist:
                     edge = self.board.edges[edge_id]
-                    if edge.player is None and edge.is_valid_setup_road_placement(self.last_placed_settlement):
+                    if (edge.player is None and
+                    edge.is_valid_setup_road_placement(self.last_placed_settlement)):
                         closest, closest_dist = edge, d
             self.hovered_edge = closest
 
@@ -270,7 +278,8 @@ class SetupView(arcade.View):
                                 self.players[self.current_player].resource_cards[resource.upper()] += 1
                     self._place_settlement(self.selected_node)
                     self.build_choice = BUILD_ROAD
-                    self.txt_title.text = f"{self.players[self.current_player].name}: Place your Road"
+                    self.txt_title.text = (f"{self.players[self.current_player].name}: " +
+                                            "Place your Road")
                 elif self.build_choice == BUILD_ROAD:
                     self._place_road(self.selected_edge)
                     if self.current_player == 3 and self.cycle == 1:
@@ -283,8 +292,9 @@ class SetupView(arcade.View):
                         from .catan_view import CatanView
                         self.window.show_view(CatanView(self.board, self.players, 0))
                         return
-      
-                    self.window.show_view(SetupView(self.board, self.players, self.current_player, self.cycle))
+
+                    self.window.show_view(SetupView(self.board, self.players, 
+                                                    self.current_player, self.cycle))
                 return
             if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
                 self.selected_node = None
