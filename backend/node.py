@@ -18,7 +18,23 @@ class Node:
     def __repr__(self):
         return self.__str__()
 
-    #check if node is a valid placement for settlement
+    def is_valid_setup_placement(self):
+        """
+        During setup, a settlement just needs:
+            1. The node to be unoccupied
+            2. No adjacent settlements (distance rule)
+
+        Returns:
+            bool: True if the settlement can be placed, False otherwise.
+        """
+        if self.building:
+            return False
+        for edge in self.edges:
+            for node in edge.nodes:
+                if node is not self and node.player is not None:
+                    return False
+        return True
+    
     def is_valid_settlement_placement(self, player):
         """
         A settlement can be placed on a node if:
@@ -50,9 +66,15 @@ class Node:
 
         Args:
             player: The player who is placing the settlement.
+
+        Returns:
+            bool: True if the settlement was placed successfully, False otherwise.
         """
-        self.player = player
-        #self.building = "settlement"
+        if self.is_valid_settlement_placement(player):
+            self.player = player
+            self.building = "settlement"
+            return True
+        return False
         # NOTE: add check for if placement breaks another players longest road here
 
     def place_city(self, player):
@@ -65,6 +87,7 @@ class Node:
         Args:
             player: The player who is placing the city.
         """
-        if self.player == player:
-            pass
-            #self.building = "city" #or another way to denote city
+        if self.player == player and self.building == "settlement":
+            self.building = "city"
+            return True
+        return False

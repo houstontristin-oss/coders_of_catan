@@ -14,7 +14,7 @@ class SetupView(arcade.View):
     """
     def __init__(self, board, players, current_player, cycle): 
         super().__init__()
-        self.board = board
+        self.board = board # CatanBoard instance
         self.players = players
         self.current_player = current_player
         self.cycle = cycle
@@ -88,7 +88,7 @@ class SetupView(arcade.View):
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color
         for node_id, node_obj in self.board.nodes.items():
-            if node_obj.player is not None:
+            if not node_obj.is_valid_setup_placement():  # skip invalid nodes
                 continue
             npx, npy = self._node_pixel_cache[node_id]
             if npy < HUD_BOTTOM_HEIGHT + 5:
@@ -230,7 +230,7 @@ class SetupView(arcade.View):
                 d = math.hypot(x-npx, y-npy)
                 if d < NODE_SNAP_RADIUS and d < closest_dist:
                     node = self.board.nodes[node_id]
-                    if node.player is None:
+                    if node.player is None and node.is_valid_setup_placement():
                         closest, closest_dist = node, d
             self.hovered_node = closest
         elif self.build_choice == BUILD_ROAD:
@@ -278,7 +278,6 @@ class SetupView(arcade.View):
                     elif self.cycle == 2 and self.current_player > 0:
                         self.current_player -= 1
                     elif self.cycle == 2 and self.current_player == 0:
-                        #TODO: Give each player their resources from their most recently built settlement
                         from .catan_view import CatanView
                         self.window.show_view(CatanView(self.board, self.players, 0))
                         return
