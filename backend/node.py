@@ -37,6 +37,8 @@ class Node:
     
     def is_valid_settlement_placement(self, player):
         """
+        Check is current node is a valid placement for a settlement for the given player.
+
         A settlement can be placed on a node if:
             1. The node is not already occupied by another settlement or city.
             2. There are no adjacent settlements (i.e., no other settlements on 
@@ -59,10 +61,10 @@ class Node:
                     flag = False
         return flag
 
-    #after checking valid placement, actually place settlement
     def place_settlement(self, player):
         """
         Place a settlement on the node if the placement is valid.
+        aka assign the player to the node and set building to settlement
 
         Args:
             player: The player who is placing the settlement.
