@@ -25,7 +25,7 @@ class Edge():
                 if edge.player == player:
                     flag = True
         return flag
-    
+
     def is_valid_setup_road_placement(self, node_obj):
         """
         During setup, road just needs to connect to the current player's settlement.
@@ -39,10 +39,11 @@ class Edge():
         if self.player is not None: # edge not owned yet
             return False
         for node in self.nodes:
-            if node == node_obj: # check if edge is connected to the node where the player is placing a settlement
+            if node == node_obj:
+                # check if edge is connected to the node where the player is placing a settlement
                 return True
         return False
-    
+
     def place_road(self, player):
         #after checking valid road, place road
         self.player = player
