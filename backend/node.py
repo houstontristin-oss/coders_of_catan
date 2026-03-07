@@ -11,7 +11,7 @@ class Node:
         self.tiles = [] # List of tile objects
         self.edges = [] # list of edge objects
         self.building = None # e.g., settlement/city
-        self.player = None # player who owns node/settle/city
+        self.player = None # player who owns node/settle/city ex. '1', '2', '3', '4'
 
     def __str__(self):
         return f"Node: {self.node_id}"
