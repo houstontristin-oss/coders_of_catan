@@ -9,8 +9,9 @@ from backend.catan_board import CatanBoard
 from .play_card_view import PlayCardView
 from .trade_view import TradeView
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
+from .ports import PortManager
 from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board
-from .constants import BUILD_NONE, BACKGROUND_IMAGE, SCREEN_WIDTH, SCREEN_HEIGHT, BOARD_CENTER_X, BOARD_CENTER_Y,RESOURCE_ABBR, PORT_TYPES, HEX_SIZE, PORT_SHIP_SPRITE, RESOURCE_SPRITES, SPRITE_SCALE, TEXT_WHITE,TEXT_GOLD, TEXT_LIGHT_GRAY, HUD_BOTTOM_HEIGHT, HUD_BG, DICE_AREA_HEIGHT, DICE_AREA_WIDTH, HUD_PANEL_HEIGHT, HUD_PANEL_BG, HUD_PANEL_WIDTH, ICON_SIZE, BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE, BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST, RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS
+from .constants import BUILD_NONE, BACKGROUND_IMAGE, SCREEN_WIDTH, SCREEN_HEIGHT, BOARD_CENTER_X, BOARD_CENTER_Y, RESOURCE_ABBR, HEX_SIZE, RESOURCE_SPRITES, SPRITE_SCALE, TEXT_WHITE, TEXT_GOLD, TEXT_LIGHT_GRAY, HUD_BOTTOM_HEIGHT, HUD_BG, DICE_AREA_HEIGHT, DICE_AREA_WIDTH, HUD_PANEL_HEIGHT, HUD_PANEL_BG, HUD_PANEL_WIDTH, ICON_SIZE, BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE, BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST, RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS
 
 
 class CatanView(arcade.View):
@@ -36,20 +37,18 @@ class CatanView(arcade.View):
         # Pixel caches (populated after make_board)
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
-        self._port_render_data = []   # list of (ship_x, ship_y, angle, label)
-        self.txt_port_labels = []
+        self.port_manager = None   # built after pixel caches are ready
 
         # Load background
         self._load_background()
 
     #     # Load HUD icons and ship sprite
-    # def on_show_view(self):        
+    # def on_show_view(self):
         # --- Pre-build all Text objects (avoids draw_text performance warning) ---
         self._build_text_objects()
 
         # --- Load resource icon sprites ---
         self._load_resource_icons()
-        self._load_port_sprite()
 
         # Build the board (number tokens assigned inside)
         self._assign_number_tokens()
@@ -57,7 +56,9 @@ class CatanView(arcade.View):
         # Build pixel caches
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
-        self._build_port_render_data()
+
+        # Build port manager (randomizes port layout each game)
+        self.port_manager = PortManager(self.board, self._edge_pixel_cache)
 
         # Build HUD text objects last (needs board to be ready)
         self._build_text_objects()
@@ -100,83 +101,6 @@ class CatanView(arcade.View):
         pass   # tile.number is already set by backend.make_board()
 
     # -----------------------------------------------------------------------
-    # Port rendering data
-    # -----------------------------------------------------------------------
-    def _build_port_render_data(self):
-        """
-        Find all outer edges (edges where at least one endpoint node touches
-        only 1 tile — meaning it's on the board boundary), sort them
-        clockwise by angle from board center, pick 9 evenly-spaced ones,
-        and assign port types to them.
-        """
-        self._port_render_data = []
-
-        # --- Step 1: find all outer edges ---
-        outer_edges = []
-        for edge_id, edge_obj in self.board.edges.items():
-            # An outer edge has at least one node that touches only 1 tile
-            if any(len(n.tiles) < 3 for n in edge_obj.nodes):
-                mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
-                # Compute angle of midpoint from board center
-                dx = mx - BOARD_CENTER_X
-                dy = my - BOARD_CENTER_Y
-                angle_from_center = math.atan2(dy, dx)
-                outer_edges.append((angle_from_center, mx, my, x1, y1, x2, y2))
-
-        # --- Step 2: sort clockwise from top (top = angle pi/2, going clockwise) ---
-        # atan2 goes counter-clockwise, so we negate and offset to start at top
-        outer_edges.sort(key=lambda e: (-(e[0] - math.pi/2)) % (2 * math.pi))
-
-        # --- Step 3: pick 9 evenly-spaced edges from the sorted outer ring ---
-        total      = len(outer_edges)
-        step       = total / 9
-        port_edges = [outer_edges[round(i * step) % total] for i in range(9)]
-
-        # --- Step 4: build render data ---
-        for i, (angle_from_center, mx, my, x1, y1, x2, y2) in enumerate(port_edges):
-            resource = PORT_TYPES[i]
-            label    = f"2:1 {RESOURCE_ABBR[resource]}" if resource else "3:1"
-
-            # Push ship outward into the water past the tile edge
-            dx   = mx - BOARD_CENTER_X
-            dy   = my - BOARD_CENTER_Y
-            dist = math.hypot(dx, dy) or 1
-            norm_x = dx / dist
-            norm_y = dy / dist
-
-            ship_x = mx + norm_x * (HEX_SIZE * 0.65)
-            ship_y = my + norm_y * (HEX_SIZE * 0.65)
-
-            label_x = mx + norm_x * (HEX_SIZE * 1.1)
-            label_y = my + norm_y * (HEX_SIZE * 1.1)
-
-            # Sprite angle: face inward toward the board center
-            # atan2(dy,dx) gives angle of outward direction from board center.
-            # Arcade rotates counter-clockwise from "right", so subtract 90 to align top.
-            sprite_angle = math.degrees(math.atan2(dy, dx)) - 90
-            self._port_render_data.append((ship_x, ship_y, sprite_angle, label, label_x, label_y))
-
-            # Pre-build Text object for this port label (avoids draw_text perf warning)
-            self.txt_port_labels.append(
-                arcade.Text(
-                    label,
-                    label_x, label_y,
-                    (15, 40, 90, 255), 13,
-                    bold=True,
-                    anchor_x="center", anchor_y="center",
-                    font_name="MedievalSharp"
-                )
-            )
-
-            # Add sprite to SpriteList once at init (Arcade 3.x requirement)
-            if self._ship_ok:
-                ship = arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
-                ship.center_x = ship_x
-                ship.center_y = ship_y
-                ship.angle    = sprite_angle
-                self.port_sprite_list.append(ship)
-
-    # -----------------------------------------------------------------------
     # Caches
     # -----------------------------------------------------------------------
     def _build_node_pixel_cache(self):
@@ -203,18 +127,6 @@ class CatanView(arcade.View):
             sprite = arcade.Sprite(RESOURCE_SPRITES[res], scale=SPRITE_SCALE)
             self.resource_icons[res] = sprite
             self.icon_sprite_list.append(sprite)
-
-    def _load_port_sprite(self):
-        """
-        Try to load the ship image.  Actual sprites are added to the
-        SpriteList in _build_port_render_data() once port positions are known.
-        """
-        self.port_sprite_list = arcade.SpriteList()
-        try:
-            _test = arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
-            self._ship_ok = True
-        except Exception:
-            self._ship_ok = False
 
     # -----------------------------------------------------------------------
     # Text objects
@@ -256,9 +168,6 @@ class CatanView(arcade.View):
         self.txt_popup_cancel  = arcade.Text("Cancel", 0, 0, TEXT_WHITE, 9, bold=True,
                                               anchor_x="center", anchor_y="center",
                                               font_name="MedievalSharp")
-
-        # Port labels (rebuilt when port data changes)
-        self.txt_port_labels = []
 
         self._build_player_texts()
 
@@ -422,16 +331,7 @@ class CatanView(arcade.View):
     # Port drawing
     # -----------------------------------------------------------------------
     def _draw_ports(self):
-        # Ship sprites sit on the tile edge — drawn via SpriteList
-        if self._ship_ok:
-            self.port_sprite_list.draw()
-
-        # Labels drawn via pre-built Text objects (no draw_text performance hit)
-        for txt in self.txt_port_labels:
-            if not self._ship_ok:
-                # fallback dot at ship position stored alongside label
-                pass
-            txt.draw()
+        self.port_manager.draw()
 
     # -----------------------------------------------------------------------
     # Board pieces (always drawn)
@@ -453,8 +353,7 @@ class CatanView(arcade.View):
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color
         for node_id, node_obj in self.board.nodes.items():
-            if not node_obj.is_valid_settlement_placement(self.players[self.current_player]):  
-                # skip invalid nodes
+            if node_obj.player is not None:
                 continue
             npx, npy = self._node_pixel_cache[node_id]
             if npy < HUD_BOTTOM_HEIGHT + 5:
@@ -471,8 +370,7 @@ class CatanView(arcade.View):
     def _draw_edge_highlights(self):
         player_color = self.players[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
-            if not edge_obj.is_valid_road_placement(self.current_player):
-                # skip invalid edges
+            if edge_obj.player is not None:
                 continue
             mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
             if my < HUD_BOTTOM_HEIGHT + 5:
@@ -572,9 +470,7 @@ class CatanView(arcade.View):
                 d = math.hypot(x-npx, y-npy)
                 if d < NODE_SNAP_RADIUS and d < closest_dist:
                     node = self.board.nodes[node_id]
-                    if (node.player is None and 
-                        node.is_valid_settlement_location(self.players[self.current_player])):
-                        # only snap to a node if its a valid settlement option
+                    if node.player is None:
                         closest, closest_dist = node, d
             self.hovered_node = closest
         elif self.build_choice == BUILD_ROAD:
@@ -583,9 +479,7 @@ class CatanView(arcade.View):
                 d = math.hypot(x-mx, y-my)
                 if d < EDGE_SNAP_RADIUS and d < closest_dist:
                     edge = self.board.edges[edge_id]
-                    if (edge.player is None and 
-                        edge.is_valid_road_placement(self.current_player)):
-                        # onlt snap to an edge if its a valid road option
+                    if edge.player is None:
                         closest, closest_dist = edge, d
             self.hovered_edge = closest
 
