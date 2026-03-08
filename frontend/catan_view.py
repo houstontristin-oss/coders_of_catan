@@ -131,17 +131,29 @@ class CatanView(arcade.View):
     # -----------------------------------------------------------------------
     # Text objects
     # -----------------------------------------------------------------------
-    def _build_text_objects(self):
-        bar_cy  = HUD_BOTTOM_HEIGHT / 2
-        btn_w   = 130
-        gap     = 15
-        total_w = 3 * btn_w + 2 * gap
-        sx      = (SCREEN_WIDTH - total_w) / 2
+    # --- Layout constants for the bottom-left action column ---
+    _BTN_W   = 120   # button width
+    _BTN_H   = 38    # button height
+    _BTN_GAP = 6     # gap between stacked buttons
+    _BTN_X   = 10    # left edge of the column
+    # Buttons stacked from y=10 upward: Trade=bottom, Build=middle, Card=top
+    _TRADE_Y = 10
+    _BUILD_Y = _TRADE_Y + _BTN_H + _BTN_GAP
+    _CARD_Y  = _BUILD_Y + _BTN_H + _BTN_GAP
+    # End Turn floats at bottom-right
+    _END_W   = 130
+    _END_H   = 46
+    _END_X   = SCREEN_WIDTH - _END_W - 15   # left edge
+    _END_Y   = 10                            # bottom edge
 
-        self.txt_trade = arcade.Text("Trade",     sx+btn_w*0.5,           bar_cy, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
-        self.txt_build = arcade.Text("Build",     sx+btn_w*1.5+gap,       bar_cy, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
-        self.txt_card  = arcade.Text("Play Card", sx+btn_w*2.5+gap*2,     bar_cy, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
-        self.txt_end   = arcade.Text("End Turn",  SCREEN_WIDTH-btn_w*0.5-15, bar_cy, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+    def _build_text_objects(self):
+        bw  = self._BTN_W
+        bx  = self._BTN_X
+
+        self.txt_trade = arcade.Text("Trade",     bx + bw/2, self._TRADE_Y + self._BTN_H/2, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_build = arcade.Text("Build",     bx + bw/2, self._BUILD_Y + self._BTN_H/2, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_card  = arcade.Text("Play Card", bx + bw/2, self._CARD_Y  + self._BTN_H/2, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_end   = arcade.Text("End Turn",  self._END_X + self._END_W/2, self._END_Y + self._END_H/2, TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
 
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - 10
         dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - 10
@@ -229,37 +241,43 @@ class CatanView(arcade.View):
     # HUD draw helpers
     # -----------------------------------------------------------------------
     def _draw_bottom_bar(self):
-        fill_rect(0, 0, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_BG)
+        bw  = self._BTN_W
+        bh  = self._BTN_H
+        bx  = self._BTN_X
 
-        btn_w   = 130
-        btn_h   = 46
-        gap     = 15
-        total_w = 3 * btn_w + 2 * gap
-        sx      = (SCREEN_WIDTH - total_w) / 2
-        btn_bot = (HUD_BOTTOM_HEIGHT - btn_h) / 2
+        # Semi-transparent pill panel behind the three action buttons
+        panel_pad = 6
+        panel_x = bx - panel_pad
+        panel_y = self._TRADE_Y - panel_pad
+        panel_w = bw + panel_pad * 2
+        panel_h = (bh * 3 + self._BTN_GAP * 2) + panel_pad * 2
+        fill_rect(panel_x, panel_y, panel_w, panel_h, (15, 15, 35, 200))
+        outline_rect(panel_x, panel_y, panel_w, panel_h, TEXT_GOLD, 1)
 
         build_col = BTN_BUILD_ACTIVE if self.build_mode else BTN_BUILD
 
-        fill_rect(sx,                    btn_bot, btn_w, btn_h, BTN_TRADE)
-        fill_rect(sx+btn_w+gap,          btn_bot, btn_w, btn_h, build_col)
-        fill_rect(sx+2*(btn_w+gap),      btn_bot, btn_w, btn_h, BTN_CARD)
-        fill_rect(SCREEN_WIDTH-btn_w-15, btn_bot, btn_w, btn_h, BTN_ENDTURN)
+        # Action buttons stacked vertically
+        fill_rect(bx, self._TRADE_Y, bw, bh, BTN_TRADE)
+        fill_rect(bx, self._BUILD_Y, bw, bh, build_col)
+        fill_rect(bx, self._CARD_Y,  bw, bh, BTN_CARD)
 
         self.txt_trade.draw()
         self.txt_build.draw()
         self.txt_card.draw()
+
+        # End Turn — floating bottom-right, no bar behind it
+        fill_rect(self._END_X, self._END_Y, self._END_W, self._END_H, BTN_ENDTURN)
+        outline_rect(self._END_X, self._END_Y, self._END_W, self._END_H, (255, 100, 80), 2)
         self.txt_end.draw()
 
     def _draw_build_submenu(self):
         if not self.build_mode or self.build_choice != BUILD_NONE:
             return
 
-        btn_w  = 130
-        gap    = 15
-        sx     = (SCREEN_WIDTH - 3*btn_w - 2*gap) / 2
-        bx     = sx + btn_w + gap
-        by     = HUD_BOTTOM_HEIGHT
-        menu_w = btn_w
+        # Submenu pops up above the Build button in the left column
+        bx     = self._BTN_X
+        by     = self._BUILD_Y + self._BTN_H + 4   # just above the Build button
+        menu_w = self._BTN_W
 
         fill_rect(bx, by, menu_w, 80, HUD_PANEL_BG)
         outline_rect(bx, by, menu_w, 80, TEXT_GOLD, 2)
@@ -487,18 +505,17 @@ class CatanView(arcade.View):
         """
         Skeleton click handler.
         """
-        btn_w = 150
-        gap = 20
-        total_w = 3 * btn_w + 2 * gap
-        sx = (SCREEN_WIDTH - total_w) / 2
-        # End Turn
-        if (SCREEN_WIDTH-btn_w-15 <= x <= SCREEN_WIDTH-15) and (y <= HUD_BOTTOM_HEIGHT):
+        bw = self._BTN_W
+        bh = self._BTN_H
+        bx = self._BTN_X
+
+        # End Turn — floating bottom-right
+        if (self._END_X <= x <= self._END_X + self._END_W) and (self._END_Y <= y <= self._END_Y + self._END_H):
             self._end_turn()
             return
 
-        # Build button
-        build_left = sx + btn_w + gap
-        if (build_left <= x <= build_left + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
+        # Build button (middle of left column)
+        if (bx <= x <= bx + bw) and (self._BUILD_Y <= y <= self._BUILD_Y + bh):
             if self.build_mode:
                 self._cancel_build()
             else:
@@ -506,11 +523,10 @@ class CatanView(arcade.View):
                 self.build_choice = BUILD_NONE
             return
 
-        # Sub-menu
+        # Build sub-menu (pops above the Build button)
         if self.build_mode and self.build_choice == BUILD_NONE:
-            bx     = sx + btn_w + gap
-            by     = HUD_BOTTOM_HEIGHT
-            menu_w = btn_w
+            by = self._BUILD_Y + bh + 4
+            menu_w = bw
             if (bx+8 <= x <= bx+menu_w-8) and (by+44 <= y <= by+72):
                 if self._can_afford(SETTLEMENT_COST):
                     self.build_choice = BUILD_SETTLEMENT
@@ -559,11 +575,12 @@ class CatanView(arcade.View):
             self.selected_edge = self.hovered_edge
             self.show_confirm  = True
             return
-        #Trade View
-        if (sx <= x <= sx + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
+        # Trade View — bottom button of left column
+        if (bx <= x <= bx + bw) and (self._TRADE_Y <= y <= self._TRADE_Y + bh):
             self.window.show_view(TradeView(self.board, self.players, self.current_player))
-        #Play Card View
-        if (sx + 2*(btn_w + gap) <= x <= sx + 2*(btn_w + gap) + btn_w) and (y <= HUD_BOTTOM_HEIGHT):
+            return
+        # Play Card View — top button of left column
+        if (bx <= x <= bx + bw) and (self._CARD_Y <= y <= self._CARD_Y + bh):
             self.window.show_view(PlayCardView(self.board, self.players, self.current_player))
     # -----------------------------------------------------------------------
     # Placement
