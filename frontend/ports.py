@@ -93,18 +93,21 @@ class PortManager:
 
     def _build(self, port_pool: list):
         """
-        Core build pipeline:
-          1. Collect all outer edges
-          2. Sort them clockwise from the top of the board
-          3. Pick 9 evenly-spaced ones
-          4. Assign shuffled port types
-          5. Compute ship position and correct facing angle
-          6. Create sprite + Text objects
+        Core build pipeline.
+
+        The standard Catan board has exactly 18 outer edges on its perimeter.
+        With flat-top orientation (flat sides top/bottom), those 18 edges
+        alternate between:
+          - "face" edges  — the flat face of a border tile (9 total, these get ports)
+          - "point" edges — edges at the pointy corners of the hex island (9 total)
+
+        When sorted clockwise from 12 o'clock, the face edges always land on
+        even indices (0, 2, 4, 6, 8, 10, 12, 14, 16). Picking every other edge
+        starting at index 0 gives exactly the 9 real Catan port positions,
+        uniformly spaced and flush against the island.
         """
 
-        # Step 1: collect outer edges
-        # An outer edge is one where at least one endpoint node touches
-        # fewer than 3 tiles (i.e. it sits on the board boundary).
+        # Collect all outer edges (nodes touching fewer than 3 tiles = on the border)
         outer_edges = []
         for edge_id, edge_obj in self._board.edges.items():
             if any(len(n.tiles) < 3 for n in edge_obj.nodes):
@@ -114,70 +117,48 @@ class PortManager:
                 angle_from_center = math.atan2(dy, dx)
                 outer_edges.append((angle_from_center, mx, my, x1, y1, x2, y2))
 
-        # Step 2: sort clockwise starting from the top
-        # math.atan2 increases counter-clockwise; negate + offset so
-        # 12-o-clock (angle = pi/2) sorts first and we go clockwise.
+        # Sort clockwise from 12 o'clock (top of screen)
         outer_edges.sort(
             key=lambda e: (-(e[0] - math.pi / 2)) % (2 * math.pi)
         )
 
-        # Step 3: pick 9 evenly-spaced edges
-        total      = len(outer_edges)
-        step       = total / 9
-        port_edges = [outer_edges[round(i * step) % total] for i in range(9)]
+        total = len(outer_edges)
 
-        # Steps 4-6: assign ports and build render objects
+        # Standard 19-tile flat-top board always produces 18 outer edges.
+        # Face edges (the ones that get ports) sit at even indices when sorted
+        # clockwise. Pick every other edge for the 9 port slots.
+        if total == 18:
+            port_edges = [outer_edges[i * 2] for i in range(9)]
+        else:
+            # Fallback for non-standard board sizes
+            step = total / 9
+            port_edges = [outer_edges[round(i * step) % total] for i in range(9)]
+
+        # Build one ship + label per port
         for i, (angle_from_center, mx, my, x1, y1, x2, y2) in enumerate(port_edges):
             resource = port_pool[i]
             label    = f"2:1 {RESOURCE_ABBR[resource]}" if resource else "3:1"
 
-            # Outward unit vector from board center through edge midpoint
+            # Outward unit vector from board center through the edge midpoint
             dx     = mx - BOARD_CENTER_X
             dy     = my - BOARD_CENTER_Y
             dist   = math.hypot(dx, dy) or 1.0
             norm_x = dx / dist
             norm_y = dy / dist
 
-            # Ship sits just outside the tile edge in the water
-            ship_x = mx + norm_x * (HEX_SIZE * 0.65)
-            ship_y = my + norm_y * (HEX_SIZE * 0.65)
+            # Ship sits just outside the tile edge, flush against the island
+            ship_x = mx + norm_x * (HEX_SIZE * 0.60)
+            ship_y = my + norm_y * (HEX_SIZE * 0.60)
 
-            # Label floats a bit further out still
-            label_x = mx + norm_x * (HEX_SIZE * 1.15)
-            label_y = my + norm_y * (HEX_SIZE * 1.15)
+            # Label floats outward past the ship with clean separation
+            SHIP_HALF = HEX_SIZE * 0.38   # approx half-height of sprite at scale=0.07
+            LABEL_GAP = 10
+            label_x = ship_x + norm_x * (SHIP_HALF + LABEL_GAP + 24)
+            label_y = ship_y + norm_y * (SHIP_HALF + LABEL_GAP + 24)
 
-            # Correct sprite rotation:
-            # We want the ship bow to point INWARD toward the board.
-            # Compute the edge's own direction, then pick whichever
-            # perpendicular to it faces inward (toward the center).
-            edge_dx    = x2 - x1
-            edge_dy    = y2 - y1
-            edge_angle = math.atan2(edge_dy, edge_dx)
-
-            # Two candidate perpendicular angles (90 degrees each way from edge)
-            perp1 = edge_angle + math.pi / 2
-            perp2 = edge_angle - math.pi / 2
-
-            # Inward direction is opposite the outward normal
-            inward_angle = math.atan2(-norm_y, -norm_x)
-
-            def _angle_diff(a, b):
-                d = (a - b) % (2 * math.pi)
-                return d if d <= math.pi else d - 2 * math.pi
-
-            if abs(_angle_diff(perp1, inward_angle)) <= abs(_angle_diff(perp2, inward_angle)):
-                facing_angle = perp1
-            else:
-                facing_angle = perp2
-
-            # Arcade angles: 0 = right, counter-clockwise positive.
-            # Subtract 90 because our ship sprite's forward direction is up.
-            sprite_angle = math.degrees(facing_angle) - 90
-
-            # Store fallback dot position
             self._fallback_dots.append((ship_x, ship_y))
 
-            # Build label Text object
+            # Label — always upright, no rotation
             self._label_texts.append(
                 arcade.Text(
                     label,
@@ -189,10 +170,10 @@ class PortManager:
                 )
             )
 
-            # Build ship sprite
+            # Ship sprite — angle=0, always upright (facing top of window)
             if self._ship_ok:
-                ship           = arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
-                ship.center_x  = ship_x
-                ship.center_y  = ship_y
-                ship.angle     = sprite_angle
+                ship          = arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
+                ship.center_x = ship_x
+                ship.center_y = ship_y
+                ship.angle    = 0
                 self._port_sprite_list.append(ship)
