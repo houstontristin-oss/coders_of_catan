@@ -52,6 +52,19 @@ RESOURCE_SPRITES = {
 
 PORT_SHIP_SPRITE = os.path.join(BASE_DIR, "sprites", "ports", "galley_ship.png")
 
+# Six die-face sprites  (dice-1.png … dice-6.png)
+DICE_SPRITES = {
+    i: os.path.join(BASE_DIR, "sprites", "dice", "vector", f"dice-{i}.png")
+    for i in range(1, 7)
+}
+
+# Robber token sprite
+ROBBER_SPRITE = os.path.join(BASE_DIR, "sprites", "robber", "vector", "robber.png")
+
+# Dice-roll animation settings
+DICE_ROLL_DURATION   = 1.2   # total seconds the animation runs
+DICE_ROLL_FLIP_RATE  = 0.07  # seconds between face-flips while rolling
+
 # ---------------------------------------------------------------------------
 # Colors in HUD
 # ---------------------------------------------------------------------------
