@@ -116,7 +116,7 @@ class PortManager:
         # Collect all outer edges
         outer_edges = []
         for edge_id, edge_obj in self._board.edges.items():
-            if any(len(n.tiles) < 3 for n in edge_obj.nodes):
+            if all(len(n.tiles) < 3 for n in edge_obj.nodes):
                 mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
                 dx = mx - BOARD_CENTER_X
                 dy = my - BOARD_CENTER_Y
