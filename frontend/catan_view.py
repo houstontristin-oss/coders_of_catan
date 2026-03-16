@@ -36,8 +36,8 @@ class CatanView(arcade.View):
         self.players = players
         # Track whose turn it is (index into PLAYERS list)
         self.current_player = current_player
-        self.die1 = die2
-        self.die2 = die1
+        self.die1 = die1
+        self.die2 = die2
 
         # Build mode state
         self.build_mode    = False
