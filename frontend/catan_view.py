@@ -30,14 +30,14 @@ class CatanView(arcade.View):
     """
     CatanView Class
     """
-    def __init__(self, board, players, current_player):
+    def __init__(self, board, players, current_player, die1, die2):
         super().__init__()
         self.board = board
         self.players = players
         # Track whose turn it is (index into PLAYERS list)
         self.current_player = current_player
-        self.die1 = random.randint(ONE, SIX)
-        self.die2 = random.randint(ONE, SIX)
+        self.die1 = die2
+        self.die2 = die1
 
         # Build mode state
         self.build_mode    = False
@@ -752,12 +752,12 @@ class CatanView(arcade.View):
 
         # --- Trade button ---
         if (_PAD <= x <= _PAD + _BW) and (trade_bottom <= y <= trade_bottom + _BH):
-            self.window.show_view(TradeView(self.board, self.players, self.current_player))
+            self.window.show_view(TradeView(self.board, self.players, self.current_player, self.die1, self.die2))
             return
 
         # --- Play Card button ---
         if (_PAD <= x <= _PAD + _BW) and (card_bottom <= y <= card_bottom + _BH):
-            self.window.show_view(PlayCardView(self.board, self.players, self.current_player))
+            self.window.show_view(PlayCardView(self.board, self.players, self.current_player, self.die1, self.die2))
             return
     # -----------------------------------------------------------------------
     # Placement
@@ -845,7 +845,6 @@ class CatanView(arcade.View):
         #Give players resources based on die1 and die2
         roll = self.die1 + self.die2
         for tile in self.board.tiles.values():
-            print(tile)
             if tile.number == roll:
                 resource = RESOURCE_ABBR[tile.resource]
                 for node in tile.nodes:

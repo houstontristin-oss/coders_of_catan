@@ -2,12 +2,13 @@
 Contains StartView class
 """
 import math
+import random
 import arcade
 from backend.catan_board import CatanBoard
 from backend.player import Player
 from .setup_view import SetupView
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, 
-                        TEXT_WHITE, TEXT_GOLD, BTN_ENDTURN, RESOURCE_ABBR
+                        TEXT_GOLD, RESOURCE_ABBR, ONE, SIX
 )
 from .drawing import fill_rect, outline_rect
 
@@ -179,7 +180,7 @@ class StartView(arcade.View):
         if self._skip_button_hit(x, y):
             _auto_place_setup(board, players)
             from .catan_view import CatanView
-            self.window.show_view(CatanView(board, players, 0))
+            self.window.show_view(CatanView(board, players, 0, die1=random.randint(ONE, SIX), die2=random.randint(ONE, SIX)))
             return
 
         # --- Normal flow: go to SetupView ---
