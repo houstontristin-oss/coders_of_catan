@@ -6,7 +6,9 @@ import arcade
 from backend.catan_board import CatanBoard
 from backend.player import Player
 from .setup_view import SetupView
-from .constants import SCREEN_HEIGHT, SCREEN_WIDTH, TEXT_WHITE, TEXT_GOLD, BTN_ENDTURN
+from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, 
+                        TEXT_WHITE, TEXT_GOLD, BTN_ENDTURN, RESOURCE_ABBR
+)
 from .drawing import fill_rect, outline_rect
 
 # ---------------------------------------------------------------------------
@@ -91,14 +93,11 @@ def _auto_place_setup(board, players):
             second_settlement_nodes[player_idx] = node
 
     # Award cycle-2 starting resources
-    resource_abbr = {
-        "brick": "BRICK", "ore": "ORE", "wheat": "WHEAT",
-        "sheep": "SHEEP", "forest": "WOOD",
-    }
+
     for player_idx, node in second_settlement_nodes.items():
         for tile in node.tiles:
             if tile.resource != "desert":
-                key = resource_abbr.get(tile.resource)
+                key = RESOURCE_ABBR.get(tile.resource)
                 if key:
                     players[player_idx].resource_cards[key] += 1
 

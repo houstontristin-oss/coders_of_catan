@@ -3,11 +3,13 @@ Contains CatanView Class
 """
 import math
 import arcade
+import random
 
 from backend.catan_board import CatanBoard
 
 from .play_card_view import PlayCardView
 from .trade_view import TradeView
+from .end_view import EndView
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
 from .ports import PortManager
 from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board
@@ -20,7 +22,7 @@ from .constants import (
     BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE,
     BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST,
     RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS,
-    ROBBER_SPRITE,
+    ROBBER_SPRITE, ONE, SIX
 )
 
 
@@ -34,6 +36,8 @@ class CatanView(arcade.View):
         self.players = players
         # Track whose turn it is (index into PLAYERS list)
         self.current_player = current_player
+        self.die1 = random.randint(ONE, SIX)
+        self.die2 = random.randint(ONE, SIX)
 
         # Build mode state
         self.build_mode    = False
@@ -246,20 +250,6 @@ class CatanView(arcade.View):
             TEXT_LIGHT_GRAY, 8, anchor_x="center",
             font_name="MedievalSharp",
         )
-        self.txt_die1 = arcade.Text(
-            "?",
-            dx + (DICE_AREA_WIDTH - 2*40 - 12) / 2 + 20, dy + 22 + 20,
-            TEXT_WHITE, 18, bold=True,
-            anchor_x="center", anchor_y="center",
-            font_name="MedievalSharp",
-        )
-        self.txt_die2 = arcade.Text(
-            "?",
-            dx + (DICE_AREA_WIDTH - 2*40 - 12) / 2 + 20 + 54, dy + 22 + 20,
-            TEXT_WHITE, 18, bold=True,
-            anchor_x="center", anchor_y="center",
-            font_name="MedievalSharp",
-        )
 
         # Build submenu labels (positions updated at draw time)
         self.txt_submenu_settlement = arcade.Text(
@@ -291,7 +281,25 @@ class CatanView(arcade.View):
         )
 
         self._build_player_texts()
+        self._build_dice_texts()
 
+    def _build_dice_texts(self):
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - 10
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - 10
+        self.txt_die1 = arcade.Text(
+            f"{self.die1}",
+            dx + (DICE_AREA_WIDTH - 2*40 - 12) / 2 + 20, dy + 22 + 20,
+            TEXT_WHITE, 18, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+        self.txt_die2 = arcade.Text(
+            f"{self.die2}",
+            dx + (DICE_AREA_WIDTH - 2*40 - 12) / 2 + 20 + 54, dy + 22 + 20,
+            TEXT_WHITE, 18, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
     def _build_player_texts(self):
         """
         Build/rebuild Text objects for the current player panel.
@@ -833,11 +841,31 @@ class CatanView(arcade.View):
         self.selected_edge = None
         self.show_confirm  = False
 
+    def _give_resources(self):
+        #Give players resources based on die1 and die2
+        roll = self.die1 + self.die2
+        for tile in self.board.tiles.values():
+            print(tile)
+            if tile.number == roll:
+                resource = RESOURCE_ABBR[tile.resource]
+                for node in tile.nodes:
+                    if node.player:
+                        self.players[node.player].resource_cards[resource] += 1
+
     def _end_turn(self):
         self.current_player = (self.current_player + 1) % len(self.players)
         self._cancel_build()
+
+        # roll dice for next player
+        self.die1 = random.randint(ONE, SIX)
+        self.die2 = random.randint(ONE, SIX)
+        #TODO: Check if roll is a 7
+        self._give_resources()
+
+        #build texts for next player
         self._build_player_texts()
+        self._build_dice_texts()
+
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn.")
-        # TODO: check for VPs to end game
-        # if self.players[self.current_player].vp == 10:
-            # self.window.show_view(EndView())
+        if self.players[self.current_player].victory_points == 10:
+            self.window.show_view(EndView(self.players, self.current_player))
