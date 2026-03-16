@@ -19,6 +19,7 @@ class Tile:
         self.number = number # number when dice rolled will yield resource
         self.nodes = [] # list of node objects
         self.edges = [] # list of edge objects
+        self.robber = False # whether the robber is currently on this tile
 
     def __repr__(self):
         return self.__str__()
