@@ -851,6 +851,7 @@ class CatanView(arcade.View):
                     if node.player:
                         self.players[node.player].resource_cards[resource] += 1
 
+
     def _end_turn(self):
         self.current_player = (self.current_player + 1) % len(self.players)
         self._cancel_build()

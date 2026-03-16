@@ -293,7 +293,18 @@ class SetupView(arcade.View):
                         self.current_player -= 1
                     elif self.cycle == 2 and self.current_player == 0:
                         from .catan_view import CatanView
-                        self.window.show_view(CatanView(self.board, self.players, 0, die1=random.randint(ONE, SIX), die2=random.randint(ONE, SIX)))
+                        #setup dice for first player
+                        die1 = random.randint(ONE, SIX)
+                        die2 = random.randint(ONE, SIX)
+                        #give resources
+                        roll = die1 + die2
+                        for tile in self.board.tiles.values():
+                            if tile.number == roll:
+                                resource = RESOURCE_ABBR[tile.resource]
+                                for node in tile.nodes:
+                                    if node.player:
+                                        self.players[node.player].resource_cards[resource] += 1
+                        self.window.show_view(CatanView(self.board, self.players, 0, die1, die2))
                         return
 
                     self.window.show_view(SetupView(self.board, self.players, 
