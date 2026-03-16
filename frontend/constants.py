@@ -117,12 +117,14 @@ PORT_TYPES = ["ore", None, "wheat", None, None, "brick", None, "sheep", "forest"
 BUILD_NONE       = None
 BUILD_SETTLEMENT = "settlement"
 BUILD_ROAD       = "road"
+BUILD_CITY       = "city"
 
 # ---------------------------------------------------------------------------
 # Costs
 # ---------------------------------------------------------------------------
 SETTLEMENT_COST = {"BRICK": 1, "WOOD": 1, "WHEAT": 1, "SHEEP": 1}
 ROAD_COST       = {"BRICK": 1, "WOOD": 1}
+CITY_COST       = {"ORE": 3, "WHEAT": 2}
 
 # Snap radii (pixels)
 NODE_SNAP_RADIUS = 18
