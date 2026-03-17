@@ -73,9 +73,13 @@ class Player:
             self.total_settlements -= 1
             node.place_settlement(board)
 
-    def build_city(self, settlement):
+    def build_city(self, board, node):
 
         # check if player has sufficient resources
         if (self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3
                 and self.total_settlements>0):
-            pass
+            self.resource_cards['WHEAT'] -= 2
+            self.resource_cards['ORE'] -= 3
+            self.total_cities -= 1
+            self.total_settlements += 1
+            node.place_city(board)
