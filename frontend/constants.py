@@ -91,11 +91,11 @@ RESOURCE_COLORS = {
 
 # Resource name -> display abbreviation shown on port labels
 RESOURCE_ABBR = {
-    "brick":  "Brick",
-    "ore":    "Ore",
-    "wheat":  "Wheat",
-    "sheep":  "Sheep",
-    "forest": "Wood",
+    "brick": "BRICK", 
+    "ore": "ORE", 
+    "wheat": "WHEAT",
+    "sheep": "SHEEP", 
+    "forest": "WOOD"
 }
 
 # ---------------------------------------------------------------------------
@@ -129,3 +129,7 @@ CITY_COST       = {"ORE": 3, "WHEAT": 2}
 # Snap radii (pixels)
 NODE_SNAP_RADIUS = 18
 EDGE_SNAP_RADIUS = 14
+
+#Dice constansts
+ONE = 1
+SIX = 6
