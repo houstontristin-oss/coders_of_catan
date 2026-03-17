@@ -57,10 +57,22 @@ class Node:
                 flag = True
             #determine there is not another settlement within one edge of the node
             for node in edge.nodes:
-                if node.player:
+                if node.player is not None:
                     flag = False
         return flag
 
+    def is_valid_city_placement(self, player):
+        """
+        Check if current node is a valid placement for a city for the given player.
+
+        A city can be placed on a node if:
+            1. The node already has a settlement owned by the same player. 
+
+        Args: 
+            player: The player who is attempting to place the city.
+        """
+        return self.player == player and self.building == "settlement"
+    
     def place_settlement(self, player):
         """
         Place a settlement on the node if the placement is valid.
