@@ -934,6 +934,8 @@ class CatanView(arcade.View):
                         player.resource_cards[resource] += 1 if node.building == "settlement" else 2
 
     def _end_turn(self):
+        if self.players[self.current_player].victory_points == 10:
+            self.window.show_view(EndView(self.players, self.current_player))
         self.current_player = (self.current_player + 1) % len(self.players)
         self._cancel_build()
 
@@ -948,5 +950,3 @@ class CatanView(arcade.View):
         self._build_dice_texts()
 
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn.")
-        if self.players[self.current_player].victory_points == 10:
-            self.window.show_view(EndView(self.players, self.current_player))
