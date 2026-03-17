@@ -12,7 +12,7 @@ from .trade_view import TradeView
 from .end_view import EndView
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
 from .ports import PortManager
-from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board
+from .drawing import fill_rect, outline_rect, draw_settlement, draw_city, draw_road, draw_board
 from .constants import (
     BUILD_NONE, BACKGROUND_IMAGE, SCREEN_WIDTH, SCREEN_HEIGHT,
     BOARD_CENTER_X, BOARD_CENTER_Y, RESOURCE_ABBR, HEX_SIZE,
@@ -20,9 +20,9 @@ from .constants import (
     HUD_BOTTOM_HEIGHT, HUD_BG, DICE_AREA_HEIGHT, DICE_AREA_WIDTH,
     HUD_PANEL_HEIGHT, HUD_PANEL_BG, HUD_PANEL_WIDTH, ICON_SIZE,
     BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE,
-    BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST,
+    BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST, CITY_COST,
     RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS,
-    ROBBER_SPRITE, ONE, SIX
+    ROBBER_SPRITE, BUILD_CITY, ONE, SIX
 )
 
 
@@ -257,6 +257,11 @@ class CatanView(arcade.View):
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
+        self.txt_submenu_city = arcade.Text(
+            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
         self.txt_submenu_road = arcade.Text(
             "", 0, 0, TEXT_WHITE, 9, bold=True,
             anchor_x="center", anchor_y="center",
@@ -400,23 +405,31 @@ class CatanView(arcade.View):
         _BH  = 38
         _GAP = 8
         _PAD = 14
+        _YDIFF = 36 # vertical offset to stack city and settlement buttons above road
 
         build_bottom = _PAD + _BH + _GAP   # bottom of the Build button
         build_top    = build_bottom + _BH   # top of the Build button
 
         menu_w = _BW
-        menu_h = 80
+        menu_h = 120 # height to fit 3 buttons stacked with some gap
         bx     = _PAD
         by     = build_top + 4              # pop up just above Build button
 
         fill_rect(bx, by, menu_w, menu_h, HUD_PANEL_BG)
         outline_rect(bx, by, menu_w, menu_h, TEXT_GOLD, 2)
 
+        c_col = (255, 102, 0) if self._can_afford(CITY_COST) else (70, 70, 70)
+        fill_rect(bx + 8, by + (8 + (2*_YDIFF)), menu_w - 16, 28, c_col)
+        self.txt_submenu_city.text = "City"
+        self.txt_submenu_city.x    = bx + menu_w / 2
+        self.txt_submenu_city.y    = by + (22 + (2*_YDIFF))
+        self.txt_submenu_city.draw()
+
         s_col = (39, 174, 96) if self._can_afford(SETTLEMENT_COST) else (70, 70, 70)
-        fill_rect(bx + 8, by + 44, menu_w - 16, 28, s_col)
+        fill_rect(bx + 8, by + (8 + _YDIFF), menu_w - 16, 28, s_col)
         self.txt_submenu_settlement.text = "Settlement"
         self.txt_submenu_settlement.x    = bx + menu_w / 2
-        self.txt_submenu_settlement.y    = by + 58
+        self.txt_submenu_settlement.y    = by + (22 + _YDIFF)
         self.txt_submenu_settlement.draw()
 
         r_col = (52, 152, 219) if self._can_afford(ROAD_COST) else (70, 70, 70)
@@ -495,7 +508,10 @@ class CatanView(arcade.View):
         for node_id, node_obj in self.board.nodes.items():
             if node_obj.player is not None:
                 npx, npy = self._node_pixel_cache[node_id]
-                draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
+                if node_obj.building == "settlement":
+                    draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
+                if node_obj.building == "city":
+                    draw_city(npx, npy, 18, self.players[node_obj.player].color)
 
     # -----------------------------------------------------------------------
     # Ghost highlights
@@ -503,7 +519,7 @@ class CatanView(arcade.View):
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color
         for node_id, node_obj in self.board.nodes.items():
-            if node_obj.player is not None:
+            if not node_obj.is_valid_settlement_placement(self.current_player):
                 continue
             npx, npy = self._node_pixel_cache[node_id]
             if npy < 10:
@@ -517,6 +533,23 @@ class CatanView(arcade.View):
                 arcade.draw_circle_filled(npx, npy, 8, (255, 255, 255, 60))
                 arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
 
+    def _draw_city_highlights(self):
+        player_color = self.players[self.current_player].color
+        for node_id, node_obj in self.board.nodes.items():
+            if not node_obj.is_valid_city_placement(self.current_player):
+                continue
+            npx, npy = self._node_pixel_cache[node_id]
+            if npy < 10:
+                continue
+            if npx < HUD_PANEL_WIDTH + 5 or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - 15:
+                continue
+            if node_obj is self.hovered_node:
+                arcade.draw_circle_filled(npx, npy, 12, (*player_color, 180))
+                arcade.draw_circle_outline(npx, npy, 14, player_color, 3)
+            else:
+                arcade.draw_circle_filled(npx, npy, 8, (255, 255, 255, 60))
+                arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
+    
     def _draw_edge_highlights(self):
         player_color = self.players[self.current_player].color
         for edge_id, edge_obj in self.board.edges.items():
@@ -542,6 +575,11 @@ class CatanView(arcade.View):
             cy    += 18
             can    = self._can_afford(SETTLEMENT_COST)
             label  = "Build Settlement?"
+        elif self.build_choice == BUILD_CITY and self.selected_node:
+            cx, cy = self._node_pixel_cache[self.selected_node.node_id]
+            cy    += 18
+            can    = self._can_afford(CITY_COST)
+            label  = "Build City?"
         elif self.build_choice == BUILD_ROAD and self.selected_edge:
             mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
             cx, cy = mx, my + 18
@@ -605,6 +643,8 @@ class CatanView(arcade.View):
         # Ghost highlights
         if self.build_choice == BUILD_SETTLEMENT:
             self._draw_node_highlights()
+        elif self.build_choice == BUILD_CITY:
+            self._draw_city_highlights()
         elif self.build_choice == BUILD_ROAD:
             self._draw_edge_highlights()
 
@@ -641,6 +681,15 @@ class CatanView(arcade.View):
                 if d < NODE_SNAP_RADIUS and d < closest_dist:
                     node = self.board.nodes[node_id]
                     if node.player is None:
+                        closest, closest_dist = node, d
+            self.hovered_node = closest
+        elif self.build_choice == BUILD_CITY:
+            closest, closest_dist = None, float("inf")
+            for node_id, (npx, npy) in self._node_pixel_cache.items():
+                d = math.hypot(x-npx, y-npy)
+                if d < NODE_SNAP_RADIUS and d < closest_dist:
+                    node = self.board.nodes[node_id]
+                    if node.player == self.current_player:
                         closest, closest_dist = node, d
             self.hovered_node = closest
         elif self.build_choice == BUILD_ROAD:
@@ -699,6 +748,11 @@ class CatanView(arcade.View):
             by        = build_top + 4
             bx        = _PAD
             menu_w    = _BW
+            # City row
+            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 80 <= y <= by + 108):
+                if self._can_afford(CITY_COST):
+                    self.build_choice = BUILD_CITY
+                return
             # Settlement row
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 if self._can_afford(SETTLEMENT_COST):
@@ -715,6 +769,9 @@ class CatanView(arcade.View):
             if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
                 pcx, pcy = self._node_pixel_cache[self.selected_node.node_id]
                 pcy     += 18
+            elif self.build_choice == BUILD_CITY and self.selected_node:
+                pcx, pcy = self._node_pixel_cache[self.selected_node.node_id]
+                pcy     += 18
             elif self.build_choice == BUILD_ROAD and self.selected_edge:
                 mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
                 pcx, pcy   = mx, my + 18
@@ -728,6 +785,8 @@ class CatanView(arcade.View):
             if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
                 if self.build_choice == BUILD_SETTLEMENT and self._can_afford(SETTLEMENT_COST):
                     self._place_settlement(self.selected_node)
+                elif self.build_choice == BUILD_CITY and self._can_afford(CITY_COST):
+                    self._place_city(self.selected_node)
                 elif self.build_choice == BUILD_ROAD and self._can_afford(ROAD_COST):
                     self._place_road(self.selected_edge)
                 return
@@ -742,6 +801,10 @@ class CatanView(arcade.View):
             return
 
         if self.build_choice == BUILD_SETTLEMENT and self.hovered_node:
+            self.selected_node = self.hovered_node
+            self.show_confirm  = True
+            return
+        if self.build_choice == BUILD_CITY and self.hovered_node:
             self.selected_node = self.hovered_node
             self.show_confirm  = True
             return
@@ -781,6 +844,24 @@ class CatanView(arcade.View):
        # self._cancel_build()
         #self._build_player_texts()
        # print(f"{player['name']} built a settlement! Victory Points: {player['vp']}")
+
+    def _place_city(self, node):
+        player = self.players[self.current_player]
+        player.build_city(CatanBoard, node)
+        node.building = "city"
+        player.victory_points += 1
+        self._cancel_build()
+        self._build_player_texts()
+        print(f"{player.name} upgraded to a city! Victory Points: {player.victory_points}")
+
+       # player = PLAYERS[self.current_player]
+       # for res, amt in CITY_COST.items():
+       #     player["resources"][res] -= amt
+       # node.building = "city"
+       # player["vp"] += 1
+       # self._cancel_build()
+       # self._build_player_texts()
+       # print(f"{player['name']} upgraded to a city! Victory Points: {player['vp']}")
 
     def _place_road(self, edge):
         player = self.players[self.current_player]

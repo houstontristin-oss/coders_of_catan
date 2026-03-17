@@ -14,6 +14,18 @@ def draw_settlement(cx, cy, size, color):
     arcade.draw_polygon_filled(pts, color)
     arcade.draw_polygon_outline(pts, arcade.color.BLACK, 2)
 
+def draw_city(cx, cy, size, color):
+    half = size / 2
+    pts  = [(cx-half, cy-half), (cx+half, cy-half),
+            (cx+half, cy+half), (cx-half, cy+half)]
+    arcade.draw_polygon_filled(pts, color)
+    arcade.draw_polygon_outline(pts, arcade.color.BLACK, 2)
+    # Add a smaller inner square to distinguish from settlement
+    inner_half = size / 4
+    inner_pts  = [(cx-inner_half, cy-inner_half), (cx+inner_half, cy-inner_half),
+                  (cx+inner_half, cy+inner_half), (cx-inner_half, cy+inner_half)]
+    arcade.draw_polygon_filled(inner_pts, TEXT_GOLD)
+
 def draw_road(x1, y1, x2, y2, color, width=6):
     arcade.draw_line(x1, y1, x2, y2, arcade.color.WHITE, width + 4)
     arcade.draw_line(x1, y1, x2, y2, arcade.color.BLACK, width + 2)

@@ -37,30 +37,46 @@ class Node:
     
     def is_valid_settlement_placement(self, player):
         """
-        Check is current node is a valid placement for a settlement for the given player.
+        Check if current node is a valid placement for a settlement for the given player.
 
         A settlement can be placed on a node if:
             1. The node is not already occupied by another settlement or city.
             2. There are no adjacent settlements (i.e., no other settlements on 
             directly connected nodes).
+            3. The player has a road connected to this node.
         
         Args: 
             player: The player who is attempting to place the settlement.
         """
+        # node must be unoccupied
         if self.building:
             return False
-        #loop through edges for edge cases
-        flag = False
-        for edge in self.edges:
-            #determine there is an edge the player owns connected to the node
-            if edge.player == player:
-                flag = True
-            #determine there is not another settlement within one edge of the node
-            for node in edge.nodes:
-                if node.player:
-                    flag = False
-        return flag
 
+        has_own_road = False
+        for edge in self.edges:
+            # track whether the player has a road here
+            if edge.player == player:
+                has_own_road = True
+
+            # no adjacent settlements allowed
+            for node in edge.nodes:
+                if node is not self and node.building is not None:
+                    return False
+
+        return has_own_road
+
+    def is_valid_city_placement(self, player):
+        """
+        Check if current node is a valid placement for a city for the given player.
+
+        A city can be placed on a node if:
+            1. The node already has a settlement owned by the same player. 
+
+        Args: 
+            player: The player who is attempting to place the city.
+        """
+        return self.player == player and self.building == "settlement"
+    
     def place_settlement(self, player):
         """
         Place a settlement on the node if the placement is valid.
