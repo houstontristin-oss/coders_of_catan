@@ -66,6 +66,31 @@ DICE_ROLL_DURATION   = 1.2   # total seconds the animation runs
 DICE_ROLL_FLIP_RATE  = 0.07  # seconds between face-flips while rolling
 
 # ---------------------------------------------------------------------------
+# Development card sprites  (discovery folder)
+# ---------------------------------------------------------------------------
+_DISC = os.path.join(BASE_DIR, "sprites", "discovery")
+DEV_CARD_SPRITES = {
+    "knight":       os.path.join(_DISC, "dcs__knight.png"),
+    "monopoly":     os.path.join(_DISC, "dcs__monopoly.png"),
+    "road_building":os.path.join(_DISC, "dcs__roadBuilding.png"),
+    "year_of_plenty":os.path.join(_DISC, "dcs__yearOfPlenty.png"),
+    "university":   os.path.join(_DISC, "dcs__university.png"),
+    "back":         os.path.join(_DISC, "dcs__back.png"),
+}
+
+# Full Catan dev-card deck composition (25 cards total)
+DEV_CARD_DECK = (
+    ["knight"] * 14 +
+    ["victory_point"] * 5 +
+    ["road_building"] * 2 +
+    ["year_of_plenty"] * 2 +
+    ["monopoly"] * 2
+)
+
+# Cost to buy a development card
+DEV_CARD_COST = {"ORE": 1, "WHEAT": 1, "SHEEP": 1}
+
+# ---------------------------------------------------------------------------
 # Colors in HUD
 # ---------------------------------------------------------------------------
 HUD_BG           = (30,  30,  50,  210)
@@ -91,10 +116,10 @@ RESOURCE_COLORS = {
 
 # Resource name -> display abbreviation shown on port labels
 RESOURCE_ABBR = {
-    "brick": "BRICK", 
-    "ore": "ORE", 
+    "brick": "BRICK",
+    "ore": "ORE",
     "wheat": "WHEAT",
-    "sheep": "SHEEP", 
+    "sheep": "SHEEP",
     "forest": "WOOD"
 }
 
@@ -133,3 +158,6 @@ EDGE_SNAP_RADIUS = 14
 #Dice constansts
 ONE = 1
 SIX = 6
+
+# Set True to render dice-face sprites instead of plain colored squares
+USE_DICE_SPRITES = True
