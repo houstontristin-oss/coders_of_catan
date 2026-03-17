@@ -848,9 +848,9 @@ class CatanView(arcade.View):
             if tile.number == roll:
                 resource = RESOURCE_ABBR[tile.resource]
                 for node in tile.nodes:
-                    if node.player:
-                        self.players[node.player].resource_cards[resource] += 1
-
+                    if node.player != None:
+                        player = self.players[node.player]
+                        player.resource_cards[resource] += 1
 
     def _end_turn(self):
         self.current_player = (self.current_player + 1) % len(self.players)

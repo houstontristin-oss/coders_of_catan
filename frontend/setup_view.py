@@ -302,8 +302,10 @@ class SetupView(arcade.View):
                             if tile.number == roll:
                                 resource = RESOURCE_ABBR[tile.resource]
                                 for node in tile.nodes:
-                                    if node.player:
-                                        self.players[node.player].resource_cards[resource] += 1
+                                    if node.player != None:
+                                        player = self.players[node.player]
+                                        player.resource_cards[resource] += 1
+                                        
                         self.window.show_view(CatanView(self.board, self.players, 0, die1, die2))
                         return
 
