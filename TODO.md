@@ -1,5 +1,12 @@
 # Group Todo Organizer
 
+## General Notes
+
+* from testing looks like player one doesnt ever get resources from dice roll - Nick
+* make sure citys produce double resources
+
+## Member Tasks
+
 Apoorva:
 
 * Seven roll special phase (hard) (important)
