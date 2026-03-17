@@ -931,7 +931,7 @@ class CatanView(arcade.View):
                 for node in tile.nodes:
                     if node.player != None:
                         player = self.players[node.player]
-                        player.resource_cards[resource] += 1
+                        player.resource_cards[resource] += 1 if node.building == "settlement" else 2
 
     def _end_turn(self):
         self.current_player = (self.current_player + 1) % len(self.players)

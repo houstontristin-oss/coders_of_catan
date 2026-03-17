@@ -304,7 +304,7 @@ class SetupView(arcade.View):
                                 for node in tile.nodes:
                                     if node.player != None:
                                         player = self.players[node.player]
-                                        player.resource_cards[resource] += 1
+                                        player.resource_cards[resource] += 1 if node.building == "settlement" else 2
                                         
                         self.window.show_view(CatanView(self.board, self.players, 0, die1, die2))
                         return
