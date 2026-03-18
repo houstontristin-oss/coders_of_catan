@@ -22,32 +22,8 @@ import random
 import arcade
 
 from .drawing import fill_rect, outline_rect
-from .constants import (
-    # Screen
-    SCREEN_WIDTH, SCREEN_HEIGHT,
-    # Colors
-    TEXT_WHITE, TEXT_GOLD, TEXT_LIGHT_GRAY,
-    BTN_CARD, BTN_BUILD, BTN_TRADE, BTN_DISABLED,
-    # Dev card data
-    DEV_CARD_SPRITES, DEV_CARD_DECK, DEV_CARD_COST,
-    # PlayCardView layout
-    CARD_W, CARD_H, CARD_GAP, CARD_TOP,
-    CARD_BTN_W, CARD_BTN_H, CARD_PAD,
-    CARD_BOTTOM_BAR_H, CARD_HEADER_Y, CARD_DECK_Y,
-    CARD_POPUP_W, CARD_POPUP_H,
-    CARD_POPUP_BTN_W, CARD_POPUP_BTN_H, CARD_POPUP_BTN_GAP,
-    CARD_NOTIF_Y, CARD_NOTIF_TIMER,
-    CARD_LIFT_SELECTED, CARD_LIFT_HOVERED,
-    CARD_BADGE_W, CARD_BADGE_H,
-    CARD_BORDER_SEL, CARD_BORDER_HOV, CARD_BORDER_IDLE,
-    CARD_SPRITE_Y_FRAC,
-    CARD_RES_NAMES,
-)
-from backend.dev_base import (
-    DevCard,
-    KnightCard, RoadBuildingCard, YearOfPlentyCard, MonopolyCard,
-    ACTION_BACK_TO_BOARD, ACTION_POPUP_YOP, ACTION_POPUP_MONOPOLY,
-)
+from .constants import *
+from backend.dev_base import *
 
 
 class PlayCardView(arcade.View):
@@ -152,23 +128,23 @@ class PlayCardView(arcade.View):
             font_name="MedievalSharp",
         )
         self.txt_back = arcade.Text(
-            "← Back to Board",
-            CARD_PAD + CARD_BTN_W / 2, CARD_PAD + CARD_BTN_H / 2,
-            TEXT_WHITE, 12, bold=True,
+            CARD_BACK_LABEL,
+            CARD_PAD + CARD_BACK_BTN_W / 2, CARD_PAD + CARD_BTN_H / 2,
+            TEXT_WHITE, CARD_BACK_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
         self.txt_buy = arcade.Text(
-            "Buy Card  (Ore+Wheat+Sheep)",
+            CARD_BUY_LABEL,
             SCREEN_WIDTH / 2, CARD_PAD + CARD_BTN_H / 2,
-            TEXT_WHITE, 11, bold=True,
+            TEXT_WHITE, CARD_BUY_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
         self.txt_play = arcade.Text(
-            "▶  Play Selected Card",
-            SCREEN_WIDTH - CARD_PAD - CARD_BTN_W / 2, CARD_PAD + CARD_BTN_H / 2,
-            TEXT_WHITE, 12, bold=True,
+            CARD_PLAY_LABEL,
+            SCREEN_WIDTH - CARD_PAD - CARD_PLAY_BTN_W / 2, CARD_PAD + CARD_BTN_H / 2,
+            TEXT_WHITE, CARD_PLAY_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
@@ -365,24 +341,24 @@ class PlayCardView(arcade.View):
         outline_rect(0, CARD_BOTTOM_BAR_H - 3, SCREEN_WIDTH, 3, (60, 60, 90, 200), 1)
 
         # Back button
-        fill_rect(CARD_PAD, CARD_PAD, CARD_BTN_W, CARD_BTN_H, BTN_TRADE)
-        outline_rect(CARD_PAD, CARD_PAD, CARD_BTN_W, CARD_BTN_H, (255, 255, 255, 60), 1)
+        fill_rect(CARD_PAD, CARD_PAD, CARD_BACK_BTN_W, CARD_BTN_H, BTN_TRADE)
+        outline_rect(CARD_PAD, CARD_PAD, CARD_BACK_BTN_W, CARD_BTN_H, (255, 255, 255, 60), 1)
         self.txt_back.draw()
 
         # Buy button
         buy_color = BTN_BUILD if self._can_buy_card() else BTN_DISABLED
-        bx = int(SCREEN_WIDTH / 2 - CARD_BTN_W / 2)
-        fill_rect(bx, CARD_PAD, CARD_BTN_W, CARD_BTN_H, buy_color)
-        outline_rect(bx, CARD_PAD, CARD_BTN_W, CARD_BTN_H, (255, 255, 255, 60), 1)
+        bx = int(SCREEN_WIDTH / 2 - CARD_BUY_BTN_W / 2)
+        fill_rect(bx, CARD_PAD, CARD_BUY_BTN_W, CARD_BTN_H, buy_color)
+        outline_rect(bx, CARD_PAD, CARD_BUY_BTN_W, CARD_BTN_H, (255, 255, 255, 60), 1)
         self.txt_buy.draw()
 
         # Play button
-        can_play  = (self._selected_card is not None
-                     and self._can_play_card(self._selected_card))
+        can_play = (self._selected_card is not None
+                    and self._can_play_card(self._selected_card))
         ply_color = BTN_CARD if can_play else BTN_DISABLED
-        px        = SCREEN_WIDTH - CARD_PAD - CARD_BTN_W
-        fill_rect(px, CARD_PAD, CARD_BTN_W, CARD_BTN_H, ply_color)
-        outline_rect(px, CARD_PAD, CARD_BTN_W, CARD_BTN_H, (255, 255, 255, 60), 1)
+        px = SCREEN_WIDTH - CARD_PAD - CARD_PLAY_BTN_W
+        fill_rect(px, CARD_PAD, CARD_PLAY_BTN_W, CARD_BTN_H, ply_color)
+        outline_rect(px, CARD_PAD, CARD_PLAY_BTN_W, CARD_BTN_H, (255, 255, 255, 60), 1)
         self.txt_play.draw()
 
         if self._played_this_turn:
@@ -455,18 +431,18 @@ class PlayCardView(arcade.View):
             self._handle_sub_popup_click(x, y)
             return
 
-        bx_buy  = int(SCREEN_WIDTH / 2 - CARD_BTN_W / 2)
-        bx_play = SCREEN_WIDTH - CARD_PAD - CARD_BTN_W
+        bx_buy = int(SCREEN_WIDTH / 2 - CARD_BUY_BTN_W / 2)
+        bx_play = SCREEN_WIDTH - CARD_PAD - CARD_PLAY_BTN_W
 
-        if CARD_PAD <= x <= CARD_PAD + CARD_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
+        if CARD_PAD <= x <= CARD_PAD + CARD_BACK_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
             self._go_back()
             return
 
-        if bx_buy <= x <= bx_buy + CARD_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
+        if bx_buy <= x <= bx_buy + CARD_BUY_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
             self._buy_card()
             return
 
-        if bx_play <= x <= bx_play + CARD_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
+        if bx_play <= x <= bx_play + CARD_PLAY_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
             self._play_selected_card()
             return
 

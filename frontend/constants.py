@@ -113,6 +113,8 @@ DEV_CARD_TINTS = {
     "just_bought":    ( 60,  60,  65, 220),   # greyed-out tint for newly drawn cards
 }
 
+
+
 # ---------------------------------------------------------------------------
 # PlayCardView layout
 CARD_W             = 90          # rendered dev card width  (px)
@@ -148,6 +150,21 @@ CARD_BORDER_HOV    = 2           # hovered  card border thickness
 CARD_BORDER_IDLE   = 1           # idle     card border thickness
 
 CARD_SPRITE_Y_FRAC = 0.6         # fraction up the card where the sprite is centred
+
+# Bottom-bar button labels
+CARD_BACK_LABEL = "← Back to Board"
+CARD_BUY_LABEL  = "Buy Card  (Ore+Wheat+Sheep)"
+CARD_PLAY_LABEL = "▶  Play Selected Card"
+
+# Bottom-bar text sizes
+CARD_BACK_TEXT_SIZE = 12
+CARD_BUY_TEXT_SIZE  = 11
+CARD_PLAY_TEXT_SIZE = 12
+
+# Optional: separate widths if one button needs more room
+CARD_BACK_BTN_W = 180
+CARD_BUY_BTN_W  = 280
+CARD_PLAY_BTN_W = 180
 
 # Resource key -> display name used in Year of Plenty / Monopoly popup
 CARD_RES_NAMES = {
