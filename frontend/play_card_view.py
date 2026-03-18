@@ -86,8 +86,9 @@ class PlayCardView(arcade.View):
         self._notif_timer  = 0.0
 
         # Sprite cache  card_type -> arcade.Sprite | None
-        self._card_sprites     = {}
-        self._card_sprite_list = arcade.SpriteList()
+        # BEWARE
+        # Using a cache will mess with instance where you need multiple of the same sprite on screen
+        self._card_sprites = {}
         self._load_card_sprites()
         self._build_text_objects()
 
@@ -95,16 +96,14 @@ class PlayCardView(arcade.View):
     # Sprite loading
     def _load_card_sprites(self):
         """
-        Load one sprite per card type into a SpriteList for batch drawing.
-        Falls back gracefully if a sprite file is missing.
+        Load one texture per card type.
+        We cache images/textures, not sprite instances, so duplicate cards
+        can each be drawn in their own slot.
         """
-        self._card_sprite_list = arcade.SpriteList()
+        self._card_sprites = {}
         for card_type, path in DEV_CARD_SPRITES.items():
             try:
-                spr       = arcade.Sprite(path)
-                spr.scale = min(CARD_W / spr.width, CARD_H / spr.height)
-                self._card_sprites[card_type] = spr
-                self._card_sprite_list.append(spr)
+                self._card_sprites[card_type] = arcade.load_texture(path)
             except Exception:
                 self._card_sprites[card_type] = None
 
@@ -252,39 +251,37 @@ class PlayCardView(arcade.View):
     # ------------------------------------------------------------------
     # Drawing helpers
     def _draw_cards(self, cards: list):
-        # Pass 1 — backgrounds and sprite positions
         for i, card in enumerate(cards):
             left, bottom, w, h = self._card_rect(i)
-            card_obj    = DevCard.from_dict(card)
+            card_obj = DevCard.from_dict(card)
             is_selected = (i == self._selected_card)
-            is_hovered  = (i == self._hovered_card)
+            is_hovered = (i == self._hovered_card)
 
             lift = CARD_LIFT_SELECTED if is_selected else (
-                   CARD_LIFT_HOVERED  if is_hovered  else 0)
-            cb   = bottom + lift
+                CARD_LIFT_HOVERED if is_hovered else 0)
+            cb = bottom + lift
 
+            # Card background
             fill_rect(left, cb, w, h, card_obj.tint)
 
-            spr = self._card_sprites.get(card["type"]) or self._card_sprites.get("back")
-            if spr:
-                spr.center_x = left + w / 2
-                spr.center_y = cb   + h * CARD_SPRITE_Y_FRAC
+            # Draw card art texture
+            tex = self._card_sprites.get(card["type"]) or self._card_sprites.get("back")
+            if tex:
+                scale = min(CARD_W / tex.width, CARD_H / tex.height)
+                draw_w = tex.width * scale
+                draw_h = tex.height * scale
 
-        # Batch-draw all sprites
-        self._card_sprite_list.draw()
+                arcade.draw_texture_rect(
+                    tex,
+                    arcade.LBWH(
+                        left + (w - draw_w) / 2,
+                        cb + h * CARD_SPRITE_Y_FRAC - draw_h / 2,
+                        draw_w,
+                        draw_h,
+                    ),
+                )
 
-        # Pass 2 — borders, labels, badges
-        for i, card in enumerate(cards):
-            left, bottom, w, h = self._card_rect(i)
-            card_obj    = DevCard.from_dict(card)
-            is_selected = (i == self._selected_card)
-            is_hovered  = (i == self._hovered_card)
-
-            lift = CARD_LIFT_SELECTED if is_selected else (
-                   CARD_LIFT_HOVERED  if is_hovered  else 0)
-            cb   = bottom + lift
-
-            # Card-face title (small, bottom of the art area)
+            # Card-face title
             arcade.Text(
                 card_obj.label,
                 left + w / 2, cb + 10,
@@ -311,7 +308,7 @@ class PlayCardView(arcade.View):
                 font_name="MedievalSharp",
             ).draw()
 
-            # Tooltip on hover (not selected)
+            # Tooltip on hover
             if is_hovered and not is_selected and card_obj.description:
                 arcade.Text(
                     card_obj.description,
@@ -321,11 +318,11 @@ class PlayCardView(arcade.View):
                     font_name="MedievalSharp",
                 ).draw()
 
-            # "NEW" badge for just-bought cards
+            # NEW badge
             if card_obj.just_bought:
                 arcade.draw_lrbt_rectangle_filled(
                     left, left + CARD_BADGE_W,
-                    cb + h - CARD_BADGE_H, cb + h,
+                          cb + h - CARD_BADGE_H, cb + h,
                     (200, 60, 60, 220),
                 )
                 arcade.Text(
@@ -584,3 +581,5 @@ class PlayCardView(arcade.View):
                 free_roads=self.free_roads,
             )
         )
+        """ Need
+        an option to scroll through dev cards if the amount exceeds what the screen can fit"""

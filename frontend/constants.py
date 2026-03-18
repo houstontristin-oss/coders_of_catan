@@ -117,10 +117,10 @@ DEV_CARD_TINTS = {
 
 # ---------------------------------------------------------------------------
 # PlayCardView layout
-CARD_W             = 90          # rendered dev card width  (px)
-CARD_H             = 130         # rendered dev card height (px)
+CARD_W             = 170          # rendered dev card width  (px)
+CARD_H             = 250         # rendered dev card height (px)
 CARD_GAP           = 14          # horizontal gap between cards
-CARD_TOP           = SCREEN_HEIGHT - 80   # y of card tops (distance from bottom)
+CARD_TOP           = SCREEN_HEIGHT - 120   # y of card tops (distance from bottom)
 
 CARD_BTN_W         = 180         # bottom-bar button width
 CARD_BTN_H         = 44          # bottom-bar button height
@@ -158,7 +158,7 @@ CARD_PLAY_LABEL = "▶  Play Selected Card"
 
 # Bottom-bar text sizes
 CARD_BACK_TEXT_SIZE = 12
-CARD_BUY_TEXT_SIZE  = 11
+CARD_BUY_TEXT_SIZE  = 12
 CARD_PLAY_TEXT_SIZE = 12
 
 # Optional: separate widths if one button needs more room
