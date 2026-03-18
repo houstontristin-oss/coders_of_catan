@@ -3,11 +3,11 @@ Contains TradeView Class
 """
 import arcade
 from .drawing import fill_rect
-from .constants import HUD_BOTTOM_HEIGHT, HUD_BG, SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN
+from .constants import *
 
-class TradeView(arcade.View):
+class TradeViewMaritime(arcade.View):
     """
-    TradeView Class
+    TradeViewMaritime Class
     """
     def __init__(self, board, players, current_player):
         super().__init__()
