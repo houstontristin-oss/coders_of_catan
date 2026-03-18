@@ -16,7 +16,7 @@ class TradeView(arcade.View):
         self.current_player = current_player
         self.die1 = die1
         self.die2 = die2
-    
+
     def _build_text_objects(self):
         bar_center_y = HUD_BOTTOM_HEIGHT / 2
         btn_w = 150
