@@ -91,7 +91,6 @@ class SetupView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Ghost highlights
-    # TODO: Make only valid settlement and road placements highlighted
     # NOTE: Currently if you place a road on a not valid spot during setup it will disappear and if
     # you place a settlement on a not valid spot it will violate the rules
     # -----------------------------------------------------------------------
@@ -181,19 +180,7 @@ class SetupView(arcade.View):
 
     def _place_road(self, edge):
         player = self.players[self.current_player]
-        idx = self.current_player
-        connected = False
-        for node in edge.nodes:
-            if node.player == idx:
-                connected = True
-                break
-            for neighbor_edge in node.edges:
-                if neighbor_edge is not edge and neighbor_edge.player == idx:
-                    connected = True
-                    break
-            if connected:
-                break
-        if not connected:
+        if not edge.is_valid_setup_road_placement(self.last_placed_settlement):
             print(f"{player.name} — road must connect to your settlement or existing road.")
             self.show_confirm = False
             self.selected_edge = None
