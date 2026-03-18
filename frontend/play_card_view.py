@@ -117,7 +117,6 @@ class PlayCardView(arcade.View):
 
     # ------------------------------------------------------------------
     # Sprite loading
-    # ------------------------------------------------------------------
     def _load_card_sprites(self):
         """
         Load one sprite per card type into a SpriteList for batch drawing.
@@ -135,7 +134,6 @@ class PlayCardView(arcade.View):
 
     # ------------------------------------------------------------------
     # Text objects  (pre-built to avoid per-frame allocation)
-    # ------------------------------------------------------------------
     def _build_text_objects(self):
         player = self.players[self.current_player]
 
@@ -204,7 +202,6 @@ class PlayCardView(arcade.View):
 
     # ------------------------------------------------------------------
     # Helpers
-    # ------------------------------------------------------------------
     def _can_buy_card(self) -> bool:
         if not self._deck:
             return False
@@ -238,7 +235,6 @@ class PlayCardView(arcade.View):
 
     # ------------------------------------------------------------------
     # Arcade callbacks
-    # ------------------------------------------------------------------
     def on_show_view(self):
         self._build_text_objects()
 
@@ -279,7 +275,6 @@ class PlayCardView(arcade.View):
 
     # ------------------------------------------------------------------
     # Drawing helpers
-    # ------------------------------------------------------------------
     def _draw_cards(self, cards: list):
         # Pass 1 — backgrounds and sprite positions
         for i, card in enumerate(cards):
@@ -443,7 +438,6 @@ class PlayCardView(arcade.View):
 
     # ------------------------------------------------------------------
     # Mouse callbacks
-    # ------------------------------------------------------------------
     def on_mouse_motion(self, x, y, dx, dy):
         if self._sub_popup:
             return
@@ -525,7 +519,6 @@ class PlayCardView(arcade.View):
 
     # ------------------------------------------------------------------
     # Actions
-    # ------------------------------------------------------------------
     def _buy_card(self):
         if not self._can_buy_card():
             msg = ("The development card deck is empty!"
