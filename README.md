@@ -19,7 +19,7 @@ The game loop aftewords can run through player turns but no resources are delt. 
 
 ## Coming Soon
 
-Goals for next spring are to get a complete game loop with
+Goals for next sprint are to get a complete game loop with
 
 * random dice rolls and resources
 * development cards
