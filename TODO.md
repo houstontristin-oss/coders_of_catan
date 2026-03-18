@@ -32,5 +32,4 @@ Amanda:
 Nick:
 
 * Trading with players “Offer Trade” (medium) (important)
-* City upgrade (easy) (important)
 * Make port graphics more user friendly (medium) (nice-to-have)

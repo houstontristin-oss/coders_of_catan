@@ -7,6 +7,7 @@ import math
 import arcade
 import random
 
+from backend import node
 from backend.catan_board import CatanBoard
 
 from .play_card_view import PlayCardView
@@ -756,7 +757,8 @@ class CatanView(arcade.View):
                 d = math.hypot(x - npx, y - npy)
                 if d < NODE_SNAP_RADIUS and d < closest_dist:
                     node = self.board.nodes[node_id]
-                    if node.player is None:
+                    if (node.player is None and 
+                        node.is_valid_settlement_placement(self.current_player)):
                         closest, closest_dist = node, d
             self.hovered_node = closest
         elif self.build_choice == BUILD_CITY:
@@ -765,7 +767,7 @@ class CatanView(arcade.View):
                 d = math.hypot(x - npx, y - npy)
                 if d < NODE_SNAP_RADIUS and d < closest_dist:
                     node = self.board.nodes[node_id]
-                    if node.player == self.current_player:
+                    if node.is_valid_city_placement(self.current_player):
                         closest, closest_dist = node, d
             self.hovered_node = closest
         elif self.build_choice == BUILD_ROAD:
@@ -774,7 +776,7 @@ class CatanView(arcade.View):
                 d = math.hypot(x - mx, y - my)
                 if d < EDGE_SNAP_RADIUS and d < closest_dist:
                     edge = self.board.edges[edge_id]
-                    if edge.player is None:
+                    if edge.is_valid_road_placement(self.current_player):
                         closest, closest_dist = edge, d
             self.hovered_edge = closest
 
