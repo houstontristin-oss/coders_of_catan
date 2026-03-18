@@ -19,7 +19,7 @@ SCREEN_TITLE  = "Coders of Catan"
 # Change this filename to swap backgrounds — file must live in sprites/background/
 # ---------------------------------------------------------------------------
 BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "ocean_background.png")
-
+BACKGROUND_IMAGE_SECRET = os.path.join(BASE_DIR, "sprites", "background", "background_secret.jpg")
 # ---------------------------------------------------------------------------
 # Hex & board layout
 # ---------------------------------------------------------------------------
@@ -117,6 +117,8 @@ PORT_TYPES = ["ore", None, "wheat", None, None, "brick", None, "sheep", "forest"
 BUILD_NONE       = None
 BUILD_SETTLEMENT = "settlement"
 BUILD_ROAD       = "road"
+BUILD_CITY       = "city"
+TRADE_NONE       = None
 
 # ---------------------------------------------------------------------------
 # Costs

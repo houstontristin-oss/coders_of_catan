@@ -7,7 +7,8 @@ import arcade
 from backend.catan_board import CatanBoard
 
 from .play_card_view import PlayCardView
-from .trade_view import TradeView
+from .trade_view_barter import TradeViewBarter
+from .trade_view_maritime import TradeViewMaritime
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
 from .ports import PortManager
 from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board
@@ -20,7 +21,7 @@ from .constants import (
     BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE,
     BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST,
     RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS,
-    ROBBER_SPRITE,
+    ROBBER_SPRITE, TRADE_NONE, BACKGROUND_IMAGE_SECRET
 )
 
 
@@ -38,6 +39,8 @@ class CatanView(arcade.View):
         # Build mode state
         self.build_mode    = False
         self.build_choice  = BUILD_NONE
+        self.trade_mode = False
+        self.trade_choice = None    
         self.hovered_node  = None
         self.hovered_edge  = None
         self.selected_node = None
@@ -273,6 +276,18 @@ class CatanView(arcade.View):
             font_name="MedievalSharp",
         )
 
+        # Trade submenu labels (positions updated at draw time)
+        self.txt_submenu_maritime = arcade.Text(
+            "Maritime Trade", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+        self.txt_submenu_barter = arcade.Text(
+            "Barter Trade", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+
         # Confirm popup labels
         self.txt_popup_title = arcade.Text(
             "", 0, 0, TEXT_GOLD, 10, bold=True,
@@ -417,6 +432,37 @@ class CatanView(arcade.View):
         self.txt_submenu_road.x    = bx + menu_w / 2
         self.txt_submenu_road.y    = by + 22
         self.txt_submenu_road.draw()
+
+    def _draw_trade_submenu(self):
+        if not self.trade_mode or self.trade_choice != TRADE_NONE:
+            return
+ 
+        _BW  = 120
+        _BH  = 38
+        _PAD = 14
+ 
+        trade_bottom = _PAD               # bottom of the Trade button
+        trade_top    = trade_bottom + _BH # top of the Trade button
+ 
+        menu_w = _BW
+        menu_h = 80
+        bx     = _PAD
+        by     = trade_top + 4            # pop up just above Trade button
+ 
+        fill_rect(bx, by, menu_w, menu_h, HUD_PANEL_BG)
+        outline_rect(bx, by, menu_w, menu_h, TEXT_GOLD, 2)
+ 
+        # Maritime Trade — top row
+        fill_rect(bx + 8, by + 44, menu_w - 16, 28, (52, 152, 219))
+        self.txt_submenu_maritime.x = bx + menu_w / 2
+        self.txt_submenu_maritime.y = by + 58
+        self.txt_submenu_maritime.draw()
+ 
+        # Barter Trade — bottom row
+        fill_rect(bx + 8, by + 8, menu_w - 16, 28, (39, 174, 96))
+        self.txt_submenu_barter.x = bx + menu_w / 2
+        self.txt_submenu_barter.y = by + 22
+        self.txt_submenu_barter.draw()
 
     def _draw_player_panel(self):
         """Slim single-column panel in top-left."""
@@ -619,6 +665,7 @@ class CatanView(arcade.View):
         self._draw_dice_area()
         self._draw_bottom_bar()
         self._draw_build_submenu()
+        self._draw_trade_submenu()
 
 # -----------------------------------------------------------------------
 # Mouse motion
@@ -676,6 +723,36 @@ class CatanView(arcade.View):
             self._end_turn()
             return
 
+        # --- Trade button ---
+        if (_PAD <= x <= _PAD + _BW) and (trade_bottom <= y <= trade_bottom + _BH):
+            if self.trade_mode:
+                self._cancel_trade()
+            else:
+                self.trade_mode   = True
+                self.trade_choice = TRADE_NONE
+            return
+        
+        # --- Trade submenu (pops up above the Trade button) ---
+        if self.trade_mode and self.trade_choice == TRADE_NONE:
+            trade_top = trade_bottom + _BH  # top of Trade button
+            by        = trade_top + 4        # bottom of the popup panel
+            bx        = _PAD
+            menu_w    = _BW
+            # Maritime Trade — top row of popup (by+44 .. by+72)
+            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
+                self._cancel_trade()
+                self.window.show_view(
+                    TradeViewMaritime(self.board, self.players, self.current_player)
+                )
+                return
+            # Barter Trade — bottom row of popup (by+8 .. by+36)
+            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
+                self._cancel_trade()
+                self.window.show_view(
+                    TradeViewBarter(self.board, self.players, self.current_player)
+                )
+                return
+            
         # --- Build button ---
         if (_PAD <= x <= _PAD + _BW) and (build_bottom <= y <= build_bottom + _BH):
             if self.build_mode:
@@ -741,12 +818,12 @@ class CatanView(arcade.View):
             self.selected_edge = self.hovered_edge
             self.show_confirm  = True
             return
-
+        '''
         # --- Trade button ---
         if (_PAD <= x <= _PAD + _BW) and (trade_bottom <= y <= trade_bottom + _BH):
-            self.window.show_view(TradeView(self.board, self.players, self.current_player))
+            self.window.show_view(TradeViewBarter(self.board, self.players, self.current_player))
             return
-
+        '''
         # --- Play Card button ---
         if (_PAD <= x <= _PAD + _BW) and (card_bottom <= y <= card_bottom + _BH):
             self.window.show_view(PlayCardView(self.board, self.players, self.current_player))
@@ -833,9 +910,19 @@ class CatanView(arcade.View):
         self.selected_edge = None
         self.show_confirm  = False
 
+    def _cancel_trade(self):
+        self.trade_mode    = False
+        self.trade_choice  = TRADE_NONE
+        self.hovered_node  = None
+        self.hovered_edge  = None
+        self.selected_node = None
+        self.selected_edge = None
+        self.show_confirm  = False
+
     def _end_turn(self):
         self.current_player = (self.current_player + 1) % len(self.players)
         self._cancel_build()
+        self._cancel_trade()
         self._build_player_texts()
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn.")
         # TODO: check for VPs to end game
