@@ -13,6 +13,7 @@ Responsibilities
     - Year of Plenty: player picks 2 resources via in-screen popup
     - Monopoly     : player picks a resource, steals all of it from every other player
     - Victory Point: auto-counts toward VP (stored, never manually played)
+    - Card HUD: controls vanity and geometry of the card inventory
 """
 
 import random

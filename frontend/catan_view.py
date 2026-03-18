@@ -1,5 +1,7 @@
 """
 Contains CatanView Class
+    Parameters:
+        All mighty viewing file
 """
 import math
 import arcade
