@@ -117,6 +117,8 @@ PORT_TYPES = ["ore", None, "wheat", None, None, "brick", None, "sheep", "forest"
 BUILD_NONE       = None
 BUILD_SETTLEMENT = "settlement"
 BUILD_ROAD       = "road"
+BUILD_CITY       = "city"
+TRADE_NONE       = None
 
 # ---------------------------------------------------------------------------
 # Costs
