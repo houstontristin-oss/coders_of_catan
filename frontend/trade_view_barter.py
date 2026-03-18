@@ -29,7 +29,7 @@ class TradeViewBarter(arcade.View):
         fill_rect(SCREEN_WIDTH - btn_w - 20, btn_bottom, btn_w, btn_h, BTN_ENDTURN)
         self.txt_back.draw()
 
-    def offer_trade(self, receiving_player:Player, offered_resources:dict, 
+    def offer_trade(self, receiving_player, offered_resources:dict, 
                     requested_resources:dict) -> bool:
         """
         Offer a trade to another player.
