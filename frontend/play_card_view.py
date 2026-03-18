@@ -281,14 +281,6 @@ class PlayCardView(arcade.View):
                     ),
                 )
 
-            # Card-face title
-            arcade.Text(
-                card_obj.label,
-                left + w / 2, cb + 10,
-                TEXT_WHITE, 8, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
 
             # Border
             if is_selected:
@@ -298,22 +290,13 @@ class PlayCardView(arcade.View):
             else:
                 outline_rect(left, cb, w, h, (70, 70, 100, 200), CARD_BORDER_IDLE)
 
-            # Label below card
-            arcade.Text(
-                card_obj.label,
-                left + w / 2, bottom - 16,
-                TEXT_GOLD if is_selected else TEXT_LIGHT_GRAY,
-                9, bold=is_selected,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
 
             # Tooltip on hover
             if is_hovered and not is_selected and card_obj.description:
                 arcade.Text(
                     card_obj.description,
-                    left + w / 2, bottom - 30,
-                    (160, 160, 200), 8,
+                    left + w / 2, bottom - CARD_DESC_TEXT_Y_OFFSET,
+                    CARD_DESC_TEXT_COLOR, CARD_DESC_TEXT_SIZE,
                     anchor_x="center", anchor_y="center",
                     font_name="MedievalSharp",
                 ).draw()

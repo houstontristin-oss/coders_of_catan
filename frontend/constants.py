@@ -113,7 +113,9 @@ DEV_CARD_TINTS = {
     "just_bought":    ( 60,  60,  65, 220),   # greyed-out tint for newly drawn cards
 }
 
-
+CARD_DESC_TEXT_SIZE = 11
+CARD_DESC_TEXT_Y_OFFSET = 25
+CARD_DESC_TEXT_COLOR = (244, 158, 118)
 
 # ---------------------------------------------------------------------------
 # PlayCardView layout
@@ -149,7 +151,7 @@ CARD_BORDER_SEL    = 3           # selected card border thickness
 CARD_BORDER_HOV    = 2           # hovered  card border thickness
 CARD_BORDER_IDLE   = 1           # idle     card border thickness
 
-CARD_SPRITE_Y_FRAC = 0.6         # fraction up the card where the sprite is centred
+CARD_SPRITE_Y_FRAC = 0.5         # fraction up the card where the sprite is centred
 
 # Bottom-bar button labels
 CARD_BACK_LABEL = "← Back to Board"
@@ -243,3 +245,6 @@ SIX = 6
 
 # Set True to render dice-face sprites instead of plain colored squares
 USE_DICE_SPRITES = True
+
+"""Dev Card sprite needs to be moved down since the grey rectangular background is slightly
+poking out from behind at the bottom of the dev card sprites"""
