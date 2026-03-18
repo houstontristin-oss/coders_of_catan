@@ -15,7 +15,6 @@ from frontend.constants import (
 
 # ---------------------------------------------------------------------------
 # Action-tag constants  (returned by DevCard.apply())
-# ---------------------------------------------------------------------------
 ACTION_NONE           = "none"
 ACTION_BACK_TO_BOARD  = "back_to_board"
 ACTION_POPUP_YOP      = "popup_year_of_plenty"
@@ -25,16 +24,6 @@ ACTION_POPUP_MONOPOLY = "popup_monopoly"
 class DevCard:
     """
     Base class for all development cards.
-
-    Subclasses MUST override:
-        card_type() -> str          snake_case type key, e.g. "knight"
-        apply(game_state) -> str    returns one of the ACTION_* constants
-
-    Subclasses MAY override:
-        can_play(game_state) -> bool
-
-    Visual attributes (label, description, tint) are looked up from
-    constants.py using card_type() so there is a single source of truth.
     """
 
     def __init__(self, just_bought: bool = False):
@@ -42,7 +31,6 @@ class DevCard:
 
     # ------------------------------------------------------------------
     # Visual attributes  (read from constants, not hardcoded per class)
-    # ------------------------------------------------------------------
     @property
     def label(self) -> str:
         return DEV_CARD_LABELS.get(self.card_type(), "Unknown Card")
@@ -59,7 +47,6 @@ class DevCard:
 
     # ------------------------------------------------------------------
     # Public interface
-    # ------------------------------------------------------------------
     def can_play(self, game_state: dict) -> bool:
         """
         Return True if this card is eligible to be played right now.
@@ -83,7 +70,6 @@ class DevCard:
 
     # ------------------------------------------------------------------
     # Serialisation helpers
-    # ------------------------------------------------------------------
     def to_dict(self) -> dict:
         """Convert to the plain dict format used by player.development_cards."""
         return {
@@ -100,7 +86,6 @@ class DevCard:
     def from_dict(cls, d: dict) -> "DevCard":
         """
         Reconstruct the correct DevCard subclass from a plain dict.
-
             card = DevCard.from_dict({"type": "knight", "just_bought": False})
         """
         mapping = {
@@ -121,18 +106,9 @@ class DevCard:
 
 # ---------------------------------------------------------------------------
 # Concrete card types
-# ---------------------------------------------------------------------------
-
 class KnightCard(DevCard):
     """
     Move the robber to any tile; optionally steal from an adjacent player.
-
-    apply() sets player.pending_robber = True and returns ACTION_BACK_TO_BOARD
-    so CatanView can run the robber-placement UI.
-
-    Required game_state keys
-    ------------------------
-    "player" : Player
     """
 
     @classmethod
@@ -147,13 +123,6 @@ class KnightCard(DevCard):
 class RoadBuildingCard(DevCard):
     """
     Place 2 free roads on the board immediately.
-
-    apply() writes free_roads = 2 into game_state and returns
-    ACTION_BACK_TO_BOARD so CatanView enters road-placement mode.
-
-    Required game_state keys
-    ------------------------
-    "free_roads" : int  (will be overwritten with 2)
     """
 
     @classmethod
@@ -168,14 +137,6 @@ class RoadBuildingCard(DevCard):
 class YearOfPlentyCard(DevCard):
     """
     Take any 2 resources from the bank.
-
-    apply() returns ACTION_POPUP_YOP; PlayCardView opens the picker and
-    calls apply_resource() once per selection.
-
-    apply_resource() game_state keys
-    ---------------------------------
-    "player"   : Player
-    "resource" : str   upper-case key e.g. "WHEAT"
     """
 
     @classmethod
@@ -210,9 +171,7 @@ class MonopolyCard(DevCard):
     def apply_steal(players: list, current_player: int, resource: str) -> int:
         """
         Steal all of *resource* from every player except current_player.
-
         Returns
-        -------
         int — total cards stolen (used in the notification message)
         """
         stolen = 0
@@ -230,7 +189,6 @@ class MonopolyCard(DevCard):
 class VictoryPointCard(DevCard):
     """
     Worth 1 VP; revealed automatically at end of game.
-
     Victory Point cards are NEVER manually played — can_play() always
     returns False.  The VP is granted at buy time by PlayCardView.
     """
