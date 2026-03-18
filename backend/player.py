@@ -25,12 +25,22 @@ class Player:
         self.color = color
         self.name = name
 
-    def accept_trade(self): #option to accept a trade from a player
-        pass
+    def exchange_resources(self, giving_resources:dict, receiving_resources:dict): 
+        # exchange resources between players for maritime and barter trades
+        for resource, amount in giving_resources.items():
+            if self.resource_cards.get(resource, 0) >= amount:
+                self.resource_cards[resource] -= amount
+            else:
+                raise ValueError("Player does not have enough resources to give.")
+        for resource, amount in receiving_resources.items():
+            self.resource_cards[resource] += amount
 
-    def offer_trade(self): #offer a trade to another player
-        pass
-
+    def can_afford_trade(self, offered_resources:dict) -> bool:
+        for resource, amount in offered_resources.items():
+            if self.resource_cards.get(resource, 0) < amount:
+                return False
+        return True
+    
     def buy_dev_card(self): #buy dev cards
         if (self.resource_cards['WHEAT'] > 0 and self.resource_cards['SHEEP'] > 0
          and self.resource_cards['ORE'] > 0):
