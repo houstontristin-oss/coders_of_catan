@@ -191,11 +191,11 @@ TEXT_GOLD        = (255, 215, 0)
 TOKEN_RED        = (200, 50,  50)    # color for unique 6 and 8 number tokens
 
 RESOURCE_COLORS = {
-    "forest": (34,  139, 34),
-    "wheat":  (255, 215, 0),
+    "forest": (84, 139, 24),
+    "wheat":  (255, 215, 75),
     "ore":    (112, 128, 144),
-    "brick":  (178, 34,  34),
-    "sheep":  (144, 238, 144),
+    "brick":  (178, 74, 34),
+    "sheep":  (193, 225, 193),
     "desert": (210, 180, 140),
 }
 
