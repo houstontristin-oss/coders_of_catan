@@ -6,6 +6,7 @@ from .drawing import fill_rect, outline_rect
 from .constants import *
 
 TITLE_FONT_SIZE = 30
+TEXT_RED = (238, 0, 0)
 
 BTN_W = 150
 BTN_H = 50
@@ -50,6 +51,8 @@ class TradeViewMaritime(arcade.View):
         self.trade_success = False
         self.valid_trade = False
 
+        self.trade_amount = 4
+
     def _build_text_objects(self):
         bar_center_y = HUD_BOTTOM_HEIGHT / 2
         
@@ -65,8 +68,12 @@ class TradeViewMaritime(arcade.View):
         self.txt_wheat = arcade.Text(f"Wheat: {self.players[self.current_player].resource_cards["WHEAT"]}", WHEAT_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
         self.txt_wood = arcade.Text(f"Wood: {self.players[self.current_player].resource_cards["WOOD"]}", WOOD_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
 
-        # Button Texts
+        # Button Text
         self.txt_trade = arcade.Text("Accept Trade", TRADE_BTN_TXT , bar_center_y, TEXT_WHITE, bold=True, anchor_y="center", anchor_x="center", font_name="MedievalSharp")
+
+        # Trade confirmation Text
+        self.txt_confirm = arcade.Text("", 100, bar_center_y, TEXT_WHITE, bold=True, anchor_y="center", anchor_x="center", font_name="MedievalSharp")
+
 
     # -----------------------------------------------------------------------
     # Sprites
@@ -96,7 +103,7 @@ class TradeViewMaritime(arcade.View):
         self.txt_back.draw()
 
     def _draw_trade_buttons(self):
-        #4:1 Trade button
+        #Accept Trade button
         fill_rect(TRADE_BTN_LEFT, TRADE_BTN_BOTTOM, BTN_W, BTN_H, BTN_BUILD  if self.valid_trade else TEXT_LIGHT_GRAY)
         self.txt_trade.draw()
 
@@ -107,25 +114,38 @@ class TradeViewMaritime(arcade.View):
         self.txt_wood.draw()
         self.txt_brick.draw()
 
+    def _load_trade_amount_numbers(self):
+        #TODO: check the board to see if player has a port and if so, then update the trade amount
+        #NOTE: How do we want to track that a player has a port? 
+        self.txt_offer_trade_amount = arcade.Text(f"{self.trade_amount}", x=TRADE_RES_START_X, y=OFFER_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
+
+        # Always 1 resource in return from a maritime trade
+        self.txt_get_trade_amount = arcade.Text("1", x=TRADE_RES_START_X, y=GET_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
+
     def _check_valid_trade(self):
         valid_offer = False
         valid_get = False
+        confirm_str = ""        
 
         # Make sure the player has enough resources to make the trade
         for res, selected in self.offer_selected.items():
             if selected:
-                valid_offer = self.players[self.current_player].can_afford_trade({res: 4}) 
+                valid_offer = self.players[self.current_player].can_afford_trade({res: self.trade_amount}) 
+                confirm_str += f"{self.trade_amount} {res.capitalize()} for "
 
         # Make sure a selection has been made on the bottom row
         for res, selected in self.get_selected.items():
             if selected:
                 valid_get = True
+                confirm_str += f"1 {res.capitalize()}"
 
         self.valid_trade = valid_offer and valid_get
+        self.txt_confirm.text = confirm_str
 
     def on_show_view(self):
         self._build_text_objects()
         self._load_resource_icons()
+        self._load_trade_amount_numbers()
 
     def on_draw(self):
         self.clear()
@@ -152,30 +172,45 @@ class TradeViewMaritime(arcade.View):
             if highlight:
                 sprite = self.offer_resource_icons[res]
                 outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                self.txt_offer_trade_amount.x = sprite.center_x
+                self.txt_offer_trade_amount.y = sprite.center_y
+                self.txt_offer_trade_amount.draw()
 
         # Higlights for Second row (Resource to get)
         for res, highlight in self.get_highlights.items():
             if highlight:
                 sprite = self.get_resource_icons[res]
                 outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                self.txt_get_trade_amount.x = sprite.center_x
+                self.txt_get_trade_amount.y = sprite.center_y
+                self.txt_get_trade_amount.draw()
 
         # Selection for first row (Resource to offer up)
         for res, selection in self.offer_selected.items():
             if selection:
                 sprite = self.offer_resource_icons[res]
                 outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                self.txt_offer_trade_amount.x = sprite.center_x
+                self.txt_offer_trade_amount. y = sprite.center_y
+                self.txt_offer_trade_amount.draw()
+
 
         # Selection for Second row (Resource to get)
         for res, selection in self.get_selected.items():
             if selection:
                 sprite = self.get_resource_icons[res]
                 outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                self.txt_get_trade_amount.x = sprite.center_x
+                self.txt_get_trade_amount. y = sprite.center_y
+                self.txt_get_trade_amount.draw()
 
         self._check_valid_trade()
 
         if self.trade_success:
             self._build_text_objects()
             self.trade_success = False
+            self.txt_confirm.text = ""
+            self.txt_confirm.draw()
             self._draw_trade_buttons()
             self.offer_selected = {}
             self.get_selected = {}
@@ -183,6 +218,9 @@ class TradeViewMaritime(arcade.View):
         self._draw_resource_numbers()
         self._draw_bottom_bar()
         self._draw_trade_buttons()
+
+        if self.valid_trade:
+            self.txt_confirm.draw()
 
     def on_mouse_motion(self, x, y, dx, dy):
         # Highlights for top row
@@ -226,7 +264,3 @@ class TradeViewMaritime(arcade.View):
             if(sprite.center_x - HALF <= x <= sprite.center_x + HALF) and (sprite.center_y - HALF <= y <= sprite.center_y + HALF):
                 self.get_selected = {}
                 self.get_selected[res] = True
-
-       
-
-
