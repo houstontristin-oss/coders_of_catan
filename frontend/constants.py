@@ -28,13 +28,13 @@ BOARD_CENTER_Y = SCREEN_HEIGHT / 2 + 10
 # HUD dimensions  — slim left panel, single column
 HUD_BOTTOM_HEIGHT = 70
 HUD_PANEL_WIDTH   = 155     # Change for resource columns (155 narrow --> 250 wide)
-HUD_PANEL_HEIGHT  = 210
+HUD_PANEL_HEIGHT  = 250
 DICE_AREA_WIDTH   = 160
 DICE_AREA_HEIGHT  = 110
 
 # ---------------------------------------------------------------------------
 # Sprite / icon settings
-ICON_SIZE    = 22           # smaller icons to fit single-column panel (22)
+ICON_SIZE    = 24           # smaller icons to fit single-column panel (22)
 SPRITE_SCALE = ICON_SIZE / 512
 
 RESOURCE_SPRITES = {
@@ -60,7 +60,9 @@ ROBBER_SPRITE = os.path.join(BASE_DIR, "sprites", "robber", "vector", "robber.pn
 DICE_ROLL_DURATION   = 1.2   # total seconds the animation runs
 DICE_ROLL_FLIP_RATE  = 0.07  # seconds between face-flips while rolling
 
-# ---------------------------------------------------------------------------
+
+
+
 # Development card sprites  (discovery folder)
 _DISC = os.path.join(BASE_DIR, "sprites", "discovery")
 DEV_CARD_SPRITES = {
@@ -210,41 +212,42 @@ RESOURCE_ABBR = {
     "forest": "WOOD"
 }
 
-# ---------------------------------------------------------------------------
+
 # Catan number token distribution
 # 18 tokens for 18 non-desert tiles:
 #   2×1, 3×2, 4×2, 5×2, 6×2, 8×2, 9×2, 10×2, 11×2, 12×1
 NUMBER_POOL = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
 
-# ---------------------------------------------------------------------------
+
 # Port types assigned clockwise from the top around the board perimeter.
 # None = 3:1 generic port, string = 2:1 specific resource port.
 # The 9 slots are spaced evenly among the ~18 outer edges automatically.
 PORT_TYPES = ["ore", None, "wheat", None, None, "brick", None, "sheep", "forest"]
 
-# ---------------------------------------------------------------------------
+
 # Build choices
 BUILD_NONE       = None
 BUILD_SETTLEMENT = "settlement"
 BUILD_ROAD       = "road"
 BUILD_CITY       = "city"
 
-# ---------------------------------------------------------------------------
+
 # Costs
 SETTLEMENT_COST = {"BRICK": 1, "WOOD": 1, "WHEAT": 1, "SHEEP": 1}
 ROAD_COST       = {"BRICK": 1, "WOOD": 1}
 CITY_COST       = {"ORE": 3, "WHEAT": 2}
 
+
 # Snap radii (pixels)
 NODE_SNAP_RADIUS = 18
 EDGE_SNAP_RADIUS = 14
+
 
 # Dice constants
 ONE = 1
 SIX = 6
 
+
 # Set True to render dice-face sprites instead of plain colored squares
 USE_DICE_SPRITES = True
 
-"""Dev Card sprite needs to be moved down since the grey rectangular background is slightly
-poking out from behind at the bottom of the dev card sprites"""
