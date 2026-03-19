@@ -146,6 +146,7 @@ class CatanView(arcade.View):
         for xyz, tile in self.board.tiles.items():
             if tile.resource == "desert":
                 self._robber_tile = tile
+                tile.robber = True
                 if self._robber_sprite_ok:
                     cx, _, cz = xyz
                     px, py    = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
@@ -196,6 +197,11 @@ class CatanView(arcade.View):
             mx = (x1 + x2) / 2
             my = (y1 + y2) / 2
             self._edge_pixel_cache[edge_id] = (mx, my, x1, y1, x2, y2)
+
+    def _build_tile_pixel_cache(self):
+        for tile_id in self.board.tiles:
+            px, py = cubic_to_pixel(tile_id)
+            self._node_pixel_cache[tile_id] = (px, py)
 
     # -----------------------------------------------------------------------
     # Sprites
