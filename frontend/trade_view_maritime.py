@@ -58,7 +58,6 @@ class TradeViewMaritime(arcade.View):
 
         self.txt_back = arcade.Text("Back to Board",  SCREEN_WIDTH - BTN_W * 0.5 - 20, bar_center_y, TEXT_WHITE, 13, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
 
-        
         # Texts for resource counts
         self.txt_sheep = arcade.Text(f"Sheep: {self.players[self.current_player].resource_cards["SHEEP"]}", SHEEP_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
         self.txt_brick = arcade.Text(f"Brick: {self.players[self.current_player].resource_cards["BRICK"]}", BRICK_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
@@ -66,10 +65,8 @@ class TradeViewMaritime(arcade.View):
         self.txt_wheat = arcade.Text(f"Wheat: {self.players[self.current_player].resource_cards["WHEAT"]}", WHEAT_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
         self.txt_wood = arcade.Text(f"Wood: {self.players[self.current_player].resource_cards["WOOD"]}", WOOD_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
 
-
         # Button Texts
         self.txt_trade = arcade.Text("Accept Trade", TRADE_BTN_TXT , bar_center_y, TEXT_WHITE, bold=True, anchor_y="center", anchor_x="center", font_name="MedievalSharp")
-        self.txt_success = arcade.Text("Successful Trade!", SCREEN_WIDTH / 2, HUD_BOTTOM_HEIGHT, TEXT_WHITE, bold=True, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
 
     # -----------------------------------------------------------------------
     # Sprites
@@ -120,7 +117,7 @@ class TradeViewMaritime(arcade.View):
                 valid_offer = self.players[self.current_player].can_afford_trade({res: 4}) 
 
         # Make sure a selection has been made on the bottom row
-        for res, selected in self.offer_selected.items():
+        for res, selected in self.get_selected.items():
             if selected:
                 valid_get = True
 
@@ -178,7 +175,6 @@ class TradeViewMaritime(arcade.View):
 
         if self.trade_success:
             self._build_text_objects()
-            self.txt_success.draw()
             self.trade_success = False
             self._draw_trade_buttons()
             self.offer_selected = {}
