@@ -16,7 +16,45 @@ SCREEN_TITLE  = "Coders of Catan"
 # ---------------------------------------------------------------------------
 # Background image
 # Change this filename to swap backgrounds — file must live in sprites/background/
-BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", ".jpg")
+BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "picture.png")
+
+# ---------------------------------------------------------------------------
+# Animated ocean background
+USE_OCEAN_BACKGROUND = True
+
+# Base water tones
+OCEAN_BASE_COLOR = (70, 145, 201)
+OCEAN_DEEP_COLOR = (52, 118, 178)
+OCEAN_MID_COLOR = (84, 160, 214)
+OCEAN_BAND_COLOR = (255, 255, 255, 18)
+OCEAN_RIPPLE_COLOR = (220, 245, 255, 12)
+
+# Large rolling sea bands
+OCEAN_BAND_COUNT = 7
+OCEAN_BAND_SPACING = 92
+OCEAN_BAND_THICKNESS = 18
+OCEAN_BAND_AMPLITUDE = 18
+OCEAN_BAND_WAVELENGTH = 170
+OCEAN_BAND_SCROLL_SPEED = 22.0
+OCEAN_BAND_PHASE_SPEED = 0.85
+
+# Secondary faint ripples
+OCEAN_RIPPLE_COUNT = 5
+OCEAN_RIPPLE_SPACING = 125
+OCEAN_RIPPLE_THICKNESS = 8
+OCEAN_RIPPLE_AMPLITUDE = 10
+OCEAN_RIPPLE_WAVELENGTH = 110
+OCEAN_RIPPLE_SCROLL_SPEED = 13.0
+
+# Shoreline shimmer
+SHORE_FOAM_COLOR = (255, 255, 255, 74)
+SHORE_FOAM_HIGHLIGHT_COLOR = (220, 245, 255, 134)
+SHORE_FOAM_WIDTH = 6
+SHORE_FOAM_HIGHLIGHT_WIDTH = 2
+SHORE_FOAM_OFFSET = 8
+SHORE_FOAM_PULSE_SPEED = 2.1
+SHORE_OUTER_RING_ONLY = True
+
 
 # ---------------------------------------------------------------------------
 # Hex & board layout

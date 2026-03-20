@@ -82,6 +82,9 @@ class CatanView(arcade.View):
         # --- Port hover state ---
         self._hovered_port_nodes = []
 
+        # --- Ocean animation ---
+        self._ocean_time = 0.0
+
         # Pixel caches
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
@@ -148,18 +151,25 @@ class CatanView(arcade.View):
     # Background
     # -----------------------------------------------------------------------
     def _load_background(self):
+        self.bg_sprite = None
+        self.bg_list = None
+
+        if USE_OCEAN_BACKGROUND:
+            arcade.set_background_color(OCEAN_BASE_COLOR)
+            return
+
         try:
-            self.bg_sprite          = arcade.Sprite(BACKGROUND_IMAGE)
-            self.bg_sprite.center_x = SCREEN_WIDTH  / 2
+            self.bg_sprite = arcade.Sprite(BACKGROUND_IMAGE)
+            self.bg_sprite.center_x = SCREEN_WIDTH / 2
             self.bg_sprite.center_y = SCREEN_HEIGHT / 2
-            scale_x                 = SCREEN_WIDTH  / self.bg_sprite.width
-            scale_y                 = SCREEN_HEIGHT / self.bg_sprite.height
-            self.bg_sprite.scale    = max(scale_x, scale_y)
-            self.bg_list            = arcade.SpriteList()
+            scale_x = SCREEN_WIDTH / self.bg_sprite.width
+            scale_y = SCREEN_HEIGHT / self.bg_sprite.height
+            self.bg_sprite.scale = max(scale_x, scale_y)
+            self.bg_list = arcade.SpriteList()
             self.bg_list.append(self.bg_sprite)
         except Exception:
             self.bg_sprite = None
-            self.bg_list   = None
+            self.bg_list = None
             arcade.set_background_color(arcade.color.OCEAN_BOAT_BLUE)
 
     # -----------------------------------------------------------------------
@@ -354,8 +364,10 @@ class CatanView(arcade.View):
 
     # -----------------------------------------------------------------------
     # on_update — dice animation tick
-    # -----------------------------------------------------------------------
     def on_update(self, delta_time):
+        # Ocean animation should always advance, even when dice are idle
+        self._ocean_time += delta_time
+
         if not self._dice_animating:
             return
 
@@ -730,14 +742,18 @@ class CatanView(arcade.View):
 
     # -----------------------------------------------------------------------
     # on_draw
-    # -----------------------------------------------------------------------
+
     def on_draw(self):
         self.clear()
 
-        if self.bg_list:
+        if USE_OCEAN_BACKGROUND:
+            draw_ocean_background(self._ocean_time)
+        elif self.bg_list:
             self.bg_list.draw()
 
         draw_board(self.board)
+
+
         self._draw_ports()
 
         if self.build_choice == BUILD_SETTLEMENT:
