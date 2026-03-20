@@ -12,6 +12,7 @@ from backend.catan_board import CatanBoard
 
 from .play_card_view import PlayCardView
 from .trade_view import TradeView
+from .robber_place_view import RobberPlaceView
 from .end_view import EndView
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
 from .ports import PortManager
@@ -197,11 +198,6 @@ class CatanView(arcade.View):
             mx = (x1 + x2) / 2
             my = (y1 + y2) / 2
             self._edge_pixel_cache[edge_id] = (mx, my, x1, y1, x2, y2)
-
-    def _build_tile_pixel_cache(self):
-        for tile_id in self.board.tiles:
-            px, py = cubic_to_pixel(tile_id)
-            self._node_pixel_cache[tile_id] = (px, py)
 
     # -----------------------------------------------------------------------
     # Sprites
@@ -1026,6 +1022,8 @@ class CatanView(arcade.View):
         self._start_dice_animation()
 
         # TODO (Apoorva): check if roll == 7 and trigger robber phase
+        if self.die1 + self.die2 == 7:
+            self.window.show_view(RobberPlaceView(self.board, self.players, self.current_player))
 
         self._give_resources()
         self._build_player_texts()
