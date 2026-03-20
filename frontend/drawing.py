@@ -302,13 +302,49 @@ def draw_shoreline_shimmer(board, time_s: float):
                 SHORE_FOAM_HIGHLIGHT_WIDTH,
             )
 
+
+_HEX_SPRITE_CACHE = {}
+
+def _get_hex_sprite(resource_name: str):
+    """Load and cache a hex texture sprite for a given resource."""
+    path = HEX_TILE_SPRITES.get(resource_name)
+    if not path:
+        return None
+
+    sprite = _HEX_SPRITE_CACHE.get(resource_name)
+    if sprite is None:
+        try:
+            sprite = arcade.Sprite(path)
+            _HEX_SPRITE_CACHE[resource_name] = sprite
+        except Exception:
+            _HEX_SPRITE_CACHE[resource_name] = None
+            return None
+
+    return sprite
+
+
 def draw_board(board):
     for xyz, tile in board.tiles.items():
-            cx, _, cz = xyz
-            px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-            corners = get_hex_corners(px, py, HEX_SIZE)
+        cx, _, cz = xyz
+        px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
+        corners = get_hex_corners(px, py, HEX_SIZE)
+
+        sprite = _get_hex_sprite(tile.resource)
+
+        if sprite is not None:
+            # Uniform scaling preserves the image proportions better than forcing
+            # width/height independently.
+            sprite.scale = HEX_TILE_SCALE
+            sprite.center_x = px
+            sprite.center_y = py + HEX_TILE_Y_OFFSET
+            arcade.draw_sprite(sprite)
+
+        else:
+            # Fallback to the old flat color if a sprite is missing
             arcade.draw_polygon_filled(corners, RESOURCE_COLORS[tile.resource])
-            arcade.draw_polygon_outline(corners, arcade.color.BLACK, 2)
-            # Number token (skip desert, which has number=0)
-            if tile.number > 0:
-                draw_number_token(px, py, tile.number)
+
+        arcade.draw_polygon_outline(corners, arcade.color.BLACK, HEX_TILE_OUTLINE_WIDTH)
+
+        # Number token (skip desert, which has number=0)
+        if tile.number > 0:
+            draw_number_token(px, py, tile.number)

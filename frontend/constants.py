@@ -83,6 +83,22 @@ RESOURCE_SPRITES = {
     "forest": os.path.join(BASE_DIR, "sprites", "BW_icons", "wood-pile.png"),
 }
 
+# Hex tile art sprites
+_HEX = os.path.join(BASE_DIR, "sprites", "hexes")
+
+HEX_TILE_SPRITES = {
+    "wheat":  os.path.join(_HEX, "wheat_field.png"),
+    "forest": os.path.join(_HEX, "wood_forest.png"),
+    "brick":  os.path.join(_HEX, "brick_hill.png"),
+    "desert": os.path.join(_HEX, "desert.png"),
+    "ore":    os.path.join(_HEX, "ore_mountain.png"),
+    "sheep":  os.path.join(_HEX, "sheep_pasture.png"),
+}
+
+HEX_TILE_SCALE = 0.235
+HEX_TILE_Y_OFFSET = -1
+HEX_TILE_OUTLINE_WIDTH = 2
+
 PORT_SHIP_SPRITE = os.path.join(BASE_DIR, "sprites", "ports", "galley_ship.png")
 
 # Six die-face sprites  (dice-1.png … dice-6.png)
