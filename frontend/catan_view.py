@@ -3,8 +3,7 @@ Contains CatanView Class
     Parameters:
         All mighty viewing file
 """
-import math
-import arcade
+
 import random
 
 from backend import node
@@ -14,22 +13,11 @@ from .play_card_view import PlayCardView
 from .trade_view import TradeView
 from .robber_place_view import RobberPlaceView
 from .end_view import EndView
-from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
+from .board_utils import *
 from .ports import PortManager
-from .drawing import fill_rect, outline_rect, draw_settlement, draw_city, draw_road, draw_board
-from .constants import (
-    BUILD_NONE, BACKGROUND_IMAGE, SCREEN_WIDTH, SCREEN_HEIGHT,
-    BOARD_CENTER_X, BOARD_CENTER_Y, RESOURCE_ABBR, HEX_SIZE,
-    RESOURCE_SPRITES, SPRITE_SCALE, TEXT_WHITE, TEXT_GOLD, TEXT_LIGHT_GRAY,
-    HUD_BOTTOM_HEIGHT, HUD_BG, DICE_AREA_HEIGHT, DICE_AREA_WIDTH,
-    HUD_PANEL_HEIGHT, HUD_PANEL_BG, HUD_PANEL_WIDTH, ICON_SIZE,
-    BTN_BUILD, BTN_BUILD_ACTIVE, BTN_CARD, BTN_ENDTURN, BTN_TRADE,
-    BUILD_SETTLEMENT, BUILD_ROAD, SETTLEMENT_COST, ROAD_COST, CITY_COST,
-    RESOURCE_COLORS, NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS,
-    ROBBER_SPRITE, BUILD_CITY, ONE, SIX,
-    DICE_SPRITES, DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, USE_DICE_SPRITES,
-    DEV_CARD_COST,
-)
+from .drawing import *
+from .constants import *
+from .view_constants import *  # noqa: F401,F403
 
 
 class CatanView(arcade.View):
@@ -95,6 +83,9 @@ class CatanView(arcade.View):
         # --- Port hover state ---
         self._hovered_port_nodes = []
 
+        # --- Ocean animation ---
+        self._ocean_time = 0.0
+
         # Pixel caches
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
@@ -151,7 +142,7 @@ class CatanView(arcade.View):
                 if self._robber_sprite_ok:
                     cx, _, cz = xyz
                     px, py    = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-                    target_h  = HEX_SIZE * 1.1
+                    target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
                     scale     = target_h / self._robber_sprite.height
                     self._robber_sprite.scale    = scale
                     self._robber_sprite.center_x = px
@@ -162,18 +153,25 @@ class CatanView(arcade.View):
     # Background
     # -----------------------------------------------------------------------
     def _load_background(self):
+        self.bg_sprite = None
+        self.bg_list = None
+
+        if USE_OCEAN_BACKGROUND:
+            arcade.set_background_color(OCEAN_BASE_COLOR)
+            return
+
         try:
-            self.bg_sprite          = arcade.Sprite(BACKGROUND_IMAGE)
-            self.bg_sprite.center_x = SCREEN_WIDTH  / 2
+            self.bg_sprite = arcade.Sprite(BACKGROUND_IMAGE)
+            self.bg_sprite.center_x = SCREEN_WIDTH / 2
             self.bg_sprite.center_y = SCREEN_HEIGHT / 2
-            scale_x                 = SCREEN_WIDTH  / self.bg_sprite.width
-            scale_y                 = SCREEN_HEIGHT / self.bg_sprite.height
-            self.bg_sprite.scale    = max(scale_x, scale_y)
-            self.bg_list            = arcade.SpriteList()
+            scale_x = SCREEN_WIDTH / self.bg_sprite.width
+            scale_y = SCREEN_HEIGHT / self.bg_sprite.height
+            self.bg_sprite.scale = max(scale_x, scale_y)
+            self.bg_list = arcade.SpriteList()
             self.bg_list.append(self.bg_sprite)
         except Exception:
             self.bg_sprite = None
-            self.bg_list   = None
+            self.bg_list = None
             arcade.set_background_color(arcade.color.OCEAN_BOAT_BLUE)
 
     # -----------------------------------------------------------------------
@@ -214,75 +212,72 @@ class CatanView(arcade.View):
     # Text objects
     # -----------------------------------------------------------------------
     def _build_text_objects(self):
-        _BW  = 120
-        _BH  = 38
-        _GAP = 8
-        _PAD = 14
-
-        trade_bottom = _PAD
-        build_bottom = trade_bottom + _BH + _GAP
-        card_bottom  = build_bottom + _BH + _GAP
+        trade_bottom = CATAN_BTN_PAD
+        build_bottom = trade_bottom + CATAN_BTN_H + CATAN_BTN_GAP
+        card_bottom  = build_bottom + CATAN_BTN_H + CATAN_BTN_GAP
 
         self.txt_trade = arcade.Text(
-            "Trade", _PAD + _BW / 2, trade_bottom + _BH / 2,
-            TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center",
+            CATAN_LABEL_TRADE, CATAN_BTN_PAD + CATAN_BTN_W / 2, trade_bottom + CATAN_BTN_H / 2,
+            TEXT_WHITE, CATAN_TEXT_SIZE_BTN, bold=True, anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
         self.txt_build = arcade.Text(
-            "Build", _PAD + _BW / 2, build_bottom + _BH / 2,
-            TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center",
+            CATAN_LABEL_BUILD, CATAN_BTN_PAD + CATAN_BTN_W / 2, build_bottom + CATAN_BTN_H / 2,
+            TEXT_WHITE, CATAN_TEXT_SIZE_BTN, bold=True, anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
         self.txt_card = arcade.Text(
-            "Dev Cards", _PAD + _BW / 2, card_bottom + _BH / 2,
-            TEXT_WHITE, 11, bold=True, anchor_x="center", anchor_y="center",
+            CATAN_LABEL_DEV_CARDS, CATAN_BTN_PAD + CATAN_BTN_W / 2, card_bottom + CATAN_BTN_H / 2,
+            TEXT_WHITE, CATAN_TEXT_SIZE_CARD_BTN, bold=True, anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
 
-        _EW = 130
         self.txt_end = arcade.Text(
-            "End Turn", SCREEN_WIDTH - _PAD - _EW / 2, _PAD + _BH / 2,
-            TEXT_WHITE, 12, bold=True, anchor_x="center", anchor_y="center",
+            CATAN_LABEL_END_TURN,
+            SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W / 2,
+            CATAN_BTN_PAD + CATAN_BTN_H / 2,
+            TEXT_WHITE, CATAN_TEXT_SIZE_BTN, bold=True, anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
 
-        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - 10
-        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - 10
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
         self.txt_dice_label = arcade.Text(
-            "Dice Roll", dx + DICE_AREA_WIDTH / 2, dy + DICE_AREA_HEIGHT - 16,
-            TEXT_GOLD, 11, bold=True, anchor_x="center",
+            CATAN_LABEL_DICE_ROLL, dx + DICE_AREA_WIDTH / 2,
+            dy + DICE_AREA_HEIGHT - CATAN_DICE_LABEL_TOP_PAD,
+            TEXT_GOLD, CATAN_TEXT_SIZE_DICE_LABEL, bold=True, anchor_x="center",
             font_name="MedievalSharp",
         )
         self.txt_dice_hint = arcade.Text(
-            "Auto-rolls on turn start",
-            dx + DICE_AREA_WIDTH / 2, dy + 7,
-            TEXT_LIGHT_GRAY, 8, anchor_x="center",
+            CATAN_LABEL_DICE_HINT,
+            dx + DICE_AREA_WIDTH / 2, dy + CATAN_DICE_TOTAL_Y,
+            TEXT_LIGHT_GRAY, CATAN_TEXT_SIZE_DICE_HINT, anchor_x="center",
             font_name="MedievalSharp",
         )
 
         self.txt_submenu_settlement = arcade.Text(
-            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            "", 0, 0, TEXT_WHITE, CATAN_TEXT_SIZE_SUBMENU, bold=True,
             anchor_x="center", anchor_y="center", font_name="MedievalSharp",
         )
         self.txt_submenu_city = arcade.Text(
-            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            "", 0, 0, TEXT_WHITE, CATAN_TEXT_SIZE_SUBMENU, bold=True,
             anchor_x="center", anchor_y="center", font_name="MedievalSharp",
         )
         self.txt_submenu_road = arcade.Text(
-            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            "", 0, 0, TEXT_WHITE, CATAN_TEXT_SIZE_SUBMENU, bold=True,
             anchor_x="center", anchor_y="center", font_name="MedievalSharp",
         )
 
         self.txt_popup_title = arcade.Text(
-            "", 0, 0, TEXT_GOLD, 10, bold=True,
+            "", 0, 0, TEXT_GOLD, CATAN_TEXT_SIZE_POPUP_TITLE, bold=True,
             anchor_x="center", anchor_y="center", font_name="MedievalSharp",
         )
         self.txt_popup_confirm = arcade.Text(
-            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            "", 0, 0, TEXT_WHITE, CATAN_TEXT_SIZE_POPUP_BTN, bold=True,
             anchor_x="center", anchor_y="center", font_name="MedievalSharp",
         )
         self.txt_popup_cancel = arcade.Text(
-            "Cancel", 0, 0, TEXT_WHITE, 9, bold=True,
+            CATAN_LABEL_CANCEL, 0, 0, TEXT_WHITE, CATAN_TEXT_SIZE_POPUP_BTN, bold=True,
             anchor_x="center", anchor_y="center", font_name="MedievalSharp",
         )
 
@@ -291,45 +286,44 @@ class CatanView(arcade.View):
 
     def _build_dice_texts(self):
         """Pre-build the fallback number Text objects for the dice area."""
-        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - 10
-        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - 10
-        die_size = 40
-        die_gap  = 12
-        die1_x   = dx + (DICE_AREA_WIDTH - 2 * die_size - die_gap) / 2
-        die_y    = dy + 20
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
+        die1_x = dx + (DICE_AREA_WIDTH - 2 * CATAN_DIE_SIZE - CATAN_DIE_GAP) / 2
+        die_y  = dy + CATAN_DICE_Y_OFFSET
 
         self.txt_die1 = arcade.Text(
             f"{self.die1}",
-            die1_x + die_size / 2, die_y + die_size / 2,
-            TEXT_WHITE, 18, bold=True,
+            die1_x + CATAN_DIE_SIZE / 2, die_y + CATAN_DIE_SIZE / 2,
+            TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
         self.txt_die2 = arcade.Text(
             f"{self.die2}",
-            die1_x + die_size + die_gap + die_size / 2, die_y + die_size / 2,
-            TEXT_WHITE, 18, bold=True,
+            die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2,
+            die_y + CATAN_DIE_SIZE / 2,
+            TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
 
     def _build_player_texts(self):
         player    = self.players[self.current_player]
-        panel_x   = 8
-        panel_top = SCREEN_HEIGHT - 8
-        row_h     = 24
+        panel_x   = CATAN_PLAYER_PANEL_MARGIN
+        panel_top = SCREEN_HEIGHT - CATAN_PLAYER_PANEL_MARGIN
 
         self.txt_player_name = arcade.Text(
             player.name,
-            panel_x + HUD_PANEL_WIDTH // 2, panel_top - 18,
-            TEXT_GOLD, 12, bold=True,
+            panel_x + HUD_PANEL_WIDTH // 2, panel_top - CATAN_PLAYER_NAME_Y,
+            TEXT_GOLD, CATAN_TEXT_SIZE_PLAYER_NAME, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
         self.txt_player_vp = arcade.Text(
             f"Victory Points: {player.victory_points}",
-            panel_x + HUD_PANEL_WIDTH // 2 + 10, panel_top - 18 - row_h,
-            TEXT_LIGHT_GRAY, 10,
+            panel_x + HUD_PANEL_WIDTH // 2 + 10,
+            panel_top - CATAN_PLAYER_NAME_Y - CATAN_PLAYER_ROW_H,
+            TEXT_LIGHT_GRAY, CATAN_TEXT_SIZE_PLAYER_VP,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
@@ -340,23 +334,25 @@ class CatanView(arcade.View):
 
         self.txt_resources = []
         for i, res in enumerate(order):
-            ry = panel_top - 18 - row_h * 2 - i * (ICON_SIZE + 4) - ICON_SIZE // 2
+            ry = (panel_top - CATAN_PLAYER_NAME_Y - CATAN_PLAYER_ROW_H * 2
+                  - i * (ICON_SIZE + CATAN_RESOURCE_ROW_GAP) - ICON_SIZE // 2)
             self.txt_resources.append(
                 arcade.Text(
                     f"{labels[res]}: {player.resource_cards.get(res)}",
-                    panel_x + ICON_SIZE + 35, ry,
-                    TEXT_WHITE, 9,
+                    panel_x + ICON_SIZE + CATAN_RESOURCE_TEXT_X_OFFSET, ry,
+                    TEXT_WHITE, CATAN_TEXT_SIZE_RESOURCE,
                     anchor_y="center",
                     font_name="MedievalSharp",
                 )
             )
 
-        # Dev-card count badge at the bottom of the panel
         n_cards = len(player.development_cards)
         self.txt_dev_card_count = arcade.Text(
             f"Dev Cards: {n_cards}",
-            panel_x + HUD_PANEL_WIDTH // 2, panel_top - 18 - row_h * 2 - (ICON_SIZE + 4) * 5 - 8,
-            (180, 120, 255), 9,
+            panel_x + HUD_PANEL_WIDTH // 2,
+            (panel_top - CATAN_PLAYER_NAME_Y - CATAN_PLAYER_ROW_H * 2
+             - (ICON_SIZE + CATAN_RESOURCE_ROW_GAP) * 5 - CATAN_DEV_CARD_COUNT_Y_OFFSET),
+            CATAN_DEV_CARD_COUNT_COLOR, CATAN_TEXT_SIZE_RESOURCE,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
@@ -370,8 +366,10 @@ class CatanView(arcade.View):
 
     # -----------------------------------------------------------------------
     # on_update — dice animation tick
-    # -----------------------------------------------------------------------
     def on_update(self, delta_time):
+        # Ocean animation should always advance, even when dice are idle
+        self._ocean_time += delta_time
+
         if not self._dice_animating:
             return
 
@@ -396,14 +394,9 @@ class CatanView(arcade.View):
     # HUD draw helpers
     # -----------------------------------------------------------------------
     def _draw_bottom_bar(self):
-        _BW  = 120
-        _BH  = 38
-        _GAP = 8
-        _PAD = 14
-
-        trade_bottom = _PAD
-        build_bottom = trade_bottom + _BH + _GAP
-        card_bottom  = build_bottom + _BH + _GAP
+        trade_bottom = CATAN_BTN_PAD
+        build_bottom = trade_bottom + CATAN_BTN_H + CATAN_BTN_GAP
+        card_bottom  = build_bottom + CATAN_BTN_H + CATAN_BTN_GAP
 
         build_col = BTN_BUILD_ACTIVE if self.build_mode else BTN_BUILD
 
@@ -412,24 +405,30 @@ class CatanView(arcade.View):
             (build_bottom, build_col),
             (card_bottom,  BTN_CARD),
         ]:
-            fill_rect(_PAD + 2, bottom - 2, _BW, _BH, (0, 0, 0, 100))
-            fill_rect(_PAD, bottom, _BW, _BH, color)
-            outline_rect(_PAD, bottom, _BW, _BH, (255, 255, 255, 60), 1)
+            fill_rect(CATAN_BTN_PAD + 2, bottom - 2, CATAN_BTN_W, CATAN_BTN_H,
+                      CATAN_COLOR_DROP_SHADOW)
+            fill_rect(CATAN_BTN_PAD, bottom, CATAN_BTN_W, CATAN_BTN_H, color)
+            outline_rect(CATAN_BTN_PAD, bottom, CATAN_BTN_W, CATAN_BTN_H,
+                         CATAN_COLOR_BTN_OUTLINE, 1)
 
         # Free-roads indicator on the "Dev Cards" button
         if self._free_roads > 0:
             arcade.Text(
                 f"Free roads: {self._free_roads}",
-                _PAD + _BW / 2, card_bottom + _BH + 6,
-                (100, 255, 100), 8, bold=True,
+                CATAN_BTN_PAD + CATAN_BTN_W / 2, card_bottom + CATAN_BTN_H + 6,
+                CATAN_COLOR_FREE_ROADS, CATAN_TEXT_SIZE_FREE_ROADS, bold=True,
                 anchor_x="center", anchor_y="bottom",
                 font_name="MedievalSharp",
             ).draw()
 
-        _EW = 130
-        fill_rect(SCREEN_WIDTH - _PAD - _EW + 2, _PAD - 2, _EW, _BH, (0, 0, 0, 100))
-        fill_rect(SCREEN_WIDTH - _PAD - _EW, _PAD, _EW, _BH, BTN_ENDTURN)
-        outline_rect(SCREEN_WIDTH - _PAD - _EW, _PAD, _EW, _BH, (255, 255, 255, 60), 1)
+        fill_rect(SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W + 2,
+                  CATAN_BTN_PAD - 2, CATAN_END_BTN_W, CATAN_BTN_H,
+                  CATAN_COLOR_DROP_SHADOW)
+        fill_rect(SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W,
+                  CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H, BTN_ENDTURN)
+        outline_rect(SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W,
+                     CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H,
+                     CATAN_COLOR_BTN_OUTLINE, 1)
 
         self.txt_trade.draw()
         self.txt_build.draw()
@@ -440,65 +439,73 @@ class CatanView(arcade.View):
         if not self.build_mode or self.build_choice != BUILD_NONE:
             return
 
-        _BW    = 120
-        _BH    = 38
-        _GAP   = 8
-        _PAD   = 14
-        _YDIFF = 36
+        build_bottom = CATAN_BTN_PAD + CATAN_BTN_H + CATAN_BTN_GAP
+        build_top    = build_bottom + CATAN_BTN_H
+        bx           = CATAN_BTN_PAD
+        by           = build_top + CATAN_BUILD_SUBMENU_Y_OFFSET
 
-        build_bottom = _PAD + _BH + _GAP
-        build_top    = build_bottom + _BH
-        menu_w = _BW
-        menu_h = 120
-        bx     = _PAD
-        by     = build_top + 4
+        fill_rect(bx, by, CATAN_BUILD_SUBMENU_W, CATAN_BUILD_SUBMENU_H, HUD_PANEL_BG)
+        outline_rect(bx, by, CATAN_BUILD_SUBMENU_W, CATAN_BUILD_SUBMENU_H, TEXT_GOLD, 2)
 
-        fill_rect(bx, by, menu_w, menu_h, HUD_PANEL_BG)
-        outline_rect(bx, by, menu_w, menu_h, TEXT_GOLD, 2)
-
-        c_col = (255, 102, 0) if self._can_afford(CITY_COST) else (70, 70, 70)
-        fill_rect(bx + 8, by + (8 + 2 * _YDIFF), menu_w - 16, 28, c_col)
-        self.txt_submenu_city.text = "City"
-        self.txt_submenu_city.x    = bx + menu_w / 2
-        self.txt_submenu_city.y    = by + (22 + 2 * _YDIFF)
+        c_col = CATAN_COLOR_CITY_BTN if self._can_afford(CITY_COST) else CATAN_COLOR_DISABLED
+        fill_rect(bx + CATAN_BUILD_SUBMENU_BTN_INSET,
+                  by + (CATAN_BUILD_SUBMENU_BTN_INSET + 2 * CATAN_BUILD_SUBMENU_ROW_STEP),
+                  CATAN_BUILD_SUBMENU_W - CATAN_BUILD_SUBMENU_BTN_INSET * 2,
+                  CATAN_BUILD_SUBMENU_BTN_H, c_col)
+        self.txt_submenu_city.text = CATAN_LABEL_CITY
+        self.txt_submenu_city.x    = bx + CATAN_BUILD_SUBMENU_W / 2
+        self.txt_submenu_city.y    = by + (CATAN_BUILD_SUBMENU_BTN_INSET + 14
+                                           + 2 * CATAN_BUILD_SUBMENU_ROW_STEP)
         self.txt_submenu_city.draw()
 
-        s_col = (39, 174, 96) if self._can_afford(SETTLEMENT_COST) else (70, 70, 70)
-        fill_rect(bx + 8, by + (8 + _YDIFF), menu_w - 16, 28, s_col)
-        self.txt_submenu_settlement.text = "Settlement"
-        self.txt_submenu_settlement.x    = bx + menu_w / 2
-        self.txt_submenu_settlement.y    = by + (22 + _YDIFF)
+        s_col = (CATAN_COLOR_SETTLEMENT_BTN if self._can_afford(SETTLEMENT_COST)
+                 else CATAN_COLOR_DISABLED)
+        fill_rect(bx + CATAN_BUILD_SUBMENU_BTN_INSET,
+                  by + (CATAN_BUILD_SUBMENU_BTN_INSET + CATAN_BUILD_SUBMENU_ROW_STEP),
+                  CATAN_BUILD_SUBMENU_W - CATAN_BUILD_SUBMENU_BTN_INSET * 2,
+                  CATAN_BUILD_SUBMENU_BTN_H, s_col)
+        self.txt_submenu_settlement.text = CATAN_LABEL_SETTLEMENT
+        self.txt_submenu_settlement.x    = bx + CATAN_BUILD_SUBMENU_W / 2
+        self.txt_submenu_settlement.y    = by + (CATAN_BUILD_SUBMENU_BTN_INSET + 14
+                                                 + CATAN_BUILD_SUBMENU_ROW_STEP)
         self.txt_submenu_settlement.draw()
 
-        r_col = (52, 152, 219) if self._can_afford(ROAD_COST) else (70, 70, 70)
-        fill_rect(bx + 8, by + 8, menu_w - 16, 28, r_col)
-        self.txt_submenu_road.text = "Road"
-        self.txt_submenu_road.x    = bx + menu_w / 2
-        self.txt_submenu_road.y    = by + 22
+        r_col = CATAN_COLOR_ROAD_BTN if self._can_afford(ROAD_COST) else CATAN_COLOR_DISABLED
+        fill_rect(bx + CATAN_BUILD_SUBMENU_BTN_INSET,
+                  by + CATAN_BUILD_SUBMENU_BTN_INSET,
+                  CATAN_BUILD_SUBMENU_W - CATAN_BUILD_SUBMENU_BTN_INSET * 2,
+                  CATAN_BUILD_SUBMENU_BTN_H, r_col)
+        self.txt_submenu_road.text = CATAN_LABEL_ROAD
+        self.txt_submenu_road.x    = bx + CATAN_BUILD_SUBMENU_W / 2
+        self.txt_submenu_road.y    = by + CATAN_BUILD_SUBMENU_BTN_INSET + 14
         self.txt_submenu_road.draw()
 
     def _draw_player_panel(self):
         player  = self.players[self.current_player]
-        panel_x = 8
-        panel_y = SCREEN_HEIGHT - HUD_PANEL_HEIGHT - 8
+        panel_x = CATAN_PLAYER_PANEL_MARGIN
+        panel_y = SCREEN_HEIGHT - HUD_PANEL_HEIGHT - CATAN_PLAYER_PANEL_MARGIN
 
         fill_rect(panel_x, panel_y, HUD_PANEL_WIDTH, HUD_PANEL_HEIGHT, HUD_PANEL_BG)
         outline_rect(panel_x, panel_y, HUD_PANEL_WIDTH, HUD_PANEL_HEIGHT, player.color)
 
-        arcade.draw_circle_filled(panel_x + 14, panel_y + HUD_PANEL_HEIGHT - 18, 7, player.color)
+        arcade.draw_circle_filled(
+            panel_x + CATAN_PLAYER_MARKER_RADIUS * 2,
+            panel_y + HUD_PANEL_HEIGHT - CATAN_PLAYER_NAME_Y,
+            CATAN_PLAYER_MARKER_RADIUS, player.color
+        )
 
         self.txt_player_name.draw()
         self.txt_player_vp.draw()
 
         order     = ["brick", "ore", "wheat", "sheep", "forest"]
-        panel_top = SCREEN_HEIGHT - 8
-        row_h     = 24
+        panel_top = SCREEN_HEIGHT - CATAN_PLAYER_PANEL_MARGIN
 
         for i, res in enumerate(order):
-            ry = panel_top - 25 - row_h * 2 - i * (ICON_SIZE + 5)
+            ry = (panel_top - CATAN_PLAYER_NAME_Y - CATAN_PLAYER_ROW_H * 2
+                  - i * (ICON_SIZE + CATAN_RESOURCE_ICON_ROW_GAP))
             sprite          = self.resource_icons[res]
-            sprite.center_x = panel_x + ICON_SIZE // 2 + 4
-            sprite.center_y = ry
+            sprite.center_x = panel_x + ICON_SIZE // 2 + CATAN_RESOURCE_ICON_X_OFFSET
+            sprite.center_y = ry - CATAN_RESOURCE_ICON_Y_OFFSET
 
         self.icon_sprite_list.draw()
         for txt in self.txt_resources:
@@ -506,77 +513,77 @@ class CatanView(arcade.View):
         self.txt_dev_card_count.draw()
 
     def _draw_dice_area(self):
-        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - 10
-        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - 10
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
 
         fill_rect(dx, dy, DICE_AREA_WIDTH, DICE_AREA_HEIGHT, HUD_PANEL_BG)
         outline_rect(dx, dy, DICE_AREA_WIDTH, DICE_AREA_HEIGHT, TEXT_LIGHT_GRAY)
 
         self.txt_dice_label.draw()
 
-        die_size = 40
-        die_gap  = 12
-        die1_x   = dx + (DICE_AREA_WIDTH - 2 * die_size - die_gap) / 2
-        die_y    = dy + 20
+        die1_x = dx + (DICE_AREA_WIDTH - 2 * CATAN_DIE_SIZE - CATAN_DIE_GAP) / 2
+        die_y  = dy + CATAN_DICE_Y_OFFSET
 
         face1 = self._anim_die1 if self._dice_animating else self.die1
         face2 = self._anim_die2 if self._dice_animating else self.die2
 
         if USE_DICE_SPRITES and self._dice_sprites.get(face1) and self._dice_sprites.get(face2):
-            # Use die-face sprites
             spr1 = self._dice_sprites[face1]
             spr2 = self._dice_sprites[face2]
-            target = die_size
 
-            spr1.scale    = target / max(spr1.width, spr1.height)
-            spr1.center_x = die1_x + die_size / 2
-            spr1.center_y = die_y  + die_size / 2
+            spr1.scale    = CATAN_DIE_SIZE / max(spr1.width, spr1.height)
+            spr1.center_x = die1_x + CATAN_DIE_SIZE / 2
+            spr1.center_y = die_y  + CATAN_DIE_SIZE / 2
 
-            spr2.scale    = target / max(spr2.width, spr2.height)
-            spr2.center_x = die1_x + die_size + die_gap + die_size / 2
-            spr2.center_y = die_y  + die_size / 2
+            spr2.scale    = CATAN_DIE_SIZE / max(spr2.width, spr2.height)
+            spr2.center_x = die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2
+            spr2.center_y = die_y  + CATAN_DIE_SIZE / 2
 
-            # White backgrounds so the sprites are legible on dark panel
-            fill_rect(die1_x,                        die_y, die_size, die_size, (248, 248, 248))
-            fill_rect(die1_x + die_size + die_gap,   die_y, die_size, die_size, (248, 248, 248))
+            fill_rect(die1_x,                              die_y,
+                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
+            fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
+                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
 
-            # Draw both dice via a small SpriteList (arcade 3.x removed Sprite.draw())
             _tmp = arcade.SpriteList()
             _tmp.append(spr1)
             _tmp.append(spr2)
             _tmp.draw()
 
-            # Shake effect during animation
             if self._dice_animating:
                 alpha = int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION))
-                outline_rect(die1_x,                       die_y, die_size, die_size, (255, 215, 0, alpha), 2)
-                outline_rect(die1_x + die_size + die_gap,  die_y, die_size, die_size, (255, 215, 0, alpha), 2)
+                outline_rect(die1_x, die_y,
+                             CATAN_DIE_SIZE, CATAN_DIE_SIZE,
+                             (*CATAN_COLOR_SHAKE_OUTLINE, alpha), 2)
+                outline_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
+                             CATAN_DIE_SIZE, CATAN_DIE_SIZE,
+                             (*CATAN_COLOR_SHAKE_OUTLINE, alpha), 2)
         else:
-            # Fallback: coloured squares with numbers
-            fill_rect(die1_x,                       die_y, die_size, die_size, (60, 60, 90))
-            fill_rect(die1_x + die_size + die_gap,  die_y, die_size, die_size, (60, 60, 90))
+            fill_rect(die1_x, die_y,
+                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
+            fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
+                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
 
             arcade.Text(
                 str(face1),
-                die1_x + die_size / 2, die_y + die_size / 2,
-                TEXT_WHITE, 18, bold=True,
+                die1_x + CATAN_DIE_SIZE / 2, die_y + CATAN_DIE_SIZE / 2,
+                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ).draw()
             arcade.Text(
                 str(face2),
-                die1_x + die_size + die_gap + die_size / 2, die_y + die_size / 2,
-                TEXT_WHITE, 18, bold=True,
+                die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2,
+                die_y + CATAN_DIE_SIZE / 2,
+                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ).draw()
 
-        # Total roll label (only when not animating)
         if not self._dice_animating:
             arcade.Text(
                 f"Total: {self.die1 + self.die2}",
-                dx + DICE_AREA_WIDTH / 2, dy + 7,
-                TEXT_LIGHT_GRAY, 9, anchor_x="center",
+                dx + DICE_AREA_WIDTH / 2, dy + CATAN_DICE_TOTAL_Y,
+                TEXT_LIGHT_GRAY, CATAN_TEXT_SIZE_TOTAL, anchor_x="center",
                 font_name="MedievalSharp",
             ).draw()
 
@@ -599,9 +606,11 @@ class CatanView(arcade.View):
             if node_obj.player is not None:
                 npx, npy = self._node_pixel_cache[node_id]
                 if node_obj.building == "settlement":
-                    draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
+                    draw_settlement(npx, npy, CATAN_SETTLEMENT_DRAW_SIZE,
+                                    self.players[node_obj.player].color)
                 if node_obj.building == "city":
-                    draw_city(npx, npy, 18, self.players[node_obj.player].color)
+                    draw_city(npx, npy, CATAN_CITY_DRAW_SIZE,
+                              self.players[node_obj.player].color)
 
     # -----------------------------------------------------------------------
     # Ghost highlights
@@ -612,16 +621,21 @@ class CatanView(arcade.View):
             if not node_obj.is_valid_settlement_placement(self.current_player):
                 continue
             npx, npy = self._node_pixel_cache[node_id]
-            if npy < 10:
+            if npy < CATAN_BOARD_TOP_CULL_Y:
                 continue
-            if npx < HUD_PANEL_WIDTH + 5 or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - 15:
+            if (npx < HUD_PANEL_WIDTH + CATAN_HUD_LEFT_BLOCK_PAD
+                    or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_RIGHT_BLOCK_PAD):
                 continue
             if node_obj is self.hovered_node:
-                arcade.draw_circle_filled(npx, npy, 12, (*player_color, 180))
-                arcade.draw_circle_outline(npx, npy, 14, player_color, 3)
+                arcade.draw_circle_filled(npx, npy, CATAN_HIGHLIGHT_RADIUS_HOVER,
+                                          (*player_color, 180))
+                arcade.draw_circle_outline(npx, npy, CATAN_HIGHLIGHT_RADIUS_OUTLINE,
+                                           player_color, 3)
             else:
-                arcade.draw_circle_filled(npx, npy, 8, (255, 255, 255, 60))
-                arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
+                arcade.draw_circle_filled(npx, npy, CATAN_HIGHLIGHT_RADIUS_IDLE,
+                                          CATAN_COLOR_GHOST_FILL)
+                arcade.draw_circle_outline(npx, npy, CATAN_HIGHLIGHT_RADIUS_IDLE,
+                                           CATAN_COLOR_GHOST_OUTLINE, 1)
 
     def _draw_city_highlights(self):
         player_color = self.players[self.current_player].color
@@ -629,16 +643,21 @@ class CatanView(arcade.View):
             if not node_obj.is_valid_city_placement(self.current_player):
                 continue
             npx, npy = self._node_pixel_cache[node_id]
-            if npy < 10:
+            if npy < CATAN_BOARD_TOP_CULL_Y:
                 continue
-            if npx < HUD_PANEL_WIDTH + 5 or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - 15:
+            if (npx < HUD_PANEL_WIDTH + CATAN_HUD_LEFT_BLOCK_PAD
+                    or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_RIGHT_BLOCK_PAD):
                 continue
             if node_obj is self.hovered_node:
-                arcade.draw_circle_filled(npx, npy, 12, (*player_color, 180))
-                arcade.draw_circle_outline(npx, npy, 14, player_color, 3)
+                arcade.draw_circle_filled(npx, npy, CATAN_HIGHLIGHT_RADIUS_HOVER,
+                                          (*player_color, 180))
+                arcade.draw_circle_outline(npx, npy, CATAN_HIGHLIGHT_RADIUS_OUTLINE,
+                                           player_color, 3)
             else:
-                arcade.draw_circle_filled(npx, npy, 8, (255, 255, 255, 60))
-                arcade.draw_circle_outline(npx, npy, 8, (255, 255, 255, 120), 1)
+                arcade.draw_circle_filled(npx, npy, CATAN_HIGHLIGHT_RADIUS_IDLE,
+                                          CATAN_COLOR_GHOST_FILL)
+                arcade.draw_circle_outline(npx, npy, CATAN_HIGHLIGHT_RADIUS_IDLE,
+                                           CATAN_COLOR_GHOST_OUTLINE, 1)
 
     def _draw_edge_highlights(self):
         player_color = self.players[self.current_player].color
@@ -646,13 +665,16 @@ class CatanView(arcade.View):
             if edge_obj.player is not None:
                 continue
             mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
-            if my < 10:
+            if my < CATAN_BOARD_TOP_CULL_Y:
                 continue
             if edge_obj is self.hovered_edge:
-                arcade.draw_line(x1, y1, x2, y2, (*player_color, 200), 6)
-                arcade.draw_circle_filled(mx, my, 7, (*player_color, 220))
+                arcade.draw_line(x1, y1, x2, y2, (*player_color, 200),
+                                 CATAN_EDGE_HIGHLIGHT_WIDTH)
+                arcade.draw_circle_filled(mx, my, CATAN_EDGE_HOVER_DOT_RADIUS,
+                                          (*player_color, 220))
             else:
-                arcade.draw_line(x1, y1, x2, y2, (255, 255, 255, 50), 3)
+                arcade.draw_line(x1, y1, x2, y2, CATAN_COLOR_GHOST_FILL,
+                                 CATAN_EDGE_IDLE_WIDTH)
 
     # -----------------------------------------------------------------------
     # Confirmation popup
@@ -662,44 +684,48 @@ class CatanView(arcade.View):
             return
         if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
             cx, cy = self._node_pixel_cache[self.selected_node.node_id]
-            cy    += 18
+            cy    += CATAN_CONFIRM_Y_OFFSET
             can    = self._can_afford(SETTLEMENT_COST)
             label  = "Build Settlement?"
         elif self.build_choice == BUILD_CITY and self.selected_node:
             cx, cy = self._node_pixel_cache[self.selected_node.node_id]
-            cy    += 18
+            cy    += CATAN_CONFIRM_Y_OFFSET
             can    = self._can_afford(CITY_COST)
             label  = "Build City?"
         elif self.build_choice == BUILD_ROAD and self.selected_edge:
             mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
-            cx, cy = mx, my + 18
-            # Free roads count as affordable
+            cx, cy = mx, my + CATAN_CONFIRM_Y_OFFSET
             can    = self._free_roads > 0 or self._can_afford(ROAD_COST)
             label  = "Build Road? (FREE)" if self._free_roads > 0 else "Build Road?"
         else:
             return
 
-        popup_w  = 160
-        popup_h  = 70
-        pop_left = cx - popup_w / 2
+        pop_left = cx - CATAN_CONFIRM_POPUP_W / 2
 
-        fill_rect(pop_left, cy, popup_w, popup_h, (20, 20, 40, 220))
-        outline_rect(pop_left, cy, popup_w, popup_h, TEXT_GOLD, 2)
+        fill_rect(pop_left, cy, CATAN_CONFIRM_POPUP_W, CATAN_CONFIRM_POPUP_H,
+                  CATAN_COLOR_POPUP_BG)
+        outline_rect(pop_left, cy, CATAN_CONFIRM_POPUP_W, CATAN_CONFIRM_POPUP_H,
+                     TEXT_GOLD, 2)
         self.txt_popup_title.text = label
         self.txt_popup_title.x    = cx
-        self.txt_popup_title.y    = cy + popup_h - 14
+        self.txt_popup_title.y    = cy + CATAN_CONFIRM_POPUP_H - CATAN_CONFIRM_TITLE_Y_PAD
         self.txt_popup_title.draw()
 
-        btn_col = (39, 174, 96) if can else (80, 80, 80)
-        fill_rect(pop_left + 8,         cy + 8, 66, 30, btn_col)
+        btn_col = CATAN_COLOR_SETTLEMENT_BTN if can else CATAN_COLOR_POPUP_NO_RES
+        fill_rect(pop_left + CATAN_CONFIRM_BTN_INSET, cy + CATAN_CONFIRM_BTN_INSET,
+                  CATAN_CONFIRM_BTN_W, CATAN_CONFIRM_BTN_H, btn_col)
         self.txt_popup_confirm.text = "Confirm" if can else "No Res."
-        self.txt_popup_confirm.x    = pop_left + 41
-        self.txt_popup_confirm.y    = cy + 23
+        self.txt_popup_confirm.x    = pop_left + CATAN_CONFIRM_BTN_INSET + CATAN_CONFIRM_BTN_W / 2
+        self.txt_popup_confirm.y    = cy + CATAN_CONFIRM_BTN_CENTER_Y
         self.txt_popup_confirm.draw()
 
-        fill_rect(pop_left + popup_w - 74, cy + 8, 66, 30, (180, 50, 50))
-        self.txt_popup_cancel.x = pop_left + popup_w - 41
-        self.txt_popup_cancel.y = cy + 23
+        fill_rect(pop_left + CATAN_CONFIRM_POPUP_W - CATAN_CONFIRM_BTN_INSET - CATAN_CONFIRM_BTN_W,
+                  cy + CATAN_CONFIRM_BTN_INSET,
+                  CATAN_CONFIRM_BTN_W, CATAN_CONFIRM_BTN_H,
+                  CATAN_COLOR_POPUP_CANCEL)
+        self.txt_popup_cancel.x = (pop_left + CATAN_CONFIRM_POPUP_W
+                                   - CATAN_CONFIRM_BTN_INSET - CATAN_CONFIRM_BTN_W / 2)
+        self.txt_popup_cancel.y = cy + CATAN_CONFIRM_BTN_CENTER_Y
         self.txt_popup_cancel.draw()
 
     # -----------------------------------------------------------------------
@@ -709,20 +735,27 @@ class CatanView(arcade.View):
         if not self._hovered_port_nodes:
             return
         for px, py in self._hovered_port_nodes:
-            arcade.draw_circle_filled(px, py, 16, (255, 215, 0, 55))
-            arcade.draw_circle_filled(px, py, 11, (255, 215, 0, 120))
-            arcade.draw_circle_outline(px, py, 12, TEXT_GOLD, 2)
+            arcade.draw_circle_filled(px, py, CATAN_PORT_HOVER_OUTER_RADIUS,
+                                      CATAN_COLOR_PORT_HOVER_OUTER)
+            arcade.draw_circle_filled(px, py, CATAN_PORT_HOVER_INNER_RADIUS,
+                                      CATAN_COLOR_PORT_HOVER_INNER)
+            arcade.draw_circle_outline(px, py, CATAN_PORT_HOVER_OUTLINE_RADIUS,
+                                       TEXT_GOLD, 2)
 
     # -----------------------------------------------------------------------
     # on_draw
-    # -----------------------------------------------------------------------
+
     def on_draw(self):
         self.clear()
 
-        if self.bg_list:
+        if USE_OCEAN_BACKGROUND:
+            draw_ocean_background(self._ocean_time)
+        elif self.bg_list:
             self.bg_list.draw()
 
         draw_board(self.board)
+
+
         self._draw_ports()
 
         if self.build_choice == BUILD_SETTLEMENT:
@@ -759,7 +792,7 @@ class CatanView(arcade.View):
                 d = math.hypot(x - npx, y - npy)
                 if d < NODE_SNAP_RADIUS and d < closest_dist:
                     node = self.board.nodes[node_id]
-                    if (node.player is None and 
+                    if (node.player is None and
                         node.is_valid_settlement_placement(self.current_player)):
                         closest, closest_dist = node, d
             self.hovered_node = closest
@@ -796,24 +829,18 @@ class CatanView(arcade.View):
     # Mouse press
     # -----------------------------------------------------------------------
     def on_mouse_press(self, x, y, button, modifiers):
-        _BW  = 120
-        _BH  = 38
-        _GAP = 8
-        _PAD = 14
-        _EW  = 130
-
-        trade_bottom = _PAD
-        build_bottom = trade_bottom + _BH + _GAP
-        card_bottom  = build_bottom + _BH + _GAP
+        trade_bottom = CATAN_BTN_PAD
+        build_bottom = trade_bottom + CATAN_BTN_H + CATAN_BTN_GAP
+        card_bottom  = build_bottom + CATAN_BTN_H + CATAN_BTN_GAP
 
         # End Turn
-        end_left = SCREEN_WIDTH - _PAD - _EW
-        if (end_left <= x <= end_left + _EW) and (_PAD <= y <= _PAD + _BH):
+        end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
+        if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
             self._end_turn()
             return
 
         # Build button
-        if (_PAD <= x <= _PAD + _BW) and (build_bottom <= y <= build_bottom + _BH):
+        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (build_bottom <= y <= build_bottom + CATAN_BTN_H):
             if self.build_mode:
                 self._cancel_build()
             else:
@@ -823,19 +850,20 @@ class CatanView(arcade.View):
 
         # Build submenu
         if self.build_mode and self.build_choice == BUILD_NONE:
-            build_top = build_bottom + _BH
-            by        = build_top + 4
-            bx        = _PAD
-            menu_w    = _BW
-            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 80 <= y <= by + 108):
+            build_top = build_bottom + CATAN_BTN_H
+            by        = build_top + CATAN_BUILD_SUBMENU_Y_OFFSET
+            bx        = CATAN_BTN_PAD
+            btn_left  = bx + CATAN_BUILD_SUBMENU_BTN_INSET
+            btn_right = bx + CATAN_BUILD_SUBMENU_W - CATAN_BUILD_SUBMENU_BTN_INSET
+            if (btn_left <= x <= btn_right) and (by + 80 <= y <= by + 108):
                 if self._can_afford(CITY_COST):
                     self.build_choice = BUILD_CITY
                 return
-            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
+            if (btn_left <= x <= btn_right) and (by + 44 <= y <= by + 72):
                 if self._can_afford(SETTLEMENT_COST):
                     self.build_choice = BUILD_SETTLEMENT
                 return
-            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
+            if (btn_left <= x <= btn_right) and (by + 8 <= y <= by + 36):
                 if self._free_roads > 0 or self._can_afford(ROAD_COST):
                     self.build_choice = BUILD_ROAD
                 return
@@ -844,21 +872,26 @@ class CatanView(arcade.View):
         if self.show_confirm:
             if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
                 pcx, pcy = self._node_pixel_cache[self.selected_node.node_id]
-                pcy     += 18
+                pcy     += CATAN_CONFIRM_Y_OFFSET
             elif self.build_choice == BUILD_CITY and self.selected_node:
                 pcx, pcy = self._node_pixel_cache[self.selected_node.node_id]
-                pcy     += 18
+                pcy     += CATAN_CONFIRM_Y_OFFSET
             elif self.build_choice == BUILD_ROAD and self.selected_edge:
                 mx, my, *_ = self._edge_pixel_cache[self.selected_edge.edge_id]
-                pcx, pcy   = mx, my + 18
+                pcx, pcy   = mx, my + CATAN_CONFIRM_Y_OFFSET
             else:
                 self.show_confirm = False
                 return
 
-            popup_w  = 160
-            pop_left = pcx - popup_w / 2
+            pop_left     = pcx - CATAN_CONFIRM_POPUP_W / 2
+            confirm_left = pop_left + CATAN_CONFIRM_BTN_INSET
+            confirm_right= confirm_left + CATAN_CONFIRM_BTN_W
+            cancel_right = pop_left + CATAN_CONFIRM_POPUP_W - CATAN_CONFIRM_BTN_INSET
+            cancel_left  = cancel_right - CATAN_CONFIRM_BTN_W
+            btn_top      = pcy + CATAN_CONFIRM_BTN_INSET + CATAN_CONFIRM_BTN_H
+            btn_bottom   = pcy + CATAN_CONFIRM_BTN_INSET
 
-            if (pop_left + 8 <= x <= pop_left + 74) and (pcy + 8 <= y <= pcy + 38):
+            if (confirm_left <= x <= confirm_right) and (btn_bottom <= y <= btn_top):
                 if self.build_choice == BUILD_SETTLEMENT and self._can_afford(SETTLEMENT_COST):
                     self._place_settlement(self.selected_node)
                 elif self.build_choice == BUILD_CITY and self._can_afford(CITY_COST):
@@ -869,7 +902,7 @@ class CatanView(arcade.View):
                     elif self._can_afford(ROAD_COST):
                         self._place_road(self.selected_edge)
                 return
-            if (pop_left + popup_w - 74 <= x <= pop_left + popup_w - 8) and (pcy + 8 <= y <= pcy + 38):
+            if (cancel_left <= x <= cancel_right) and (btn_bottom <= y <= btn_top):
                 self.selected_node = None
                 self.selected_edge = None
                 self.show_confirm  = False
@@ -893,14 +926,14 @@ class CatanView(arcade.View):
             return
 
         # Trade button
-        if (_PAD <= x <= _PAD + _BW) and (trade_bottom <= y <= trade_bottom + _BH):
+        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (trade_bottom <= y <= trade_bottom + CATAN_BTN_H):
             self.window.show_view(
                 TradeView(self.board, self.players, self.current_player, self.die1, self.die2)
             )
             return
 
         # Dev Cards button
-        if (_PAD <= x <= _PAD + _BW) and (card_bottom <= y <= card_bottom + _BH):
+        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (card_bottom <= y <= card_bottom + CATAN_BTN_H):
             self.window.show_view(
                 PlayCardView(
                     self.board, self.players, self.current_player,

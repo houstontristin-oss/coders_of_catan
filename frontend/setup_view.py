@@ -1,5 +1,7 @@
 """
 Contains SetupView Class
+ We need to change all the random numbers implemented in the
+  btn_w btw_h for example need to be changed to constants in order to maintain consistency
 """
 import math
 import random
