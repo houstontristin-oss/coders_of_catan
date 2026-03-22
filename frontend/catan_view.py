@@ -1056,7 +1056,7 @@ class CatanView(arcade.View):
 
         # TODO (Apoorva): check if roll == 7 and trigger robber phase
         if self.die1 + self.die2 == 7:
-            self.window.show_view(RobberPlaceView(self.board, self.players, self.current_player))
+            self.window.show_view(RobberPlaceView(self.board, self.players, self.current_player, self.die1, self.die2))
 
         self._give_resources()
         self._build_player_texts()
