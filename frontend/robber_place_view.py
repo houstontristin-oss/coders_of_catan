@@ -163,7 +163,7 @@ class RobberPlaceView(arcade.View):
             self._robber_list.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        # Confirmation popup for players placing their settlements and roads in a cycle
+        # Confirmation popup for placing robber
         if self.show_confirm:
             if self.selected_tile:
                 pcx, pcy = self._tile_pixel_cache[self.selected_tile.tile_id]
