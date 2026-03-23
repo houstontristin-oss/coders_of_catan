@@ -5,7 +5,8 @@ import arcade
 
 from .drawing import draw_board, fill_rect, outline_rect
 from .constants import*
-from .board_utils import cubic_to_pixel
+from .board_utils import cubic_to_pixel, node_to_pixel
+from .setup_view import draw_road, draw_settlement
 from .view_constants import *
 
 class RobberPlaceView(arcade.View):
@@ -27,8 +28,12 @@ class RobberPlaceView(arcade.View):
         self.show_confirm = False
 
         self._tile_pixel_cache = {}
+        self._node_pixel_cache = {}
+        self._edge_pixel_cache = {}
+
+        self._build_node_pixel_cache()
+        self._build_edge_pixel_cache()
         self._build_tile_pixel_cache()
-        #for building caches (needed for highlighting tiles?)
 
         # --- Robber state ---
         self._robber_sprite = None
@@ -53,17 +58,30 @@ class RobberPlaceView(arcade.View):
                                             anchor_x="center", anchor_y="center",
                                             font_name="MedievalSharp")
 
+    # -----------------------------------------------------------------------
+    # Caches
+    # -----------------------------------------------------------------------
+    def _build_node_pixel_cache(self):
+        for node_id in self.board.nodes:
+            px, py = node_to_pixel(node_id)
+            self._node_pixel_cache[node_id] = (px, py)
+
+    def _build_edge_pixel_cache(self):
+        for edge_id in self.board.edges:
+            n1_id, n2_id = edge_id
+            x1, y1 = self._node_pixel_cache[n1_id]
+            x2, y2 = self._node_pixel_cache[n2_id]
+            mx = (x1 + x2) / 2
+            my = (y1 + y2) / 2
+            self._edge_pixel_cache[edge_id] = (mx, my, x1, y1, x2, y2)
+
     def _build_tile_pixel_cache(self): #ask Tristan/Amanda about this
         for xyz, tile in self.board.tiles.items():
             cx, _, cz = xyz
             px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
             self._tile_pixel_cache[tile.tile_id] = (px, py)
-        #for tile_id in self.board.tiles:
-           # px, py = cubic_to_pixel()
-           # self._tile_pixel_cache[tile_id] = (px, py)
 
     def _cancel_build(self):
-        #self.build_choice  = BUILD_SETTLEMENT
         self.hovered_tile  = None
         self.selected_tile = None
         self.show_confirm  = False
@@ -147,7 +165,6 @@ class RobberPlaceView(arcade.View):
         tile.robber = True #switch new robber tile robber status to true
         self._robber_tile = tile
         self._place_robber_on_tile()
-        #self._load_robber_sprite()
         self._cancel_build()
         print(f"{player.name} moved the robber!")
         from .catan_view import CatanView
@@ -165,21 +182,26 @@ class RobberPlaceView(arcade.View):
         draw_board(self.board)
 
         self.txt_title.draw()
-        self._draw_bottom_bar()
 
         if self._robber_sprite_ok and self._robber_list:
             self._robber_list.draw()
 
+        self._draw_placed_pieces()
         self._draw_confirm_popup()
 
-    def _draw_bottom_bar(self):
-        fill_rect(0, 0, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_BG)
+    # -----------------------------------------------------------------------
+    # Board pieces (always drawn)
+    # -----------------------------------------------------------------------
+    def _draw_placed_pieces(self):
+        for edge_id, edge_obj in self.board.edges.items():
+            if edge_obj.player is not None:
+                _, _, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
+                draw_road(x1, y1, x2, y2, self.players[edge_obj.player].color)
 
-        btn_w, btn_h = 150, 50
-        btn_bottom = (HUD_BOTTOM_HEIGHT - btn_h) / 2
-
-        fill_rect(SCREEN_WIDTH - btn_w - 20, btn_bottom, btn_w, btn_h, BTN_ENDTURN)
-        #self.txt_back.draw()
+        for node_id, node_obj in self.board.nodes.items():
+            if node_obj.player is not None:
+                npx, npy = self._node_pixel_cache[node_id]
+                draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.hovered_tile = None
@@ -220,7 +242,3 @@ class RobberPlaceView(arcade.View):
             self.selected_tile = self.hovered_tile
             self.show_confirm  = True
             return
-        #btn_w = 150
-        #if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
-         #   from .catan_view import CatanView
-          #  self.window.show_view(CatanView(self.board, self.players, self.current_player))
