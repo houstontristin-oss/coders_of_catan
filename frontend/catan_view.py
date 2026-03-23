@@ -79,7 +79,7 @@ class CatanView(arcade.View):
         self._robber_sprite_ok = False
         self._robber_tile      = None
         self._load_robber_sprite()
-        self._place_robber_on_tile()
+        #self._place_robber_on_tile()
 
         # --- Port hover state ---
         self._hovered_port_nodes = []
@@ -134,8 +134,8 @@ class CatanView(arcade.View):
             self._robber_sprite_ok = True
         except Exception:
             self._robber_sprite_ok = False
-        self._place_robber_on_desert()
-        #self._place_robber_on_tile()
+        #self._place_robber_on_desert()
+        self._place_robber_on_tile()
 
     def _place_robber_on_desert(self):
         from .board_utils import cubic_to_pixel
@@ -143,6 +143,7 @@ class CatanView(arcade.View):
             if tile.resource == "desert":
                 #self._robber_tile = tile
                 tile.robber = True
+                print("setting desert robber to true")
                 self._place_robber_on_tile()
                 #if self._robber_sprite_ok:
                  #   cx, _, cz = xyz
