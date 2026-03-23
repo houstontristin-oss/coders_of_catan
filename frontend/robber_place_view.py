@@ -22,7 +22,6 @@ class RobberPlaceView(arcade.View):
         self.die2 = die2
 
         # Build tile states
-        #self.build_choice =
         self.hovered_tile = None
         self.selected_tile = None
         self.show_confirm = False
@@ -44,7 +43,7 @@ class RobberPlaceView(arcade.View):
 
     def _build_text_objects(self):
         player = self.players[self.current_player]
-        self.txt_title = arcade.Text(f"{player.name}: Place the Robber", SCREEN_WIDTH / 4,
+        self.txt_title = arcade.Text(f"{player.name}: Place the Robber", SCREEN_WIDTH / 3,
                                      SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30,
                                      color=player.color)
         # Confirm popup labels
@@ -158,6 +157,8 @@ class RobberPlaceView(arcade.View):
                 self._robber_tile = tile_r
         if tile == self._robber_tile: #if player picks current robber tile
             print(f"{player.name} — must place robber on new tile.")
+            #self.txt_title.text = (f"{player.name} — must place robber on new tile.")
+            #self.txt_title.draw()
             self.show_confirm = False
             self.selected_tile = None
             return
@@ -187,7 +188,9 @@ class RobberPlaceView(arcade.View):
             self._robber_list.draw()
 
         self._draw_placed_pieces()
-        self._draw_confirm_popup()
+        # Confirmation popup
+        if self.show_confirm:
+            self._draw_confirm_popup()
 
     # -----------------------------------------------------------------------
     # Board pieces (always drawn)
@@ -204,6 +207,9 @@ class RobberPlaceView(arcade.View):
                 draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
 
     def on_mouse_motion(self, x, y, dx, dy):
+        if self.show_confirm:
+            return
+
         self.hovered_tile = None
 
         for tile in self.board.tiles.values():
@@ -239,6 +245,10 @@ class RobberPlaceView(arcade.View):
             return
 
         if  self.hovered_tile:
+            if self.hovered_tile == self._robber_tile:
+                player = self.players[self.current_player]
+                print(f"{player.name} — must place robber on a new tile.")
+                return #can't pick same tile
             self.selected_tile = self.hovered_tile
             self.show_confirm  = True
             return

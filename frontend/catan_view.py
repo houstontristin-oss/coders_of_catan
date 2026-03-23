@@ -1065,8 +1065,10 @@ class CatanView(arcade.View):
             self._free_roads = 0
 
         # Roll dice and start animation
-        self.die1 = random.randint(ONE, SIX)
-        self.die2 = random.randint(ONE, SIX)
+        #self.die1 = random.randint(ONE, SIX)
+        #self.die2 = random.randint(ONE, SIX)
+        self.die1 = 2
+        self.die2 = 5
         self._start_dice_animation()
 
 
