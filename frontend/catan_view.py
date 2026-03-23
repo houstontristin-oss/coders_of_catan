@@ -79,6 +79,7 @@ class CatanView(arcade.View):
         self._robber_sprite_ok = False
         self._robber_tile      = None
         self._load_robber_sprite()
+        self._place_robber_on_tile()
 
         # --- Port hover state ---
         self._hovered_port_nodes = []
@@ -132,19 +133,37 @@ class CatanView(arcade.View):
         except Exception:
             self._robber_sprite_ok = False
         self._place_robber_on_desert()
+        #self._place_robber_on_tile()
 
     def _place_robber_on_desert(self):
         from .board_utils import cubic_to_pixel
         for xyz, tile in self.board.tiles.items():
             if tile.resource == "desert":
-                self._robber_tile = tile
+                #self._robber_tile = tile
                 tile.robber = True
+                self._place_robber_on_tile()
+                #if self._robber_sprite_ok:
+                 #   cx, _, cz = xyz
+                  #  px, py    = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
+                  #  target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
+                  #  scale     = target_h / self._robber_sprite.height
+                  #  self._robber_sprite.scale    = scale
+                   # self._robber_sprite.center_x = px
+                   # self._robber_sprite.center_y = py
+                break
+
+    def _place_robber_on_tile(self):
+        for xyz, tile in self.board.tiles.items():
+            if tile.robber:
+                self._robber_tile = tile
                 if self._robber_sprite_ok:
                     cx, _, cz = xyz
-                    px, py    = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
+                    px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
                     target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
-                    scale     = target_h / self._robber_sprite.height
-                    self._robber_sprite.scale    = scale
+                    #scale = target_h / self._robber_sprite.height
+                    texture_height = self._robber_sprite.texture.height
+                    scale = target_h / texture_height
+                    self._robber_sprite.scale = scale
                     self._robber_sprite.center_x = px
                     self._robber_sprite.center_y = py
                 break
@@ -1054,7 +1073,8 @@ class CatanView(arcade.View):
         self.die2 = random.randint(ONE, SIX)
         self._start_dice_animation()
 
-        # TODO (Apoorva): check if roll == 7 and trigger robber phase
+
+        #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
             self.window.show_view(RobberPlaceView(self.board, self.players, self.current_player, self.die1, self.die2))
 

@@ -7,6 +7,7 @@ from backend.catan_board import CatanBoard
 from .drawing import draw_board, fill_rect, outline_rect
 from .constants import*
 from .board_utils import cubic_to_pixel
+from .view_constants import *
 
 class RobberPlaceView(arcade.View):
     """
@@ -36,6 +37,7 @@ class RobberPlaceView(arcade.View):
         self._robber_sprite_ok = False
         self._robber_tile = None #how to define as current robber tile?
         self._load_robber_sprite()
+        #self._place_robber_on_tile()
 
     def _build_text_objects(self):
         player = self.players[self.current_player]
@@ -125,11 +127,13 @@ class RobberPlaceView(arcade.View):
             return
         self._robber_tile.robber = False #switch current robber tile robber status to false
         tile.robber = True #switch new robber tile robber status to true
+        self._robber_tile = tile
         self._place_robber_on_tile()
+        #self._load_robber_sprite()
         self._cancel_build()
         print(f"{player.name} moved the robber!")
-        #from .catan_view import CatanView
-        #self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2))
+        from .catan_view import CatanView
+        self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2))
 
     # -----------------------------------------------------------------------
     # Robber sprite
@@ -151,11 +155,12 @@ class RobberPlaceView(arcade.View):
                 if self._robber_sprite_ok:
                     cx, _, cz = xyz
                     px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-                    target_h = HEX_SIZE * 1.1
+                    #self._robber_sprite.center_x = tile.pixel_x
+                    #self._robber_sprite.center_y = tile.pixel_y
+                    target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
                     #scale = target_h / self._robber_sprite.height
                     texture_height = self._robber_sprite.texture.height
                     scale = target_h / texture_height
-                    self._robber_sprite.scale = scale
                     self._robber_sprite.scale = scale
                     self._robber_sprite.center_x = px
                     self._robber_sprite.center_y = py
