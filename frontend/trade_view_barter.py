@@ -100,8 +100,9 @@ class TradeViewBarter(arcade.View):
         else:
             self._draw_pending_modal()
  
-        if self._pending is None:
-            for txt in self._static_texts:
+        if self._pending is None: 
+            for txt in self._static_texts: # holds all the +, −, resource name labels, section 
+                # headings, etc.
                 txt.draw()
         for txt in self._dynamic_texts:
             txt.draw()
