@@ -100,8 +100,9 @@ class TradeViewBarter(arcade.View):
         else:
             self._draw_pending_modal()
  
-        for txt in self._static_texts:
-            txt.draw()
+        if self._pending is None:
+            for txt in self._static_texts:
+                txt.draw()
         for txt in self._dynamic_texts:
             txt.draw()
     
@@ -501,6 +502,8 @@ class TradeViewBarter(arcade.View):
     # ------------------------------------------------------------------
     
     def _execute_trade(self):
+        # handles the backend exchange of resources between players
+        # redundently checks for valid resoure counts but it is checked in current structure of game
         sender   = self.players[self.current_player]
         receiver = self.players[self._pending]
         try:
