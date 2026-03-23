@@ -90,6 +90,7 @@ class CatanView(arcade.View):
         # Pixel caches
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
+        self._tile_pixel_cache = {}
         self.port_manager      = None
 
         self._load_background()
@@ -98,6 +99,7 @@ class CatanView(arcade.View):
         self._assign_number_tokens()
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
+        self._build_tile_pixel_cache()
         self.port_manager = PortManager(self.board, self._edge_pixel_cache)
         self._build_text_objects()   # rebuild after caches ready
 
@@ -215,6 +217,12 @@ class CatanView(arcade.View):
             mx = (x1 + x2) / 2
             my = (y1 + y2) / 2
             self._edge_pixel_cache[edge_id] = (mx, my, x1, y1, x2, y2)
+
+    def _build_tile_pixel_cache(self):
+        for xyz, tile in self.board.tiles.items():
+            cx, _, cz = xyz
+            px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
+            self._tile_pixel_cache[tile.tile_id] = (px, py)
 
     # -----------------------------------------------------------------------
     # Sprites
