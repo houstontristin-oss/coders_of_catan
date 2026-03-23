@@ -5,6 +5,8 @@ import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import *
 
+#TODO add a view board feature
+#TODO add the trade receiving player's resources to the accept decline modal
 # ---------------------------------------------------------------------------
 # Resource constants
 # ---------------------------------------------------------------------------
