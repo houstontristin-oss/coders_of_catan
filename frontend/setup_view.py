@@ -184,7 +184,6 @@ class SetupView(arcade.View):
         for port in self.port_manager._port_data:
             node_ids = port["port"].get_port_nodes()
             if node.node_id in node_ids:
-                print(node)
                 print(f"{player.name} built on port {port["port"]}")
                 player.ports.append(port["port"])
         player.victory_points += 1

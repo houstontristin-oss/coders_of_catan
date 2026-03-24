@@ -164,15 +164,14 @@ class PortManager:
             # Resolve the two node_ids for hover highlighting
             edge_obj  = self._board.edges[edge_id]
             node_ids  = [n.node_id for n in edge_obj.nodes]
-            port = Port(node_ids, resource)
-            print(port, node_ids)
+
             # Store per-port metadata
             self._port_data.append({
                 "ship_x":   ship_x,
                 "ship_y":   ship_y,
                 "label_x":  label_x,
                 "label_y":  label_y,
-                "port": port #TODO: figure out which nodes are which
+                "port": Port(node_ids, resource)
             })
 
             # Label text

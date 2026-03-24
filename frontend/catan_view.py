@@ -5,7 +5,7 @@ import math
 import arcade
 
 from backend.catan_board import CatanBoard
-
+from .port_manager import PortManager
 from .play_card_view import PlayCardView
 from .trade_view_barter import TradeViewBarter
 from .trade_view_maritime import TradeViewMaritime
@@ -78,6 +78,8 @@ class CatanView(arcade.View):
         # Build pixel caches
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
+        if self.port_manager == None:
+            self.port_manager = PortManager(self.board, self._edge_pixel_cache)
 
         # Build HUD text objects last (needs board to be ready)
         self._build_text_objects()
