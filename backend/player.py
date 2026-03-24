@@ -26,8 +26,11 @@ class Player:
         self.color = color
         self.name = name
 
-    def exchange_resources(self, giving_resources:dict, receiving_resources:dict): 
-        # exchange resources between players for maritime and barter trades
+    def exchange_resources(self, giving_resources:dict, receiving_resources:dict):
+        '''
+        subtracts giving_resources and adds receiving_resources to current player
+        dictionary organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
+        '''
         for resource, amount in giving_resources.items():
             if self.resource_cards.get(resource, 0) >= amount:
                 self.resource_cards[resource] -= amount
@@ -37,11 +40,15 @@ class Player:
             self.resource_cards[resource] += amount
 
     def can_afford_trade(self, offered_resources:dict) -> bool:
+        '''
+        checks players current resources against values in the dictionary
+        dictionary organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
+        '''
         for resource, amount in offered_resources.items():
             if self.resource_cards.get(resource, 0) < amount:
                 return False
         return True
-    
+
     def buy_dev_card(self): #buy dev cards
         if (self.resource_cards['WHEAT'] > 0 and self.resource_cards['SHEEP'] > 0
          and self.resource_cards['ORE'] > 0):
@@ -84,7 +91,7 @@ class Player:
             self.total_settlements -= 1
             node.place_settlement(board)
 
-    def build_city(self, settlement):
+    def build_city(self):
 
         # check if player has sufficient resources
         if (self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3
