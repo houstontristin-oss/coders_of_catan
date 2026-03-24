@@ -22,6 +22,7 @@ class Player:
         self.total_roads = 15
         self.total_settlements = 5
         self.total_cities = 4
+        self.ports = []
         self.color = color
         self.name = name
 
@@ -89,3 +90,6 @@ class Player:
         if (self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3
                 and self.total_settlements>0):
             pass
+    
+    def add_port(self, res):
+        self.ports.append(res)

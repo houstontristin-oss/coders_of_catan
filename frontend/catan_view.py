@@ -10,7 +10,6 @@ from .play_card_view import PlayCardView
 from .trade_view_barter import TradeViewBarter
 from .trade_view_maritime import TradeViewMaritime
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
-from .ports import PortManager
 from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board
 from .constants import (
     BUILD_NONE, BACKGROUND_IMAGE, SCREEN_WIDTH, SCREEN_HEIGHT,
@@ -29,12 +28,13 @@ class CatanView(arcade.View):
     """
     CatanView Class
     """
-    def __init__(self, board, players, current_player):
+    def __init__(self, board, players, current_player, port_manager):
         super().__init__()
         self.board = board
         self.players = players
         # Track whose turn it is (index into PLAYERS list)
         self.current_player = current_player
+        self.port_manager = port_manager
 
         # Build mode state
         self.build_mode    = False
@@ -60,7 +60,6 @@ class CatanView(arcade.View):
         # Pixel caches (populated after make_board)
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
-        self.port_manager = None   # built after pixel caches are ready
 
         # Load background
         self._load_background()
@@ -79,9 +78,6 @@ class CatanView(arcade.View):
         # Build pixel caches
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
-
-        # Build port manager (randomizes port layout each game)
-        self.port_manager = PortManager(self.board, self._edge_pixel_cache)
 
         # Build HUD text objects last (needs board to be ready)
         self._build_text_objects()
@@ -106,7 +102,7 @@ class CatanView(arcade.View):
         for xyz, tile in self.board.tiles.items():
             if tile.resource == "desert":
                 self._robber_tile = tile
-                if self._robber_sprite_ok:
+                if self._robber_sprite_ok and self._robber_sprite != None:
                     cx, _, cz = xyz
                     px, py    = cubic_to_pixel(cx, cz, HEX_SIZE,
                                                BOARD_CENTER_X, BOARD_CENTER_Y)
@@ -742,14 +738,14 @@ class CatanView(arcade.View):
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 self._cancel_trade()
                 self.window.show_view(
-                    TradeViewMaritime(self.board, self.players, self.current_player)
+                    TradeViewMaritime(self.board, self.players, self.current_player, self.port_manager)
                 )
                 return
             # Barter Trade — bottom row of popup (by+8 .. by+36)
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
                 self._cancel_trade()
                 self.window.show_view(
-                    TradeViewBarter(self.board, self.players, self.current_player)
+                    TradeViewBarter(self.board, self.players, self.current_player, self.port_manager)
                 )
                 return
             
@@ -826,7 +822,7 @@ class CatanView(arcade.View):
         '''
         # --- Play Card button ---
         if (_PAD <= x <= _PAD + _BW) and (card_bottom <= y <= card_bottom + _BH):
-            self.window.show_view(PlayCardView(self.board, self.players, self.current_player))
+            self.window.show_view(PlayCardView(self.board, self.players, self.current_player, self.port_manager))
             return
     # -----------------------------------------------------------------------
     # Placement
@@ -836,6 +832,10 @@ class CatanView(arcade.View):
         player.build_settlement(CatanBoard, node)
         node.player = self.current_player
         node.building = "settlement"
+        for port in self.port_manager._port_data:
+            node_ids = port["port"].get_port_nodes()
+            if node.node_id in node_ids:
+                player.ports.append(port["port"])
         player.victory_points += 1
         self._cancel_build()
         self._build_player_texts()

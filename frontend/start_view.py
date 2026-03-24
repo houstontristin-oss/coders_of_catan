@@ -180,8 +180,8 @@ class StartView(arcade.View):
         if self._skip_button_hit(x, y):
             _auto_place_setup(board, players)
             from .catan_view import CatanView
-            self.window.show_view(CatanView(board, players, 0))
+            self.window.show_view(CatanView(board, players, 0, None))
             return
 
         # --- Normal flow: go to SetupView ---
-        self.window.show_view(SetupView(board, players, 0, 1))
+        self.window.show_view(SetupView(board, players, 0, 1, None))

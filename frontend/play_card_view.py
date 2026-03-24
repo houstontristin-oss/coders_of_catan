@@ -9,11 +9,12 @@ class PlayCardView(arcade.View):
     """
     PlayerCardView Class
     """
-    def __init__(self, board, players, current_player):
+    def __init__(self, board, players, current_player, port_manager):
         super().__init__()
         self.board= board
         self.players = players
         self.current_player = current_player
+        self.port_manager = port_manager
     
     def _build_text_objects(self):
         bar_center_y = HUD_BOTTOM_HEIGHT / 2
@@ -41,4 +42,4 @@ class PlayCardView(arcade.View):
         btn_w = 150
         if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
             from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player))
+            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.port_manager))

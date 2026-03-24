@@ -32,15 +32,18 @@ TRADE_RES_START_X = 128
 OFFER_TRADE_RES_SPACING_Y = 500
 GET_TRADE_RES_SPACING_Y = 250
 
+BASE_TRADE_AMOUNT = 4
+
 class TradeViewMaritime(arcade.View):
     """
     TradeViewMaritime Class
     """
-    def __init__(self, board, players, current_player):
+    def __init__(self, board, players, current_player, port_manager):
         super().__init__()
         self.board= board
         self.players = players
         self.current_player = current_player
+        self.port_manager = port_manager
 
         self.offer_highlights = {}
         self.get_highlights = {}
@@ -51,7 +54,7 @@ class TradeViewMaritime(arcade.View):
         self.trade_success = False
         self.valid_trade = False
 
-        self.trade_amount = 4
+        self.trade_amount = {"base": BASE_TRADE_AMOUNT}
 
     def _build_text_objects(self):
         bar_center_y = HUD_BOTTOM_HEIGHT / 2
@@ -117,10 +120,24 @@ class TradeViewMaritime(arcade.View):
     def _load_trade_amount_numbers(self):
         #TODO: check the board to see if player has a port and if so, then update the trade amount
         #NOTE: How do we want to track that a player has a port? 
-        self.txt_offer_trade_amount = arcade.Text(f"{self.trade_amount}", x=TRADE_RES_START_X, y=OFFER_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
+        for port in self.players[self.current_player].ports:
+            print(port)
+            res, amount = port.get_port_info()
+            if res == None:
+                self.trade_amount["base"] = amount
+            else:
+                self.trade_amount[res] = amount
+
+        self.txt_offer_trade_amount = arcade.Text(f"{self.trade_amount["base"]}", x=TRADE_RES_START_X, y=OFFER_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
 
         # Always 1 resource in return from a maritime trade
         self.txt_get_trade_amount = arcade.Text("1", x=TRADE_RES_START_X, y=GET_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
+
+    def _get_trade_amount(self, res):
+        if res in self.trade_amount.keys():
+            return self.trade_amount[res]
+        else:
+            return self.trade_amount["base"]
 
     def _check_valid_trade(self):
         valid_offer = False
@@ -130,8 +147,8 @@ class TradeViewMaritime(arcade.View):
         # Make sure the player has enough resources to make the trade
         for res, selected in self.offer_selected.items():
             if selected:
-                valid_offer = self.players[self.current_player].can_afford_trade({res: self.trade_amount}) 
-                confirm_str += f"{self.trade_amount} {res.capitalize()} for "
+                valid_offer = self.players[self.current_player].can_afford_trade({res: self._get_trade_amount(res)}) 
+                confirm_str += f"{self._get_trade_amount(res)} {res.capitalize()} for "
 
         # Make sure a selection has been made on the bottom row
         for res, selected in self.get_selected.items():
@@ -174,6 +191,7 @@ class TradeViewMaritime(arcade.View):
                 outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
                 self.txt_offer_trade_amount.x = sprite.center_x
                 self.txt_offer_trade_amount.y = sprite.center_y
+                self.txt_offer_trade_amount.text = f"{self._get_trade_amount(res)}"
                 self.txt_offer_trade_amount.draw()
 
         # Higlights for Second row (Resource to get)
@@ -192,6 +210,7 @@ class TradeViewMaritime(arcade.View):
                 outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
                 self.txt_offer_trade_amount.x = sprite.center_x
                 self.txt_offer_trade_amount. y = sprite.center_y
+                self.txt_offer_trade_amount.text = f"{self._get_trade_amount(res)}"
                 self.txt_offer_trade_amount.draw()
 
 
@@ -242,14 +261,14 @@ class TradeViewMaritime(arcade.View):
         # Back to Board Button
         if (SCREEN_WIDTH - BTN_W - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
             from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player))
+            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.port_manager))
 
         # Accept Trade Button
         if(TRADE_BTN_LEFT <= x <= TRADE_BTN_LEFT + BTN_W) and (y <= HUD_BOTTOM_HEIGHT) and self.valid_trade:
             for offer_res, offer_selection in self.offer_selected.items():
                 for get_res, get_selection  in self.get_selected.items():
                     if offer_selection and get_selection:
-                        self.players[self.current_player].exchange_resources({offer_res: 4}, {get_res: 1})
+                        self.players[self.current_player].exchange_resources({offer_res: self._get_trade_amount(offer_res)}, {get_res: 1})
                         
                         self.trade_success = True
             

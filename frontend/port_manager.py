@@ -1,5 +1,5 @@
 """
-ports.py — PortManager
+port_manager.py — PortManager
 
 Owns everything related to port rendering:
   - Randomizing which port type lands on which outer edge
@@ -24,6 +24,8 @@ In CatanView.on_mouse_motion():
 import math
 import random
 import arcade
+
+from backend.port import Port
 
 from .constants import (
     PORT_TYPES, PORT_SHIP_SPRITE, HEX_SIZE,
@@ -55,7 +57,7 @@ class PortManager:
         self._label_texts      = []
         self._fallback_dots    = []
         # Each entry: {'ship_x', 'ship_y', 'label_x', 'label_y',
-        #              'node_ids': [node_id, node_id]}
+        #              'port': Port(node_ids, resource)}
         self._port_data        = []
 
         self._ship_ok = self._test_sprite()
@@ -93,7 +95,7 @@ class PortManager:
         for entry in self._port_data:
             dist = math.hypot(mx - entry["ship_x"], my - entry["ship_y"])
             if dist <= _PORT_HOVER_RADIUS:
-                return entry["node_ids"]
+                return entry["port"].get_port_nodes()
         return []
 
     # ------------------------------------------------------------------
@@ -162,15 +164,15 @@ class PortManager:
             # Resolve the two node_ids for hover highlighting
             edge_obj  = self._board.edges[edge_id]
             node_ids  = [n.node_id for n in edge_obj.nodes]
-
+            port = Port(node_ids, resource)
+            print(port, node_ids)
             # Store per-port metadata
             self._port_data.append({
                 "ship_x":   ship_x,
                 "ship_y":   ship_y,
                 "label_x":  label_x,
                 "label_y":  label_y,
-                "node_ids": node_ids,
-                "resource": resource,
+                "port": port #TODO: figure out which nodes are which
             })
 
             # Label text

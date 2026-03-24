@@ -54,11 +54,12 @@ class TradeViewBarter(arcade.View):
     self._pending : None  → showing offer builder
     self._pending : int   → waiting for player[_pending] to accept/decline
     """
-    def __init__(self, board, players, current_player):
+    def __init__(self, board, players, current_player, port_manager):
         super().__init__()
         self.board          = board
         self.players        = players
         self.current_player = current_player
+        self.port_manager = port_manager
  
         self._offer   = {r: 0 for r in _RESOURCES}
         self._receive = {r: 0 for r in _RESOURCES}
@@ -118,7 +119,7 @@ class TradeViewBarter(arcade.View):
         _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
         if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
             from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player))
+            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.port_manager))
             return
  
         self._handle_spinner_click(x, y)
@@ -520,4 +521,4 @@ class TradeViewBarter(arcade.View):
             return
  
         from .catan_view import CatanView
-        self.window.show_view(CatanView(self.board, self.players, self.current_player))
+        self.window.show_view(CatanView(self.board, self.players, self.current_player, self.port_manager))
