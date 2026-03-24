@@ -1,5 +1,5 @@
 """
-Contains TradeView Class
+Contains TradeViewMaritime Class
 """
 import arcade
 from .drawing import fill_rect, outline_rect
@@ -43,6 +43,7 @@ BASE_TRADE_AMOUNT = 4
 class TradeViewMaritime(arcade.View):
     """
     TradeViewMaritime Class
+    Handles standard 4:1 trades and allows players to use their ports with 3:1 or 2:1 trades
     """
     def __init__(self, board, players, current_player, port_manager):
         super().__init__()
@@ -90,11 +91,8 @@ class TradeViewMaritime(arcade.View):
         # Always 1 resource in return from a maritime trade
         self.txt_get_trade_amount = arcade.Text("1", x=TRADE_RES_START_X, y=GET_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
 
-
-    # -----------------------------------------------------------------------
-    # Sprites
-    # -----------------------------------------------------------------------
     def _load_resource_icons(self):
+        # Sprite handling for resource icons
         # top row of resources player is offering up
         self.offer_resource_icons   = {}
         self.offer_icon_sprite_list = arcade.SpriteList()
@@ -124,6 +122,7 @@ class TradeViewMaritime(arcade.View):
         self.txt_trade.draw()
 
     def _draw_resource_numbers(self):
+        # draws all of the texts for the player resource amounts
         self.txt_sheep.draw()
         self.txt_ore.draw()
         self.txt_wheat.draw()
