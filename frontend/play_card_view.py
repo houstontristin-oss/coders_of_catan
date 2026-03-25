@@ -222,7 +222,7 @@ class PlayCardView(arcade.View):
 
     def on_draw(self):
         self.clear()
-        arcade.set_background_color((14, 14, 30))
+        arcade.set_background_color((14, 14, 30, 1))
 
         fill_rect(0, CARD_BOTTOM_BAR_H, SCREEN_WIDTH,
                   SCREEN_HEIGHT - CARD_BOTTOM_BAR_H, (16, 16, 36, 255))
