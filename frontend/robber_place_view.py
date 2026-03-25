@@ -173,6 +173,11 @@ class RobberPlaceView(arcade.View):
         self.window.show_view(CatanView(self.board, self.players, self.current_player,
                                         self.die1, self.die2))
 
+    # -----------------------------------------------------------------------
+    # Theft function
+    # -----------------------------------------------------------------------
+
+
 
     def on_show_view(self):
         self._build_text_objects()
