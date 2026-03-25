@@ -25,6 +25,7 @@ class RobberPlaceView(arcade.View):
         self.hovered_tile = None
         self.selected_tile = None
         self.show_confirm = False
+        self.hovered_node = None
 
         self._tile_pixel_cache = {}
         self._node_pixel_cache = {}
@@ -192,6 +193,8 @@ class RobberPlaceView(arcade.View):
         if self.show_confirm:
             self._draw_confirm_popup()
 
+        self._draw_robber_settle_highlights()
+
     # -----------------------------------------------------------------------
     # Board pieces (always drawn)
     # -----------------------------------------------------------------------
@@ -205,6 +208,31 @@ class RobberPlaceView(arcade.View):
             if node_obj.player is not None:
                 npx, npy = self._node_pixel_cache[node_id]
                 draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
+
+    def _draw_robber_settle_highlights(self):
+        if not self.hovered_tile: #only highlight nodes on hovered tile
+            return
+
+        for node_id, node_obj in self.board.nodes.items():
+            if self.hovered_tile not in node_obj.tiles:
+                continue
+            if node_obj.player is None: #only highlight occupied nodes
+                continue
+
+            npx, npy = self._node_pixel_cache[node_id]
+
+            if npy < CATAN_BOARD_TOP_CULL_Y:
+                continue
+            if (npx < HUD_PANEL_WIDTH + CATAN_HUD_LEFT_BLOCK_PAD
+                    or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_RIGHT_BLOCK_PAD):
+                continue
+
+            player_color = self.players[node_obj.player].color
+
+            arcade.draw_circle_filled(npx, npy, CATAN_HIGHLIGHT_RADIUS_HOVER,
+                                      (*player_color, 60))
+            arcade.draw_circle_outline(npx, npy, CATAN_HIGHLIGHT_RADIUS_OUTLINE,
+                                       (*player_color, 120), 3)
 
     def on_mouse_motion(self, x, y, dx, dy):
         if self.show_confirm:
