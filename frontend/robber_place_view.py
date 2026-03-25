@@ -22,10 +22,10 @@ class RobberPlaceView(arcade.View):
         self.die2 = die2
 
         # Build tile states
-        #self.build_choice =
         self.hovered_tile = None
         self.selected_tile = None
         self.show_confirm = False
+        self.hovered_node = None
 
         self._tile_pixel_cache = {}
         self._node_pixel_cache = {}
@@ -44,7 +44,7 @@ class RobberPlaceView(arcade.View):
 
     def _build_text_objects(self):
         player = self.players[self.current_player]
-        self.txt_title = arcade.Text(f"{player.name}: Place the Robber", SCREEN_WIDTH / 4,
+        self.txt_title = arcade.Text(f"{player.name}: Place the Robber", SCREEN_WIDTH / 3,
                                      SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30,
                                      color=player.color)
         # Confirm popup labels
@@ -158,6 +158,8 @@ class RobberPlaceView(arcade.View):
                 self._robber_tile = tile_r
         if tile == self._robber_tile: #if player picks current robber tile
             print(f"{player.name} — must place robber on new tile.")
+            #self.txt_title.text = (f"{player.name} — must place robber on new tile.")
+            #self.txt_title.draw()
             self.show_confirm = False
             self.selected_tile = None
             return
@@ -170,6 +172,11 @@ class RobberPlaceView(arcade.View):
         from .catan_view import CatanView
         self.window.show_view(CatanView(self.board, self.players, self.current_player,
                                         self.die1, self.die2))
+
+    # -----------------------------------------------------------------------
+    # Theft function
+    # -----------------------------------------------------------------------
+
 
 
     def on_show_view(self):
@@ -187,7 +194,11 @@ class RobberPlaceView(arcade.View):
             self._robber_list.draw()
 
         self._draw_placed_pieces()
-        self._draw_confirm_popup()
+        # Confirmation popup
+        if self.show_confirm:
+            self._draw_confirm_popup()
+
+        self._draw_robber_settle_highlights()
 
     # -----------------------------------------------------------------------
     # Board pieces (always drawn)
@@ -203,7 +214,35 @@ class RobberPlaceView(arcade.View):
                 npx, npy = self._node_pixel_cache[node_id]
                 draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
 
+    def _draw_robber_settle_highlights(self):
+        if not self.hovered_tile: #only highlight nodes on hovered tile
+            return
+
+        for node_id, node_obj in self.board.nodes.items():
+            if self.hovered_tile not in node_obj.tiles:
+                continue
+            if node_obj.player is None: #only highlight occupied nodes
+                continue
+
+            npx, npy = self._node_pixel_cache[node_id]
+
+            if npy < CATAN_BOARD_TOP_CULL_Y:
+                continue
+            if (npx < HUD_PANEL_WIDTH + CATAN_HUD_LEFT_BLOCK_PAD
+                    or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_RIGHT_BLOCK_PAD):
+                continue
+
+            player_color = self.players[node_obj.player].color
+
+            arcade.draw_circle_filled(npx, npy, CATAN_HIGHLIGHT_RADIUS_HOVER,
+                                      (*player_color, 60))
+            arcade.draw_circle_outline(npx, npy, CATAN_HIGHLIGHT_RADIUS_OUTLINE,
+                                       (*player_color, 120), 3)
+
     def on_mouse_motion(self, x, y, dx, dy):
+        if self.show_confirm:
+            return
+
         self.hovered_tile = None
 
         for tile in self.board.tiles.values():
@@ -239,6 +278,10 @@ class RobberPlaceView(arcade.View):
             return
 
         if  self.hovered_tile:
+            if self.hovered_tile == self._robber_tile:
+                player = self.players[self.current_player]
+                print(f"{player.name} — must place robber on a new tile.")
+                return #can't pick same tile
             self.selected_tile = self.hovered_tile
             self.show_confirm  = True
             return
