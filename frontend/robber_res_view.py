@@ -35,16 +35,14 @@ _PANEL_X   = (SCREEN_WIDTH - _PANEL_W) / 2  # horizontally centred
 # ---------------------------------------------------------------------------
 _BAR_H       = 70   # matches PlayCardView bottom bar height
 
-_SEND_BTN_H  = 44
-_SEND_Y      = _BAR_H + 14                           # bottom of Send row
+_DISCARD_BTN_H  = 44
+_DISCARD_Y      = _BAR_H + 14                           # bottom of discard buttom
 
-_RECV_SPIN_Y = _SEND_Y + _SEND_BTN_H + 36            # bottom of Receive spinners
-_RECV_HEAD_Y = _RECV_SPIN_Y + _BTN_H + _SWATCH_H - 2 # "YOU RECEIVE" label y
+_DIVIDER_Y   = _DISCARD_Y + _DISCARD_BTN_H + 22    # seperator line
 
-_DIVIDER_Y   = _RECV_HEAD_Y + 22                      # separator line
+_OFFT_SPIN_Y = _DIVIDER_Y + 30                        # bottom of Discard spinners
+_OFFT_HEAD_Y = _OFFT_SPIN_Y + _BTN_H + _SWATCH_H - 2 # "DISCARD" label y
 
-_OFFT_SPIN_Y = _DIVIDER_Y + 30                        # bottom of Offer spinners
-_OFFT_HEAD_Y = _OFFT_SPIN_Y + _BTN_H + _SWATCH_H - 2 # "YOUR OFFER" label y
 
 class RobberResView(arcade.View):
     """
@@ -95,6 +93,7 @@ class RobberResView(arcade.View):
 
         if self._pending is None: # draw buttons and resources
             self._draw_sections()
+            self._draw_discard_button()
         else:
             self._draw_pending_modal()
 
@@ -110,7 +109,7 @@ class RobberResView(arcade.View):
             self._handle_modal_click(x, y)
             return
 
-        # Back button (bottom-left, same position as PlayCardView)
+        # Back button
         _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
         if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
             from .catan_view import CatanView
@@ -119,7 +118,7 @@ class RobberResView(arcade.View):
             return
 
         self._handle_spinner_click(x, y)
-        self._handle_send_click(x, y)
+        self._handle_discard_click(x, y)
 
     # ------------------------------------------------------------------
     # Static Texts - built once in show view
@@ -247,6 +246,23 @@ class RobberResView(arcade.View):
                 font_name="MedievalSharp",
             ))
 
+    def _draw_discard_button(self):
+        btn_w       = 160
+        start_x     = (SCREEN_WIDTH - btn_w) / 2
+
+        fill_rect(start_x, _DISCARD_Y, btn_w, _DISCARD_BTN_H, (200, 50,  50))
+        outline_rect(start_x, _DISCARD_Y, btn_w, _DISCARD_BTN_H, (255, 255, 255, 60), 2)
+
+        self._dynamic_texts.append(arcade.Text(
+                f"Discard",
+                start_x + btn_w / 2, _DISCARD_Y + _DISCARD_BTN_H / 2,
+                TEXT_WHITE, 12, bold=True,
+                anchor_x="center", anchor_y="center",
+                font_name="MedievalSharp",
+            ))
+
+
+
     def _draw_pending_modal(self):
         """
         Semi-transparent overlay + modal box asking the player
@@ -350,7 +366,29 @@ class RobberResView(arcade.View):
                 elif col_x + _BTN_W + _SPIN_W <= x <= col_x + _COL_W:
                     if self._resources[res] < player.resource_cards.get(res, 0):
                         self._resources[res] += 1
-    
+
+    def _handle_discard_click(self, x, y):
+        # 1. Define the button bounds (must match _draw_discard_button)
+        btn_w = 160
+        start_x = (SCREEN_WIDTH - btn_w) / 2
+        
+        # Check if click is inside the Discard button
+        if start_x <= x <= start_x + btn_w and _DISCARD_Y <= y <= _DISCARD_Y + _DISCARD_BTN_H:
+            player = self.players[self.current_player]
+            
+            # 2. Calculate how many they MUST discard (half hand, rounded down)
+            total_cards = sum(player.resource_cards.values())
+            required_discard = total_cards // 2
+            current_selection = sum(self._resources.values())
+            
+            # 3. Validation: Only proceed if they selected the right amount
+            if current_selection == required_discard:
+                # Set pending to current player to trigger the confirmation modal
+                self._pending = self.current_player
+            else:
+                # Optional: You could add a message here saying "You must select X cards"
+                print(f"Invalid discard amount: {current_selection}/{required_discard}")
+            
     def _handle_modal_click(self, x, y):
         if self._modal_accept_rect is None:
             return
