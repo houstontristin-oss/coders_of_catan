@@ -2,6 +2,10 @@
 Contains CatanView Class
     Parameters:
         All mighty viewing file
+
+
+    Need to change Build and Trade button boolean to be false while other button is true to avoid
+    having both menus open at the same time
 """
 
 import random
