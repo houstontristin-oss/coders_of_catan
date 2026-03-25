@@ -26,8 +26,8 @@ Tristin:
     * Cannot play on same turn you buy one
 
 Amanda:
+* Longest Road and Largest Army cards (medium) (important)
 
-* Trading with bank “Maritime Trade” (medium) (important)
 
 Nick:
 
