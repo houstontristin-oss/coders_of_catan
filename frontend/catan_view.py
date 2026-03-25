@@ -12,7 +12,7 @@ from backend import node
 from backend.catan_board import CatanBoard
 from .port_manager import PortManager
 from .play_card_view import PlayCardView
-from .trade_view import TradeView
+#from .trade_view import TradeView
 from .robber_place_view import RobberPlaceView
 from .robber_res_view import RobberResView
 from .trade_view_barter import TradeViewBarter
