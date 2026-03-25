@@ -241,6 +241,40 @@ def draw_shoreline_shimmer(board, time_s: float):
             )
 
 
+def draw_port_dock(
+    coast_x1, coast_y1,
+    coast_x2, coast_y2,
+    dock_start_x1, dock_start_y1,
+    dock_end_x1,   dock_end_y1,
+    dock_start_x2, dock_start_y2,
+    dock_end_x2,   dock_end_y2,
+):
+    """
+    Draw two independent wooden piers — one extending from each coastal port
+    node straight out toward the ship.  No crossbar or center connector.
+    """
+    wood_dark  = (88,  58,  34)
+    wood_mid   = (128, 88,  52)
+    wood_light = (176, 130, 82)
+
+    # Pier 1 — from node 1 outward
+    arcade.draw_line(coast_x1, coast_y1, dock_end_x1, dock_end_y1, wood_dark,  6)
+    arcade.draw_line(coast_x1, coast_y1, dock_end_x1, dock_end_y1, wood_mid,   3)
+    arcade.draw_line(coast_x1, coast_y1, dock_end_x1, dock_end_y1, wood_light, 1)
+
+    # Pier 2 — from node 2 outward
+    arcade.draw_line(coast_x2, coast_y2, dock_end_x2, dock_end_y2, wood_dark,  6)
+    arcade.draw_line(coast_x2, coast_y2, dock_end_x2, dock_end_y2, wood_mid,   3)
+    arcade.draw_line(coast_x2, coast_y2, dock_end_x2, dock_end_y2, wood_light, 1)
+
+    # Small post caps at the shore ends
+    arcade.draw_circle_filled(coast_x1, coast_y1, 2.5, wood_dark)
+    arcade.draw_circle_filled(coast_x2, coast_y2, 2.5, wood_dark)
+
+    # Small post caps at the seaward ends
+    arcade.draw_circle_filled(dock_end_x1, dock_end_y1, 2.5, wood_mid)
+    arcade.draw_circle_filled(dock_end_x2, dock_end_y2, 2.5, wood_mid)
+
 def draw_shoreline_shimmer(board, time_s: float):
     """Draw a faint foam shimmer only along the outer ring of land hexes."""
     tile_coords = set(board.tiles.keys())
