@@ -4,7 +4,7 @@ Catan using python arcade
 import arcade
 import pyglet
 from frontend.constants import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
-from frontend.start_view import StartView
+from frontend.view_manager import ViewManager
 
 def main():
     """
@@ -13,7 +13,10 @@ def main():
     pyglet.font.add_file('fonts/MedievalSharp-Regular.ttf')
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     window.background_color = arcade.color.OCEAN_BOAT_BLUE
-    window.show_view(StartView())
+    from frontend.view_manager import ViewManager
+    vm = ViewManager(window)
+    window.vm = vm
+    vm.go_to("start")
     arcade.run()
 
 if __name__ == "__main__":
