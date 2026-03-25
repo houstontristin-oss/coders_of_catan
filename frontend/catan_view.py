@@ -12,6 +12,7 @@ from backend.catan_board import CatanBoard
 from .play_card_view import PlayCardView
 from .trade_view import TradeView
 from .robber_place_view import RobberPlaceView
+from .robber_res_view import RobberResView
 from .end_view import EndView
 from .board_utils import *
 from .ports import PortManager
@@ -1074,7 +1075,8 @@ class CatanView(arcade.View):
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
-            self.window.show_view(RobberPlaceView(self.board, self.players, self.current_player, self.die1, self.die2))
+            self.window.show_view(RobberResView(self.board, self.players, self.current_player, 
+                                                self.die1, self.die2))
 
         self._give_resources()
         self._build_player_texts()

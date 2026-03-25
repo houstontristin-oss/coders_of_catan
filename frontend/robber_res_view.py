@@ -5,7 +5,7 @@ import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import (
     HUD_BOTTOM_HEIGHT, HUD_BG, SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN, SCREEN_HEIGHT, BTN_TRADE,
-    TEXT_GOLD
+    TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG
 )
 
 # ---------------------------------------------------------------------------
@@ -58,6 +58,7 @@ class RobberResView(arcade.View):
         self.die1 = die1
         self.die2 = die2
         self._resources = {r: 0 for r in _RESOURCES}
+        self._pending = None          # int index of receiving player, or None
 
         # Text buckets — static built once, dynamic rebuilt each frame
         self._static_texts  = []
@@ -67,6 +68,8 @@ class RobberResView(arcade.View):
         self._modal_accept_rect  = None
         self._modal_decline_rect = None
         self._modal_can_afford   = False
+
+        
 
     # ------------------------------------------------------------------
     # Arcade lifecycle
@@ -86,6 +89,37 @@ class RobberResView(arcade.View):
         # Gold header bar at top
         fill_rect(0, SCREEN_HEIGHT - 58, SCREEN_WIDTH, 58, (18, 18, 48, 255))
         outline_rect(0, SCREEN_HEIGHT - 58, SCREEN_WIDTH, 1, (60, 60, 90, 200), 1)
+
+        # Rebuild dynamic texts each frame
+        self._dynamic_texts = []
+
+        if self._pending is None: # draw buttons and resources
+            self._draw_sections()
+        else:
+            self._draw_pending_modal()
+
+        if self._pending is None:
+            for txt in self._static_texts: # holds all the +, −, resource name labels, section
+                # headings, etc.
+                txt.draw()
+        for txt in self._dynamic_texts:
+            txt.draw()
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        if self._pending is not None:
+            self._handle_modal_click(x, y)
+            return
+
+        # Back button (bottom-left, same position as PlayCardView)
+        _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
+        if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
+            from .catan_view import CatanView
+            self.window.show_view(CatanView(self.board, self.players, self.current_player, 
+                                            self.die1, self.die2 ))
+            return
+
+        self._handle_spinner_click(x, y)
+        self._handle_send_click(x, y)
 
     # ------------------------------------------------------------------
     # Static Texts - built once in show view
@@ -197,7 +231,7 @@ class RobberResView(arcade.View):
                 font_name="MedievalSharp",
             ))
 
-            offered   = self._offer[res]
+            offered   = self._resources[res]
             minus_col = (80, 80, 80) if offered <= 0    else (180, 50, 50)
             plus_col  = (80, 80, 80) if offered >= have else (39, 174, 96)
             fill_rect(col_x,                    _OFFT_SPIN_Y, _BTN_W, _BTN_H, minus_col)
@@ -213,6 +247,92 @@ class RobberResView(arcade.View):
                 font_name="MedievalSharp",
             ))
 
+    def _draw_pending_modal(self):
+        """
+        Semi-transparent overlay + modal box asking the player
+        to confirm or cancel.  Matches the sub-popup style in tradeviewbarter.
+        """
+        # Dim backdrop (same as tradeviewbarter sub-popup)
+        fill_rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (0, 0, 0, 130))
+
+        modal_w = 500
+        modal_h = 270
+        mx = (SCREEN_WIDTH  - modal_w) / 2
+        my = (SCREEN_HEIGHT - modal_h) / 2
+
+        fill_rect(mx, my, modal_w, modal_h, (20, 20, 55, 250))
+        outline_rect(mx, my, modal_w, modal_h, TEXT_GOLD, 2)
+
+        player = self.players[self._pending]
+
+        resource_parts   = [f"{v}× {_RES_DISPLAY[r]}"
+                         for r, v in self._resources.items()   if v > 0]
+        resource_str   = ", ".join(resource_parts)   or "nothing"
+
+        can_afford = player.can_afford_trade(self._resources)
+        self._modal_can_afford = can_afford
+
+        # Modal title
+        self._dynamic_texts.append(arcade.Text(
+            f"{player.name} Gets rid of",
+            SCREEN_WIDTH / 2, my + modal_h - 30,
+            TEXT_GOLD, 15, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+        # Trade summary lines
+        self._dynamic_texts.append(arcade.Text(
+            f"{player.name} loses:   {resource_str}",
+            SCREEN_WIDTH / 2, my + modal_h - 72,
+            TEXT_WHITE, 11,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+
+        # Affordability warning
+        if not can_afford:
+            self._dynamic_texts.append(arcade.Text(
+                "(You don't have enough resources to discard)",
+                SCREEN_WIDTH / 2, my + modal_h - 130,
+                (255, 120, 80), 9,
+                anchor_x="center", anchor_y="center",
+                font_name="MedievalSharp",
+            ))
+
+        # Accept button
+        _PAD_BTN = 40
+        _MBTN_W  = 180
+        _MBTN_H  = 50
+        accept_x = mx + _PAD_BTN
+        accept_y = my + 28
+        fill_rect(accept_x, accept_y, _MBTN_W, _MBTN_H,
+                  (39, 174, 96) if can_afford else (45, 45, 55))
+        outline_rect(accept_x, accept_y, _MBTN_W, _MBTN_H, (255, 255, 255, 60), 1)
+        self._dynamic_texts.append(arcade.Text(
+            "Confirm?" if can_afford else "Can't Afford",
+            accept_x + _MBTN_W / 2, accept_y + _MBTN_H / 2,
+            TEXT_WHITE, 13, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+
+        # Decline button
+        decline_x = mx + modal_w - _PAD_BTN - _MBTN_W
+        decline_y = my + 28
+        fill_rect(decline_x, decline_y, _MBTN_W, _MBTN_H, BTN_ENDTURN)
+        outline_rect(decline_x, decline_y, _MBTN_W, _MBTN_H, (255, 255, 255, 60), 1)
+        self._dynamic_texts.append(arcade.Text(
+            "Cancel",
+            decline_x + _MBTN_W / 2, decline_y + _MBTN_H / 2,
+            TEXT_WHITE, 13, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+
+        # Store rects for click handler
+        self._modal_accept_rect  = (accept_x,  accept_y,  _MBTN_W, _MBTN_H)
+        self._modal_decline_rect = (decline_x, decline_y, _MBTN_W, _MBTN_H)
+
     # ------------------------------------------------------------------
     # Click handlers
     # ------------------------------------------------------------------
@@ -225,24 +345,24 @@ class RobberResView(arcade.View):
             # Offer row
             if _OFFT_SPIN_Y <= y <= _OFFT_SPIN_Y + _BTN_H:
                 if col_x <= x <= col_x + _BTN_W:
-                    if self._offer[res] > 0:
-                        self._offer[res] -= 1
+                    if self._resources[res] > 0:
+                        self._resources[res] -= 1
                 elif col_x + _BTN_W + _SPIN_W <= x <= col_x + _COL_W:
-                    if self._offer[res] < player.resource_cards.get(res, 0):
-                        self._offer[res] += 1
+                    if self._resources[res] < player.resource_cards.get(res, 0):
+                        self._resources[res] += 1
+    
+    def _handle_modal_click(self, x, y):
+        if self._modal_accept_rect is None:
+            return
 
-            # Receive row
-            if _RECV_SPIN_Y <= y <= _RECV_SPIN_Y + _BTN_H:
-                if col_x <= x <= col_x + _BTN_W:
-                    if self._receive[res] > 0:
-                        self._receive[res] -= 1
-                elif col_x + _BTN_W + _SPIN_W <= x <= col_x + _COL_W:
-                    self._receive[res] += 1
+        ax, ay, aw, ah = self._modal_accept_rect
+        dx, dy, dw, dh = self._modal_decline_rect
 
+        if ax <= x <= ax + aw and ay <= y <= ay + ah: # accept button location
+            if self._modal_can_afford:
+                self._execute_trade()
+            return
 
-    def on_mouse_press(self, x, y, button, modifiers):
-        #NOTE: Would it be a good idea to make the btn_w and btn_h global variable?
-        btn_w = 150
-        if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
-            from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2))
+        if dx <= x <= dx + dw and dy <= y <= dy + dh: # decline button location
+            self._result_msg = f"{self.players[self._pending].name} Canceled."
+            self._pending    = None
