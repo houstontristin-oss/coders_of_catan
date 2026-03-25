@@ -102,7 +102,6 @@ class CatanView(arcade.View):
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
         self._tile_pixel_cache = {}
-        self.port_manager      = None
 
         self._load_background()
         self._build_text_objects()
@@ -110,12 +109,11 @@ class CatanView(arcade.View):
         self._assign_number_tokens()
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
+        self._build_tile_pixel_cache()
 
         if self.port_manager == None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
-
-        self._build_tile_pixel_cache()
-        self.port_manager = PortManager(self.board, self._edge_pixel_cache)
+        
         self._build_text_objects()   # rebuild after caches ready
 
     # -----------------------------------------------------------------------
