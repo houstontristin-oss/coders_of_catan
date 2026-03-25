@@ -939,14 +939,14 @@ class CatanView(arcade.View):
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 self._cancel_trade()
                 self.window.show_view(
-                    TradeViewMaritime(self.board, self.players, self.current_player, self.port_manager)
+                    TradeViewMaritime(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager)
                 )
                 return
             # Barter Trade — bottom row of popup (by+8 .. by+36)
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
                 self._cancel_trade()
                 self.window.show_view(
-                    TradeViewBarter(self.board, self.players, self.current_player, self.port_manager)
+                    TradeViewBarter(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager)
                 )
                 return
             

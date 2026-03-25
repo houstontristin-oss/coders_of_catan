@@ -491,7 +491,7 @@ class TradeViewBarter(arcade.View):
                 return
 
     def _handle_modal_click(self, x, y):
-        if self._modal_accept_rect is None:
+        if self._modal_accept_rect is None or self._modal_decline_rect is None:
             return
 
         ax, ay, aw, ah = self._modal_accept_rect

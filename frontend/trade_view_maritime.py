@@ -20,7 +20,7 @@ BAR_CENTER_Y = HUD_BOTTOM_HEIGHT / 2
 
 CONFIRM_TXT_X = 20
 
-TRADE_SPRITE_SCALE = SPRITE_SCALE * 10
+TRADE_SPRITE_SCALE = 22/512 * 10
 TRADE_SPRITE_W = 220
 HALF = TRADE_SPRITE_W / 2
 
@@ -45,11 +45,13 @@ class TradeViewMaritime(arcade.View):
     TradeViewMaritime Class
     Handles standard 4:1 trades and allows players to use their ports with 3:1 or 2:1 trades
     """
-    def __init__(self, board, players, current_player, port_manager):
+    def __init__(self, board, players, current_player, die1, die2, port_manager):
         super().__init__()
         self.board= board
         self.players = players
         self.current_player = current_player
+        self.die1 = die1
+        self.die2 = die2
         self.port_manager = port_manager
 
         self.offer_highlights = {}
@@ -309,7 +311,7 @@ class TradeViewMaritime(arcade.View):
         # Back to Board Button
         if (SCREEN_WIDTH - BTN_W - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
             from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.port_manager))
+            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager))
 
         # Accept Trade Button
         if(TRADE_BTN_LEFT <= x <= TRADE_BTN_LEFT + BTN_W) and (y <= HUD_BOTTOM_HEIGHT) and self.valid_trade:
