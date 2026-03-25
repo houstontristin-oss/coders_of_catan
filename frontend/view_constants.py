@@ -165,7 +165,7 @@ START_FARM_TREE_COLOR       = ( 80, 140,  50, 255)   # leafy mid-green
 START_FARM_TREE_DARK_COLOR  = ( 50,  95,  30, 255)   # deep forest shadow
 
 # Silo tones
-START_FARM_SILO_COLOR       = (210, 200, 180, 255)   # pale concrete
+START_FARM_SILO_COLOR       = (210, 200, 180, 254)   # pale concrete
 START_FARM_SILO_DARK_COLOR  = (140, 120,  90, 255)   # weathered shadow
 
 # Barn tones

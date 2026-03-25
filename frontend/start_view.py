@@ -205,7 +205,7 @@ def _draw_farmscape():
         for stalk in range(int(wf_w / 9)):
             sx2 = wf_x + stalk * 9 + (row % 2) * 4
             arcade.draw_line(sx2, ry, sx2, ry + 14, wheat_color, 2)
-            arcade.draw_circle_filled(sx2, ry + 16, 2.5, (230, 195, 80, 150))
+            arcade.draw_circle_filled(sx2, ry + 16, 2.5, (230, 195, 80, 151))
 
     # Horizon glow — fades farmscape softly into sky
     for i in range(10):
