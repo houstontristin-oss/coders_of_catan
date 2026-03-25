@@ -13,13 +13,14 @@ class RobberPlaceView(arcade.View):
     """
     RobberPlaceView Class
     """
-    def __init__(self, board, players, current_player, die1, die2):
+    def __init__(self, board, players, current_player, die1, die2, port_manager):
         super().__init__()
         self.board= board
         self.players = players
         self.current_player = current_player
         self.die1 = die1
         self.die2 = die2
+        self.port_manager = port_manager
 
         # Build tile states
         self.hovered_tile = None
@@ -171,13 +172,11 @@ class RobberPlaceView(arcade.View):
         print(f"{player.name} moved the robber!")
         from .catan_view import CatanView
         self.window.show_view(CatanView(self.board, self.players, self.current_player,
-                                        self.die1, self.die2))
+                                        self.die1, self.die2, self.port_manager))
 
     # -----------------------------------------------------------------------
     # Theft function
     # -----------------------------------------------------------------------
-
-
 
     def on_show_view(self):
         self._build_text_objects()

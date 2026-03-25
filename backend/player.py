@@ -17,7 +17,7 @@ class Player:
     """
     def __init__(self, color, name):
         self.victory_points = 0
-        self.resource_cards = {'WOOD':10, 'WHEAT':10, 'BRICK': 10, 'SHEEP': 10, 'ORE':10}
+        self.resource_cards = {'WOOD':0, 'WHEAT':0, 'BRICK': 0, 'SHEEP': 0, 'ORE':0}
         self.development_cards = [] # we'll come back to this
         self.total_roads = 15
         self.total_settlements = 5
@@ -101,6 +101,10 @@ class Player:
             self.total_settlements += 1
             node.place_city(board)
     
+    def get_total_resources(self):
+        # returns the total number of resources cards a player has of any type
+        return sum(self.resource_cards.values())
+
     def add_port(self, res):
         self.ports.append(res)
             
