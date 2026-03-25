@@ -5,7 +5,7 @@ import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, TEXT_WHITE, BTN_TRADE, RESOURCE_COLORS, TEXT_LIGHT_GRAY,
-    HUD_PANEL_BG, BTN_ENDTURN
+    HUD_PANEL_BG, BTN_ENDTURN, LARGE_TEXT_SIZE
                         )
 
 #TODO add a view board feature
@@ -23,10 +23,10 @@ _RES_COLOR_KEY = {"BRICK": "brick", "ORE": "ore", "WHEAT": "wheat",
 # Layout — columns
 # ---------------------------------------------------------------------------
 _COL_COUNT = 5
-_BTN_W     = 30     # width of – / + buttons
+_BTN_W     = 50     # width of – / + buttons
 _SPIN_W    = 40     # width of count box
 _SWATCH_H  = 52     # coloured resource swatch
-_BTN_H     = 34     # spinner row height
+_BTN_H     = 40     # spinner row height
 _COL_W     = _BTN_W * 2 + _SPIN_W          # 100 px per column
 _COL_GAP   = 16                              # gap between columns
 _PANEL_W   = _COL_COUNT * _COL_W + (_COL_COUNT - 1) * _COL_GAP   # 564 px
@@ -169,7 +169,7 @@ class TradeViewBarter(arcade.View):
             self._static_texts.append(arcade.Text(
                 _RES_DISPLAY[res],
                 col_cx, _OFFT_SPIN_Y + _BTN_H + _SWATCH_H * 0.6,
-                TEXT_WHITE, 9, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
@@ -177,14 +177,14 @@ class TradeViewBarter(arcade.View):
             self._static_texts.append(arcade.Text(
                 "−", col_x + _BTN_W / 2,
                 _OFFT_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, 16, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
             self._static_texts.append(arcade.Text(
                 "+", col_x + _BTN_W + _SPIN_W + _BTN_W / 2,
                 _OFFT_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, 16, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
@@ -193,7 +193,7 @@ class TradeViewBarter(arcade.View):
             self._static_texts.append(arcade.Text(
                 _RES_DISPLAY[res],
                 col_cx, _RECV_SPIN_Y + _BTN_H + _SWATCH_H * 0.6,
-                TEXT_WHITE, 9, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
@@ -201,14 +201,14 @@ class TradeViewBarter(arcade.View):
             self._static_texts.append(arcade.Text(
                 "−", col_x + _BTN_W / 2,
                 _RECV_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, 16, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
             self._static_texts.append(arcade.Text(
                 "+", col_x + _BTN_W + _SPIN_W + _BTN_W / 2,
                 _RECV_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, 16, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))

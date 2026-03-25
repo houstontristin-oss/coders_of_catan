@@ -5,7 +5,7 @@ import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import (
     HUD_BOTTOM_HEIGHT, HUD_BG, SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN, SCREEN_HEIGHT, BTN_TRADE,
-    TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG, TOP_BAR_HEIGHT
+    TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG, TOP_BAR_HEIGHT, LARGE_TEXT_SIZE
 )
 
 # ---------------------------------------------------------------------------
@@ -44,7 +44,6 @@ _OFFT_SPIN_Y = _DIVIDER_Y + 30                        # bottom of Discard spinne
 _OFFT_HEAD_Y = _OFFT_SPIN_Y + _BTN_H + _SWATCH_H - 2 # "DISCARD" label y
 
 _CARD_COUNT_TEXT = _OFFT_HEAD_Y + 30
-_LARGE_TEXT_SIZE = 20
 _SMALL_TEXT_SIZE = 10
 
 
@@ -152,7 +151,7 @@ class RobberResView(arcade.View):
         self._static_texts.append(arcade.Text(
             f"A 7 Was Rolled, {player.name} Must Discard",      # text to display
             SCREEN_WIDTH / 2, SCREEN_HEIGHT - 28,   # x location, y location
-            TEXT_GOLD, _LARGE_TEXT_SIZE, bold=True,
+            TEXT_GOLD, LARGE_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         ))
@@ -162,7 +161,7 @@ class RobberResView(arcade.View):
         self._static_texts.append(arcade.Text(
             f"You have {total} cards — discard {must_discard}",
             SCREEN_WIDTH / 2, _CARD_COUNT_TEXT,   # x location, y location
-            TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
+            TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         ))
@@ -185,7 +184,7 @@ class RobberResView(arcade.View):
             self._static_texts.append(arcade.Text(
                 _RES_DISPLAY[res],
                 col_cx, _OFFT_SPIN_Y + _BTN_H + _SWATCH_H * 0.6,
-                TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
@@ -193,14 +192,14 @@ class RobberResView(arcade.View):
             self._static_texts.append(arcade.Text(
                 "−", col_x + _BTN_W / 2,
                 _OFFT_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
             self._static_texts.append(arcade.Text(
                 "+", col_x + _BTN_W + _SPIN_W + _BTN_W / 2,
                 _OFFT_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
+                TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
@@ -210,7 +209,7 @@ class RobberResView(arcade.View):
         self._static_texts.append(arcade.Text(
             "← Back to Board",
             _PAD + _BTN_W_BAR / 2, _PAD + _BTN_H_BAR / 2,
-            TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
+            TEXT_WHITE, LARGE_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         ))
