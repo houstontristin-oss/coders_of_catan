@@ -19,11 +19,13 @@ SCREEN_TITLE  = "Coders of Catan"
 BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "picture.png")
 
 # ---------------------------------------------------------------------------
+BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "ocean_background.png")
+BACKGROUND_IMAGE_SECRET = os.path.join(BASE_DIR, "sprites", "background", "background_secret.jpg")
 # Animated ocean background
 USE_OCEAN_BACKGROUND = True
 
 # Base water tones
-OCEAN_BASE_COLOR = (70, 145, 201)
+OCEAN_BASE_COLOR = (70, 145, 201, 1)
 OCEAN_DEEP_COLOR = (52, 118, 178)
 OCEAN_MID_COLOR = (84, 160, 214)
 OCEAN_BAND_COLOR = (255, 255, 255, 18)
@@ -259,11 +261,11 @@ RESOURCE_COLORS = {
 
 # Resource name -> display abbreviation shown on port labels
 RESOURCE_ABBR = {
-    "brick": "BRICK",
-    "ore": "ORE",
-    "wheat": "WHEAT",
-    "sheep": "SHEEP",
-    "forest": "WOOD"
+    "brick":  "BRICK",
+    "ore":    "ORE",
+    "wheat":  "WHEAT",
+    "sheep":  "SHEEP",
+    "forest": "WOOD",
 }
 
 
@@ -284,7 +286,7 @@ BUILD_NONE       = None
 BUILD_SETTLEMENT = "settlement"
 BUILD_ROAD       = "road"
 BUILD_CITY       = "city"
-
+TRADE_NONE       = None
 
 # Costs
 SETTLEMENT_COST = {"BRICK": 1, "WOOD": 1, "WHEAT": 1, "SHEEP": 1}

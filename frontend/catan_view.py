@@ -5,17 +5,20 @@ Contains CatanView Class
 """
 
 import random
+import math
+import arcade
 
 from backend import node
 from backend.catan_board import CatanBoard
-
+from .port_manager import PortManager
 from .play_card_view import PlayCardView
 from .trade_view import TradeView
 from .robber_place_view import RobberPlaceView
+from .trade_view_barter import TradeViewBarter
+from .trade_view_maritime import TradeViewMaritime
 from .end_view import EndView
-from .board_utils import *
-from .ports import PortManager
-from .drawing import *
+from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
+from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board, draw_city, draw_ocean_background
 from .constants import *
 from .view_constants import *  # noqa: F401,F403
 
@@ -37,6 +40,7 @@ class CatanView(arcade.View):
         current_player,
         die1,
         die2,
+        port_manager,
         shared_deck=None,
         bought_card_this_turn=False,
         played_card_this_turn=False,
@@ -46,6 +50,7 @@ class CatanView(arcade.View):
         self.board          = board
         self.players        = players
         self.current_player = current_player
+        self.port_manager   = port_manager
         self.die1           = die1
         self.die2           = die2
 
@@ -58,6 +63,8 @@ class CatanView(arcade.View):
         # Build mode state
         self.build_mode    = False
         self.build_choice  = BUILD_NONE
+        self.trade_mode = False
+        self.trade_choice = None
         self.hovered_node  = None
         self.hovered_edge  = None
         self.selected_node = None
@@ -89,7 +96,6 @@ class CatanView(arcade.View):
         # Pixel caches
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
-        self.port_manager      = None
 
         self._load_background()
         self._build_text_objects()
@@ -97,7 +103,10 @@ class CatanView(arcade.View):
         self._assign_number_tokens()
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
-        self.port_manager = PortManager(self.board, self._edge_pixel_cache)
+
+        if self.port_manager == None:
+            self.port_manager = PortManager(self.board, self._edge_pixel_cache)
+
         self._build_text_objects()   # rebuild after caches ready
 
     # -----------------------------------------------------------------------
@@ -307,6 +316,49 @@ class CatanView(arcade.View):
             font_name="MedievalSharp",
         )
 
+        # Build submenu labels (positions updated at draw time)
+        self.txt_submenu_settlement = arcade.Text(
+            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+        self.txt_submenu_road = arcade.Text(
+            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+
+        # Trade submenu labels (positions updated at draw time)
+        self.txt_submenu_maritime = arcade.Text(
+            "Maritime Trade", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+        self.txt_submenu_barter = arcade.Text(
+            "Barter Trade", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+
+        # Confirm popup labels
+        self.txt_popup_title = arcade.Text(
+            "", 0, 0, TEXT_GOLD, 10, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+        self.txt_popup_confirm = arcade.Text(
+            "", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+        self.txt_popup_cancel = arcade.Text(
+            "Cancel", 0, 0, TEXT_WHITE, 9, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        )
+
+        self._build_player_texts()
+
     def _build_player_texts(self):
         player    = self.players[self.current_player]
         panel_x   = CATAN_PLAYER_PANEL_MARGIN
@@ -479,6 +531,37 @@ class CatanView(arcade.View):
         self.txt_submenu_road.x    = bx + CATAN_BUILD_SUBMENU_W / 2
         self.txt_submenu_road.y    = by + CATAN_BUILD_SUBMENU_BTN_INSET + 14
         self.txt_submenu_road.draw()
+
+    def _draw_trade_submenu(self):
+        if not self.trade_mode or self.trade_choice != TRADE_NONE:
+            return
+
+        _BW  = 120
+        _BH  = 38
+        _PAD = 14
+
+        trade_bottom = _PAD               # bottom of the Trade button
+        trade_top    = trade_bottom + _BH # top of the Trade button
+
+        menu_w = _BW
+        menu_h = 80
+        bx     = _PAD
+        by     = trade_top + 4            # pop up just above Trade button
+
+        fill_rect(bx, by, menu_w, menu_h, HUD_PANEL_BG)
+        outline_rect(bx, by, menu_w, menu_h, TEXT_GOLD, 2)
+
+        # Maritime Trade — top row
+        fill_rect(bx + 8, by + 44, menu_w - 16, 28, (52, 152, 219))
+        self.txt_submenu_maritime.x = bx + menu_w / 2
+        self.txt_submenu_maritime.y = by + 58
+        self.txt_submenu_maritime.draw()
+
+        # Barter Trade — bottom row
+        fill_rect(bx + 8, by + 8, menu_w - 16, 28, (39, 174, 96))
+        self.txt_submenu_barter.x = bx + menu_w / 2
+        self.txt_submenu_barter.y = by + 22
+        self.txt_submenu_barter.draw()
 
     def _draw_player_panel(self):
         player  = self.players[self.current_player]
@@ -779,6 +862,7 @@ class CatanView(arcade.View):
         self._draw_dice_area()
         self._draw_bottom_bar()
         self._draw_build_submenu()
+        self._draw_trade_submenu()
 
     # -----------------------------------------------------------------------
     # Mouse motion
@@ -838,6 +922,36 @@ class CatanView(arcade.View):
         if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
             self._end_turn()
             return
+
+        # --- Trade button ---
+        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (trade_bottom <= y <= trade_bottom + CATAN_BTN_H):
+            if self.trade_mode:
+                self._cancel_trade()
+            else:
+                self.trade_mode   = True
+                self.trade_choice = TRADE_NONE
+            return
+
+        # --- Trade submenu (pops up above the Trade button) ---
+        if self.trade_mode and self.trade_choice == TRADE_NONE:
+            trade_top = trade_bottom + CATAN_BTN_H  # top of Trade button
+            by        = trade_top + 4        # bottom of the popup panel
+            bx        = CATAN_BTN_PAD
+            menu_w    = CATAN_BTN_W
+            # Maritime Trade — top row of popup (by+44 .. by+72)
+            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
+                self._cancel_trade()
+                self.window.show_view(
+                    TradeViewMaritime(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager)
+                )
+                return
+            # Barter Trade — bottom row of popup (by+8 .. by+36)
+            if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
+                self._cancel_trade()
+                self.window.show_view(
+                    TradeViewBarter(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager)
+                )
+                return
 
         # Build button
         if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (build_bottom <= y <= build_bottom + CATAN_BTN_H):
@@ -925,19 +1039,13 @@ class CatanView(arcade.View):
             self.show_confirm  = True
             return
 
-        # Trade button
-        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (trade_bottom <= y <= trade_bottom + CATAN_BTN_H):
-            self.window.show_view(
-                TradeView(self.board, self.players, self.current_player, self.die1, self.die2)
-            )
-            return
 
         # Dev Cards button
         if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (card_bottom <= y <= card_bottom + CATAN_BTN_H):
             self.window.show_view(
                 PlayCardView(
                     self.board, self.players, self.current_player,
-                    self.die1, self.die2,
+                    self.die1, self.die2, self.port_manager,
                     shared_deck=self._shared_deck,
                     bought_this_turn=self._bought_card_this_turn,
                     played_card_this_turn=self._played_card_this_turn,
@@ -954,6 +1062,10 @@ class CatanView(arcade.View):
         player.build_settlement(CatanBoard, node)
         node.player   = self.current_player
         node.building = "settlement"
+        for port in self.port_manager._port_data:
+            node_ids = port["port"].get_port_nodes()
+            if node.node_id in node_ids:
+                player.ports.append(port["port"])
         player.victory_points += 1
         self._cancel_build()
         self._build_player_texts()
@@ -1011,6 +1123,15 @@ class CatanView(arcade.View):
         self.selected_edge = None
         self.show_confirm  = False
 
+    def _cancel_trade(self):
+        self.trade_mode    = False
+        self.trade_choice  = TRADE_NONE
+        self.hovered_node  = None
+        self.hovered_edge  = None
+        self.selected_node = None
+        self.selected_edge = None
+        self.show_confirm  = False
+
     # -----------------------------------------------------------------------
     # Resource distribution
     # -----------------------------------------------------------------------
@@ -1040,6 +1161,7 @@ class CatanView(arcade.View):
 
         self.current_player = (self.current_player + 1) % len(self.players)
         self._cancel_build()
+        self._cancel_trade()
 
         # Reset per-turn dev-card flags for the new player
         self._bought_card_this_turn  = False

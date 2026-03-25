@@ -1,5 +1,5 @@
 """
-ports.py — PortManager
+port_manager.py — PortManager
 
      We need to change all the random numbers implemented in the
   btn_w btw_h for example need to be changed to constants in order to maintain consistency
@@ -8,6 +8,8 @@ ports.py — PortManager
 import math
 import random
 import arcade
+
+from backend.port import Port
 
 from .constants import (
     PORT_TYPES, PORT_SHIP_SPRITE, HEX_SIZE,
@@ -39,7 +41,7 @@ class PortManager:
         self._label_texts      = []
         self._fallback_dots    = []
         # Each entry: {'ship_x', 'ship_y', 'label_x', 'label_y',
-        #              'node_ids': [node_id, node_id]}
+        #              'port': Port(node_ids, resource)}
         self._port_data        = []
 
         self._ship_ok = self._test_sprite()
@@ -77,7 +79,7 @@ class PortManager:
         for entry in self._port_data:
             dist = math.hypot(mx - entry["ship_x"], my - entry["ship_y"])
             if dist <= _PORT_HOVER_RADIUS:
-                return entry["node_ids"]
+                return entry["port"].get_port_nodes()
         return []
 
     # ------------------------------------------------------------------
@@ -153,8 +155,7 @@ class PortManager:
                 "ship_y":   ship_y,
                 "label_x":  label_x,
                 "label_y":  label_y,
-                "node_ids": node_ids,
-                "resource": resource,
+                "port": Port(node_ids, resource)
             })
 
             # Label text

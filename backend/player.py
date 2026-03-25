@@ -22,14 +22,32 @@ class Player:
         self.total_roads = 15
         self.total_settlements = 5
         self.total_cities = 4
+        self.ports = []
         self.color = color
         self.name = name
 
-    def accept_trade(self): #option to accept a trade from a player
-        pass
+    def exchange_resources(self, giving_resources:dict, receiving_resources:dict):
+        '''
+        subtracts giving_resources and adds receiving_resources to current player
+        dictionary organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
+        '''
+        for resource, amount in giving_resources.items():
+            if self.resource_cards.get(resource, 0) >= amount:
+                self.resource_cards[resource] -= amount
+            else:
+                raise ValueError("Player does not have enough resources to give.")
+        for resource, amount in receiving_resources.items():
+            self.resource_cards[resource] += amount
 
-    def offer_trade(self): #offer a trade to another player
-        pass
+    def can_afford_trade(self, offered_resources:dict) -> bool:
+        '''
+        checks players current resources against values in the dictionary
+        dictionary organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
+        '''
+        for resource, amount in offered_resources.items():
+            if self.resource_cards.get(resource, 0) < amount:
+                return False
+        return True
 
     def buy_dev_card(self): #buy dev cards
         if (self.resource_cards['WHEAT'] > 0 and self.resource_cards['SHEEP'] > 0
@@ -74,7 +92,6 @@ class Player:
             node.place_settlement(board)
 
     def build_city(self, board, node):
-
         # check if player has sufficient resources
         if (self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3
                 and self.total_settlements>0):
@@ -83,3 +100,7 @@ class Player:
             self.total_cities -= 1
             self.total_settlements += 1
             node.place_city(board)
+    
+    def add_port(self, res):
+        self.ports.append(res)
+            

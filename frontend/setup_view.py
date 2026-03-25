@@ -9,6 +9,8 @@ import random
 import arcade
 
 from backend.catan_board import CatanBoard
+
+from .port_manager import PortManager
 from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
@@ -19,14 +21,14 @@ class SetupView(arcade.View):
     """
     SetupView Class
     """
-    def __init__(self, board, players, current_player, cycle):
+    def __init__(self, board, players, current_player, cycle, port_manager: PortManager | None):
         super().__init__()
         self.board = board # CatanBoard instance
         self.players = players # list of Player instances
         self.current_player = current_player # index of current player in players list
         self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
         self.last_placed_settlement = None # track last placed settlement for edge verification
-        # during road placement in setup
+        
 
         #Build node states
         self.build_choice  = BUILD_SETTLEMENT
@@ -41,6 +43,12 @@ class SetupView(arcade.View):
          # Build pixel caches
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
+
+        # Build port manager (randomizes port layout each game)
+        if port_manager == None:
+            self.port_manager = PortManager(self.board, self._edge_pixel_cache)
+        else:
+            self.port_manager = port_manager
 
         self._build_text_objects()
 
@@ -176,6 +184,11 @@ class SetupView(arcade.View):
         node.player = self.current_player
         node.building = "settlement"
         self.last_placed_settlement = node # can be used to verify correct road placement in setup
+        for port in self.port_manager._port_data:
+            node_ids = port["port"].get_port_nodes()
+            if node.node_id in node_ids:
+                print(f"{player.name} built on port {port["port"]}")
+                player.ports.append(port["port"])
         player.victory_points += 1
         self._cancel_build()
         print(f"{player.name} built a settlement! Victory Points: {player.victory_points}")
@@ -263,7 +276,7 @@ class SetupView(arcade.View):
 
             if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
                 if self.build_choice == BUILD_SETTLEMENT:
-                    if self.cycle == 2: # distribute resources for second settlement placements
+                    if self.cycle == 2 and self.selected_node != None: # distribute resources for second settlement placements
                         for tile in self.selected_node.tiles:
                             if tile.resource != 'desert':
                                 resource = RESOURCE_ABBR[tile.resource]
@@ -295,11 +308,19 @@ class SetupView(arcade.View):
                                         player = self.players[node.player]
                                         player.resource_cards[resource] += 1 if node.building == "settlement" else 2
                                         
-                        self.window.show_view(CatanView(self.board, self.players, 0, die1, die2))
+                        self.window.show_view(
+                            CatanView(
+                                self.board,
+                                self.players,
+                                self.current_player,
+                                die1,
+                                die2,
+                                self.port_manager,
+                            ))
                         return
 
                     self.window.show_view(SetupView(self.board, self.players, 
-                                                    self.current_player, self.cycle))
+                                                    self.current_player, self.cycle, self.port_manager))
                 return
             if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
                 self.selected_node = None

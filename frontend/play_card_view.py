@@ -43,7 +43,6 @@ class PlayCardView(arcade.View):
     played_card_this_turn : bool
     free_roads            : int   — free roads remaining from Road Building card
     """
-
     def __init__(
         self,
         board,
@@ -51,6 +50,7 @@ class PlayCardView(arcade.View):
         current_player,
         die1,
         die2,
+        port_manager,
         shared_deck=None,
         bought_this_turn=False,
         played_card_this_turn=False,
@@ -62,6 +62,7 @@ class PlayCardView(arcade.View):
         self.current_player    = current_player
         self.die1              = die1
         self.die2              = die2
+        self.port_manager      = port_manager
         self.bought_this_turn  = bought_this_turn
         self._played_this_turn = played_card_this_turn
         self.free_roads        = free_roads
@@ -221,7 +222,7 @@ class PlayCardView(arcade.View):
 
     def on_draw(self):
         self.clear()
-        arcade.set_background_color((14, 14, 30))
+        arcade.set_background_color((14, 14, 30, 1))
 
         fill_rect(0, CARD_BOTTOM_BAR_H, SCREEN_WIDTH,
                   SCREEN_HEIGHT - CARD_BOTTOM_BAR_H, (16, 16, 36, 255))
@@ -558,6 +559,7 @@ class PlayCardView(arcade.View):
                 self.current_player,
                 self.die1,
                 self.die2,
+                self.port_manager,
                 shared_deck=self._deck,
                 bought_card_this_turn=self.bought_this_turn,
                 played_card_this_turn=self._played_this_turn,
