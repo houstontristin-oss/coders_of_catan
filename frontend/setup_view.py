@@ -1,7 +1,11 @@
 """
 Contains SetupView Class
+ We need to change all the random numbers implemented in the
+  btn_w btw_h for example need to be changed to constants in order to maintain consistency
 """
 import math
+import random
+
 import arcade
 
 from backend.catan_board import CatanBoard
@@ -11,7 +15,7 @@ from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
 DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,EDGE_SNAP_RADIUS,
-NODE_SNAP_RADIUS, RESOURCE_ABBR)
+NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX)
 
 class SetupView(arcade.View):
     """
@@ -97,7 +101,6 @@ class SetupView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Ghost highlights
-    # TODO: Make only valid settlement and road placements highlighted
     # NOTE: Currently if you place a road on a not valid spot during setup it will disappear and if
     # you place a settlement on a not valid spot it will violate the rules
     # -----------------------------------------------------------------------
@@ -192,19 +195,7 @@ class SetupView(arcade.View):
 
     def _place_road(self, edge):
         player = self.players[self.current_player]
-        idx = self.current_player
-        connected = False
-        for node in edge.nodes:
-            if node.player == idx:
-                connected = True
-                break
-            for neighbor_edge in node.edges:
-                if neighbor_edge is not edge and neighbor_edge.player == idx:
-                    connected = True
-                    break
-            if connected:
-                break
-        if not connected:
+        if not edge.is_valid_setup_road_placement(self.last_placed_settlement):
             print(f"{player.name} — road must connect to your settlement or existing road.")
             self.show_confirm = False
             self.selected_edge = None
@@ -304,7 +295,28 @@ class SetupView(arcade.View):
                         self.current_player -= 1
                     elif self.cycle == 2 and self.current_player == 0:
                         from .catan_view import CatanView
-                        self.window.show_view(CatanView(self.board, self.players, 0, self.port_manager))
+                        #setup dice for first player
+                        die1 = random.randint(ONE, SIX)
+                        die2 = random.randint(ONE, SIX)
+                        #give resources
+                        roll = die1 + die2
+                        for tile in self.board.tiles.values():
+                            if tile.number == roll:
+                                resource = RESOURCE_ABBR[tile.resource]
+                                for node in tile.nodes:
+                                    if node.player != None:
+                                        player = self.players[node.player]
+                                        player.resource_cards[resource] += 1 if node.building == "settlement" else 2
+                                        
+                        self.window.show_view(
+                            CatanView(
+                                self.board,
+                                self.players,
+                                self.current_player,
+                                die1,
+                                die2,
+                                self.port_manager,
+                            ))
                         return
 
                     self.window.show_view(SetupView(self.board, self.players, 

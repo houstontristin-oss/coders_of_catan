@@ -1,24 +1,8 @@
 """
 port_manager.py — PortManager
 
-Owns everything related to port rendering:
-  - Randomizing which port type lands on which outer edge
-  - Finding and clockwise-sorting outer edges
-  - Computing ship pixel position and correct facing angle
-  - Building the ship SpriteList and label Text objects
-  - Exposing a single draw() method for CatanView to call
-  - Exposing get_hover_nodes(x, y) so CatanView can highlight the two
-    settlement nodes that can access each port on mouse-over
-
-Usage (in CatanView.__init__, after pixel caches are built):
-    from .ports import PortManager
-    self.port_manager = PortManager(self.board, self._edge_pixel_cache)
-
-In CatanView.on_draw():
-    self.port_manager.draw()
-
-In CatanView.on_mouse_motion():
-    node_ids = self.port_manager.get_hover_nodes(x, y)
+     We need to change all the random numbers implemented in the
+  btn_w btw_h for example need to be changed to constants in order to maintain consistency
 """
 
 import math

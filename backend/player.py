@@ -17,7 +17,7 @@ class Player:
     """
     def __init__(self, color, name):
         self.victory_points = 0
-        self.resource_cards = {'WOOD':100, 'WHEAT':100, 'BRICK': 100, 'SHEEP': 100, 'ORE':100}
+        self.resource_cards = {'WOOD':10, 'WHEAT':10, 'BRICK': 10, 'SHEEP': 10, 'ORE':10}
         self.development_cards = [] # we'll come back to this
         self.total_roads = 15
         self.total_settlements = 5
@@ -91,12 +91,16 @@ class Player:
             self.total_settlements -= 1
             node.place_settlement(board)
 
-    def build_city(self):
-
+    def build_city(self, board, node):
         # check if player has sufficient resources
         if (self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3
                 and self.total_settlements>0):
-            pass
+            self.resource_cards['WHEAT'] -= 2
+            self.resource_cards['ORE'] -= 3
+            self.total_cities -= 1
+            self.total_settlements += 1
+            node.place_city(board)
     
     def add_port(self, res):
         self.ports.append(res)
+            
