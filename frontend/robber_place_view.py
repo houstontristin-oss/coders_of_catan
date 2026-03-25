@@ -3,41 +3,48 @@ Contains Robber Placement Class
 """
 import arcade
 
-from backend.catan_board import CatanBoard
 from .drawing import draw_board, fill_rect, outline_rect
 from .constants import*
-from .board_utils import cubic_to_pixel
+from .board_utils import cubic_to_pixel, node_to_pixel
+from .setup_view import draw_road, draw_settlement
+from .view_constants import *
 
 class RobberPlaceView(arcade.View):
     """
     RobberPlaceView Class
     """
-    def __init__(self, board, players, current_player):
+    def __init__(self, board, players, current_player, die1, die2):
         super().__init__()
         self.board= board
         self.players = players
         self.current_player = current_player
+        self.die1 = die1
+        self.die2 = die2
 
         # Build tile states
-        #self.build_choice =
         self.hovered_tile = None
         self.selected_tile = None
         self.show_confirm = False
+        self.hovered_node = None
 
         self._tile_pixel_cache = {}
-        self._build_tile_pixel_cache() # not sure how to do these, will ask for help
-        #for building caches (needed for highlighting tiles?)
+        self._node_pixel_cache = {}
+        self._edge_pixel_cache = {}
+
+        self._build_node_pixel_cache()
+        self._build_edge_pixel_cache()
+        self._build_tile_pixel_cache()
 
         # --- Robber state ---
         self._robber_sprite = None
         self._robber_list = arcade.SpriteList()
         self._robber_sprite_ok = False
-        self._robber_tile = None #how to define as current robber tile?
+        self._robber_tile = None
         self._load_robber_sprite()
 
     def _build_text_objects(self):
         player = self.players[self.current_player]
-        self.txt_title = arcade.Text(f"{player.name}: Place the Robber", SCREEN_WIDTH / 4,
+        self.txt_title = arcade.Text(f"{player.name}: Place the Robber", SCREEN_WIDTH / 3,
                                      SCREEN_HEIGHT - 50, font_name="MedievalSharp", font_size=30,
                                      color=player.color)
         # Confirm popup labels
@@ -51,23 +58,33 @@ class RobberPlaceView(arcade.View):
                                             anchor_x="center", anchor_y="center",
                                             font_name="MedievalSharp")
 
-    def _draw_bottom_bar(self):
-        fill_rect(0, 0, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_BG)
+    # -----------------------------------------------------------------------
+    # Caches
+    # -----------------------------------------------------------------------
+    def _build_node_pixel_cache(self):
+        for node_id in self.board.nodes:
+            px, py = node_to_pixel(node_id)
+            self._node_pixel_cache[node_id] = (px, py)
 
-        btn_w, btn_h = 150, 50
-        btn_bottom = (HUD_BOTTOM_HEIGHT - btn_h) / 2
-
-        fill_rect(SCREEN_WIDTH - btn_w - 20, btn_bottom, btn_w, btn_h, BTN_ENDTURN)
-        #self.txt_back.draw()
+    def _build_edge_pixel_cache(self):
+        for edge_id in self.board.edges:
+            n1_id, n2_id = edge_id
+            x1, y1 = self._node_pixel_cache[n1_id]
+            x2, y2 = self._node_pixel_cache[n2_id]
+            mx = (x1 + x2) / 2
+            my = (y1 + y2) / 2
+            self._edge_pixel_cache[edge_id] = (mx, my, x1, y1, x2, y2)
 
     def _build_tile_pixel_cache(self): #ask Tristan/Amanda about this
-        for xyz, tile_id in self.board.tiles.items():
+        for xyz, tile in self.board.tiles.items():
             cx, _, cz = xyz
             px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-            self._tile_pixel_cache[tile_id] = (px, py)
-        #for tile_id in self.board.tiles:
-           # px, py = cubic_to_pixel()
-           # self._tile_pixel_cache[tile_id] = (px, py)
+            self._tile_pixel_cache[tile.tile_id] = (px, py)
+
+    def _cancel_build(self):
+        self.hovered_tile  = None
+        self.selected_tile = None
+        self.show_confirm  = False
 
     # -----------------------------------------------------------------------
     # Confirmation popup
@@ -76,7 +93,7 @@ class RobberPlaceView(arcade.View):
         if not self.show_confirm:
             return
         if self.selected_tile:
-            cx, cy = self.cubic_to_pixel[self.selected_tile.tile_id]
+            cx, cy = self._tile_pixel_cache[self.selected_tile.tile_id]
             cy += 18
             label = "Place Robber?"
         else:
@@ -105,20 +122,6 @@ class RobberPlaceView(arcade.View):
         self.txt_popup_cancel.y = cy + 23
         self.txt_popup_cancel.draw()
 
-    def _place_robber(self, tile):
-        player = self.players[self.current_player]
-        for tile_r in self.board.tiles(): #defining current robber tile
-            if tile_r.robber:
-                self._robber_tile = tile_r
-        if tile == self._robber_tile: #if player picks current robber tile
-            print(f"{player.name} — must place robber on new tile.")
-            self.show_confirm = False
-            self.selected_tile = None
-            return
-        self._robber_tile.robber = False #switch current robber tile robber status to false
-        tile.robber = True #switch new robber tile robber status to false
-        self._load_robber_sprite()
-        print(f"{player.name} moved the robber!")
 
     # -----------------------------------------------------------------------
     # Robber sprite
@@ -140,12 +143,41 @@ class RobberPlaceView(arcade.View):
                 if self._robber_sprite_ok:
                     cx, _, cz = xyz
                     px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-                    target_h = HEX_SIZE * 1.1
-                    scale = target_h / self._robber_sprite.height
+                    target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
+                    texture_height = self._robber_sprite.texture.height
+                    scale = target_h / texture_height
                     self._robber_sprite.scale = scale
                     self._robber_sprite.center_x = px
                     self._robber_sprite.center_y = py
                 break
+
+    def _place_robber(self, tile):
+        player = self.players[self.current_player]
+        for tile_r in self.board.tiles.values(): #defining current robber tile
+            if tile_r.robber:
+                self._robber_tile = tile_r
+        if tile == self._robber_tile: #if player picks current robber tile
+            print(f"{player.name} — must place robber on new tile.")
+            #self.txt_title.text = (f"{player.name} — must place robber on new tile.")
+            #self.txt_title.draw()
+            self.show_confirm = False
+            self.selected_tile = None
+            return
+        self._robber_tile.robber = False #switch current robber tile robber status to false
+        tile.robber = True #switch new robber tile robber status to true
+        self._robber_tile = tile
+        self._place_robber_on_tile()
+        self._cancel_build()
+        print(f"{player.name} moved the robber!")
+        from .catan_view import CatanView
+        self.window.show_view(CatanView(self.board, self.players, self.current_player,
+                                        self.die1, self.die2))
+
+    # -----------------------------------------------------------------------
+    # Theft function
+    # -----------------------------------------------------------------------
+
+
 
     def on_show_view(self):
         self._build_text_objects()
@@ -157,10 +189,67 @@ class RobberPlaceView(arcade.View):
         draw_board(self.board)
 
         self.txt_title.draw()
-        self._draw_bottom_bar()
 
         if self._robber_sprite_ok and self._robber_list:
             self._robber_list.draw()
+
+        self._draw_placed_pieces()
+        # Confirmation popup
+        if self.show_confirm:
+            self._draw_confirm_popup()
+
+        self._draw_robber_settle_highlights()
+
+    # -----------------------------------------------------------------------
+    # Board pieces (always drawn)
+    # -----------------------------------------------------------------------
+    def _draw_placed_pieces(self):
+        for edge_id, edge_obj in self.board.edges.items():
+            if edge_obj.player is not None:
+                _, _, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
+                draw_road(x1, y1, x2, y2, self.players[edge_obj.player].color)
+
+        for node_id, node_obj in self.board.nodes.items():
+            if node_obj.player is not None:
+                npx, npy = self._node_pixel_cache[node_id]
+                draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
+
+    def _draw_robber_settle_highlights(self):
+        if not self.hovered_tile: #only highlight nodes on hovered tile
+            return
+
+        for node_id, node_obj in self.board.nodes.items():
+            if self.hovered_tile not in node_obj.tiles:
+                continue
+            if node_obj.player is None: #only highlight occupied nodes
+                continue
+
+            npx, npy = self._node_pixel_cache[node_id]
+
+            if npy < CATAN_BOARD_TOP_CULL_Y:
+                continue
+            if (npx < HUD_PANEL_WIDTH + CATAN_HUD_LEFT_BLOCK_PAD
+                    or npx > SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_RIGHT_BLOCK_PAD):
+                continue
+
+            player_color = self.players[node_obj.player].color
+
+            arcade.draw_circle_filled(npx, npy, CATAN_HIGHLIGHT_RADIUS_HOVER,
+                                      (*player_color, 60))
+            arcade.draw_circle_outline(npx, npy, CATAN_HIGHLIGHT_RADIUS_OUTLINE,
+                                       (*player_color, 120), 3)
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        if self.show_confirm:
+            return
+
+        self.hovered_tile = None
+
+        for tile in self.board.tiles.values():
+            px, py = self._tile_pixel_cache[tile.tile_id]
+            if (x - px) ** 2 + (y - py) ** 2 <= (HEX_SIZE * 0.9) ** 2:
+                self.hovered_tile = tile
+                break
 
     def on_mouse_press(self, x, y, button, modifiers):
         # Confirmation popup for placing robber
@@ -189,10 +278,10 @@ class RobberPlaceView(arcade.View):
             return
 
         if  self.hovered_tile:
+            if self.hovered_tile == self._robber_tile:
+                player = self.players[self.current_player]
+                print(f"{player.name} — must place robber on a new tile.")
+                return #can't pick same tile
             self.selected_tile = self.hovered_tile
             self.show_confirm  = True
             return
-        btn_w = 150
-        if (SCREEN_WIDTH - btn_w - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
-            from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2))

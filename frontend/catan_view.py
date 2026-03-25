@@ -14,6 +14,7 @@ from .port_manager import PortManager
 from .play_card_view import PlayCardView
 from .trade_view import TradeView
 from .robber_place_view import RobberPlaceView
+from .robber_res_view import RobberResView
 from .trade_view_barter import TradeViewBarter
 from .trade_view_maritime import TradeViewMaritime
 from .end_view import EndView
@@ -96,6 +97,8 @@ class CatanView(arcade.View):
         # Pixel caches
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
+        self._tile_pixel_cache = {}
+        self.port_manager      = None
 
         self._load_background()
         self._build_text_objects()
@@ -107,6 +110,8 @@ class CatanView(arcade.View):
         if self.port_manager == None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
 
+        self._build_tile_pixel_cache()
+        self.port_manager = PortManager(self.board, self._edge_pixel_cache)
         self._build_text_objects()   # rebuild after caches ready
 
     # -----------------------------------------------------------------------
@@ -140,20 +145,27 @@ class CatanView(arcade.View):
             self._robber_sprite_ok = True
         except Exception:
             self._robber_sprite_ok = False
-        self._place_robber_on_desert()
+        self._place_robber_on_tile()
 
     def _place_robber_on_desert(self):
-        from .board_utils import cubic_to_pixel
         for xyz, tile in self.board.tiles.items():
             if tile.resource == "desert":
-                self._robber_tile = tile
                 tile.robber = True
+                print("setting desert robber to true")
+                self._place_robber_on_tile()
+                break
+
+    def _place_robber_on_tile(self):
+        for xyz, tile in self.board.tiles.items():
+            if tile.robber:
+                self._robber_tile = tile
                 if self._robber_sprite_ok:
                     cx, _, cz = xyz
-                    px, py    = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
+                    px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
                     target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
-                    scale     = target_h / self._robber_sprite.height
-                    self._robber_sprite.scale    = scale
+                    texture_height = self._robber_sprite.texture.height
+                    scale = target_h / texture_height
+                    self._robber_sprite.scale = scale
                     self._robber_sprite.center_x = px
                     self._robber_sprite.center_y = py
                 break
@@ -205,6 +217,12 @@ class CatanView(arcade.View):
             mx = (x1 + x2) / 2
             my = (y1 + y2) / 2
             self._edge_pixel_cache[edge_id] = (mx, my, x1, y1, x2, y2)
+
+    def _build_tile_pixel_cache(self):
+        for xyz, tile in self.board.tiles.items():
+            cx, _, cz = xyz
+            px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
+            self._tile_pixel_cache[tile.tile_id] = (px, py)
 
     # -----------------------------------------------------------------------
     # Sprites
@@ -1176,9 +1194,11 @@ class CatanView(arcade.View):
         self.die2 = random.randint(ONE, SIX)
         self._start_dice_animation()
 
-        # TODO (Apoorva): check if roll == 7 and trigger robber phase
+
+        #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
-            self.window.show_view(RobberPlaceView(self.board, self.players, self.current_player))
+            self.window.show_view(RobberResView(self.board, self.players, self.current_player,
+                                                self.die1, self.die2))
 
         self._give_resources()
         self._build_player_texts()

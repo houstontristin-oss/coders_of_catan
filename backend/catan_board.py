@@ -42,6 +42,8 @@ class CatanBoard:
     def add_tile(self, xyz:tuple, resource:str, number:int):
         # add tile to registry
         new_tile = Tile.Tile(xyz, resource, number)
+        if resource == "desert":
+            new_tile.robber = True
         self.tiles[xyz] = new_tile
         tile_nodes = []
         x,y,z = xyz
