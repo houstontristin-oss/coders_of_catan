@@ -5,6 +5,9 @@ port_manager.py — PortManager
   btn_w btw_h for example need to be changed to constants in order to maintain consistency
 """
 
+"""
+port_manager.py — PortManager
+"""
 import math
 import random
 import arcade
@@ -12,37 +15,41 @@ import arcade
 from backend.port import Port
 
 from .constants import (
-    PORT_TYPES, PORT_SHIP_SPRITE, HEX_SIZE,
-    BOARD_CENTER_X, BOARD_CENTER_Y,
-    RESOURCE_ABBR, TEXT_GOLD
+    PORT_TYPES,
+    PORT_SHIP_SPRITE,
+    HEX_SIZE,
+    BOARD_CENTER_X,
+    BOARD_CENTER_Y,
+    RESOURCE_ABBR,
+    TEXT_GOLD,
 )
+from .board_utils import get_edge_outward_normal, normalize_vector
+from .drawing import draw_port_dock
 
-# How close the mouse must be to a ship centre (px) to trigger the hover
+
+# Hover still keys off ship center only
 _PORT_HOVER_RADIUS = 52
+
+# Visual tuning
+_PORT_SHIP_SCALE = 0.07
+_PORT_DOCK_START_OFFSET = HEX_SIZE * 0.10   # where dock leaves the island nodes
+_PORT_DOCK_END_OFFSET   = HEX_SIZE * 0.48   # where dock reaches toward the ship
+_PORT_SHIP_OFFSET       = HEX_SIZE * 1.18   # push ship farther into the water
+_PORT_LABEL_OUTWARD     = HEX_SIZE * 0.44
+_PORT_LABEL_SIDE        = HEX_SIZE * 0.18
 
 
 class PortManager:
     """
-    Manages all port state and rendering for a Catan board.
-
-    Attributes:
-        _ship_ok         : bool  — False if the ship sprite failed to load
-        _port_sprite_list: arcade.SpriteList — one ship sprite per port
-        _label_texts     : list[arcade.Text] — one Text object per port
-        _fallback_dots   : list[tuple]       — (x, y) used when ship sprite missing
-        _port_data       : list[dict]        — per-port metadata including node_ids
-                           for hover detection
+    Handles port layout, port rendering, and hover lookup.
     """
-
     def __init__(self, board, edge_pixel_cache):
-        self._board            = board
+        self._board = board
         self._edge_pixel_cache = edge_pixel_cache
         self._port_sprite_list = arcade.SpriteList()
-        self._label_texts      = []
-        self._fallback_dots    = []
-        # Each entry: {'ship_x', 'ship_y', 'label_x', 'label_y',
-        #              'port': Port(node_ids, resource)}
-        self._port_data        = []
+        self._label_texts = []
+        self._fallback_dots = []
+        self._port_data = []
 
         self._ship_ok = self._test_sprite()
 
@@ -55,11 +62,20 @@ class PortManager:
     # ------------------------------------------------------------------
 
     def draw(self):
-        """Draw all port ships and labels. Call once per frame in on_draw()."""
+        for entry in self._port_data:
+            draw_port_dock(
+                entry["x1"], entry["y1"],
+                entry["x2"], entry["y2"],
+                entry["dock_start_x1"], entry["dock_start_y1"],
+                entry["dock_end_x1"],   entry["dock_end_y1"],
+                entry["dock_start_x2"], entry["dock_start_y2"],
+                entry["dock_end_x2"],   entry["dock_end_y2"],
+            )
+
         if self._ship_ok:
             self._port_sprite_list.draw()
         else:
-            for (fx, fy) in self._fallback_dots:
+            for fx, fy in self._fallback_dots:
                 arcade.draw_circle_filled(fx, fy, 6, (15, 40, 90))
                 arcade.draw_circle_outline(fx, fy, 6, TEXT_GOLD, 1)
 
@@ -67,18 +83,8 @@ class PortManager:
             txt.draw()
 
     def get_hover_nodes(self, mx, my):
-        """
-        Return the list of node_ids belonging to the port nearest (mx, my),
-        if the mouse is within _PORT_HOVER_RADIUS pixels of that port's ship.
-        Returns an empty list when no port is close enough.
-
-        Parameters
-        ----------
-        mx, my : float — current mouse position in screen coordinates
-        """
         for entry in self._port_data:
-            dist = math.hypot(mx - entry["ship_x"], my - entry["ship_y"])
-            if dist <= _PORT_HOVER_RADIUS:
+            if math.hypot(mx - entry["ship_x"], my - entry["ship_y"]) <= _PORT_HOVER_RADIUS:
                 return entry["port"].get_port_nodes()
         return []
 
@@ -86,36 +92,24 @@ class PortManager:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _test_sprite(self) -> bool:
+    def _test_sprite(self):
         try:
-            arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
+            arcade.Sprite(PORT_SHIP_SPRITE, scale=_PORT_SHIP_SCALE)
             return True
         except Exception:
             return False
 
-    def _build(self, port_pool: list):
-        """
-        Core build pipeline — identical layout logic to the original, but now
-        also stores the two node_ids that belong to each port edge so that
-        CatanView can highlight them on hover.
-        """
-        # Collect all outer edges
+    def _build(self, port_pool):
         outer_edges = []
         for edge_id, edge_obj in self._board.edges.items():
+            # coastal edge = both endpoint nodes belong to fewer than 3 tiles
             if all(len(n.tiles) < 3 for n in edge_obj.nodes):
                 mx, my, x1, y1, x2, y2 = self._edge_pixel_cache[edge_id]
-                dx = mx - BOARD_CENTER_X
-                dy = my - BOARD_CENTER_Y
-                angle_from_center = math.atan2(dy, dx)
-                # Carry the edge_id so we can look up node_ids later
-                outer_edges.append(
-                    (angle_from_center, mx, my, x1, y1, x2, y2, edge_id)
-                )
+                angle_from_center = math.atan2(my - BOARD_CENTER_Y, mx - BOARD_CENTER_X)
+                outer_edges.append((angle_from_center, mx, my, x1, y1, x2, y2, edge_id))
 
-        # Sort clockwise from 12 o'clock
-        outer_edges.sort(
-            key=lambda e: (-(e[0] - math.pi / 2)) % (2 * math.pi)
-        )
+        # clockwise from top
+        outer_edges.sort(key=lambda e: (-(e[0] - math.pi / 2)) % (2 * math.pi))
 
         total = len(outer_edges)
         if total == 18:
@@ -125,55 +119,82 @@ class PortManager:
             port_edges = [outer_edges[round(i * step) % total] for i in range(9)]
 
         for i, entry in enumerate(port_edges):
-            angle_from_center, mx, my, x1, y1, x2, y2, edge_id = entry
+            _, mx, my, x1, y1, x2, y2, edge_id = entry
             resource = port_pool[i]
-            label    = f"2:1 {RESOURCE_ABBR[resource]}" if resource else "3:1"
+            label = f"2:1 {RESOURCE_ABBR[resource]}" if resource else "3:1"
 
-            dx     = mx - BOARD_CENTER_X
-            dy     = my - BOARD_CENTER_Y
-            dist   = math.hypot(dx, dy) or 1.0
-            norm_x = dx / dist
-            norm_y = dy / dist
+            norm_x, norm_y = get_edge_outward_normal(x1, y1, x2, y2)
+            tan_x, tan_y = normalize_vector(-(y2 - y1), (x2 - x1))
 
-            ship_x = mx + norm_x * (HEX_SIZE * 0.60)
-            ship_y = my + norm_y * (HEX_SIZE * 0.60)
+            # make tangent stable so labels don't randomly flip
+            if tan_x * (mx - BOARD_CENTER_X) + tan_y * (my - BOARD_CENTER_Y) < 0:
+                tan_x *= -1
+                tan_y *= -1
 
-            SHIP_HALF = HEX_SIZE * 0.38
-            LABEL_GAP = 10
-            label_x = ship_x + norm_x * (SHIP_HALF + LABEL_GAP + 24)
-            label_y = ship_y + norm_y * (SHIP_HALF + LABEL_GAP + 24)
+            # ship sits a fixed distance out to sea
+            ship_x = mx + norm_x * _PORT_SHIP_OFFSET
+            ship_y = my + norm_y * _PORT_SHIP_OFFSET
+
+            # Each node gets its own dock that extends outward toward the ship.
+            # The pier starts just off the coastal node and ends just short of
+            # the ship sprite so the rails don't pierce through the hull.
+            dock_start_x1 = x1 + norm_x * _PORT_DOCK_START_OFFSET
+            dock_start_y1 = y1 + norm_y * _PORT_DOCK_START_OFFSET
+            dock_end_x1   = x1 + norm_x * _PORT_DOCK_END_OFFSET
+            dock_end_y1   = y1 + norm_y * _PORT_DOCK_END_OFFSET
+
+            dock_start_x2 = x2 + norm_x * _PORT_DOCK_START_OFFSET
+            dock_start_y2 = y2 + norm_y * _PORT_DOCK_START_OFFSET
+            dock_end_x2   = x2 + norm_x * _PORT_DOCK_END_OFFSET
+            dock_end_y2   = y2 + norm_y * _PORT_DOCK_END_OFFSET
+
+            label_x = ship_x + norm_x * _PORT_LABEL_OUTWARD + tan_x * _PORT_LABEL_SIDE
+            label_y = ship_y + norm_y * _PORT_LABEL_OUTWARD + tan_y * _PORT_LABEL_SIDE
 
             self._fallback_dots.append((ship_x, ship_y))
 
-            # Resolve the two node_ids for hover highlighting
-            edge_obj  = self._board.edges[edge_id]
-            node_ids  = [n.node_id for n in edge_obj.nodes]
+            edge_obj = self._board.edges[edge_id]
+            node_ids = [n.node_id for n in edge_obj.nodes]
 
-            # Store per-port metadata
             self._port_data.append({
-                "ship_x":   ship_x,
-                "ship_y":   ship_y,
-                "label_x":  label_x,
-                "label_y":  label_y,
-                "port": Port(node_ids, resource)
+                "x1": x1,
+                "y1": y1,
+                "x2": x2,
+                "y2": y2,
+                "dock_start_x1": dock_start_x1,
+                "dock_start_y1": dock_start_y1,
+                "dock_end_x1":   dock_end_x1,
+                "dock_end_y1":   dock_end_y1,
+                "dock_start_x2": dock_start_x2,
+                "dock_start_y2": dock_start_y2,
+                "dock_end_x2":   dock_end_x2,
+                "dock_end_y2":   dock_end_y2,
+                "ship_x": ship_x,
+                "ship_y": ship_y,
+                "label_x": label_x,
+                "label_y": label_y,
+                "port": Port(node_ids, resource),
             })
 
-            # Label text
             self._label_texts.append(
                 arcade.Text(
                     label,
-                    label_x, label_y,
-                    (15, 40, 90, 255), 13,
+                    label_x,
+                    label_y,
+                    (15, 40, 90, 255),
+                    13,
                     bold=True,
-                    anchor_x="center", anchor_y="center",
-                    font_name="MedievalSharp"
+                    anchor_x="center",
+                    anchor_y="center",
+                    font_name="MedievalSharp",
                 )
             )
 
-            # Ship sprite
             if self._ship_ok:
-                ship          = arcade.Sprite(PORT_SHIP_SPRITE, scale=0.07)
+                ship = arcade.Sprite(PORT_SHIP_SPRITE, scale=_PORT_SHIP_SCALE)
                 ship.center_x = ship_x
                 ship.center_y = ship_y
-                ship.angle    = 0
+
+                # All ships face straight up regardless of position on the board
+                ship.angle = 0
                 self._port_sprite_list.append(ship)

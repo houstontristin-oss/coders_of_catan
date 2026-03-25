@@ -5,7 +5,7 @@ import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import (
     HUD_BOTTOM_HEIGHT, HUD_BG, SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN, SCREEN_HEIGHT, BTN_TRADE,
-    TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG
+    TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG, TOP_BAR_HEIGHT
 )
 
 # ---------------------------------------------------------------------------
@@ -21,10 +21,10 @@ _RES_COLOR_KEY = {"BRICK": "brick", "ORE": "ore", "WHEAT": "wheat",
 # Layout — columns
 # ---------------------------------------------------------------------------
 _COL_COUNT = 5
-_BTN_W     = 30     # width of – / + buttons
+_BTN_W     = 50     # width of – / + buttons
 _SPIN_W    = 40     # width of count box
 _SWATCH_H  = 52     # coloured resource swatch
-_BTN_H     = 34     # spinner row height
+_BTN_H     = 52     # spinner row height
 _COL_W     = _BTN_W * 2 + _SPIN_W          # 100 px per column
 _COL_GAP   = 16                              # gap between columns
 _PANEL_W   = _COL_COUNT * _COL_W + (_COL_COUNT - 1) * _COL_GAP   # 564 px
@@ -43,6 +43,10 @@ _DIVIDER_Y   = _DISCARD_Y + _DISCARD_BTN_H + 22    # seperator line
 _OFFT_SPIN_Y = _DIVIDER_Y + 30                        # bottom of Discard spinners
 _OFFT_HEAD_Y = _OFFT_SPIN_Y + _BTN_H + _SWATCH_H - 2 # "DISCARD" label y
 
+_CARD_COUNT_TEXT = _OFFT_HEAD_Y + 30
+_LARGE_TEXT_SIZE = 20
+_SMALL_TEXT_SIZE = 10
+
 
 class RobberResView(arcade.View):
     """
@@ -52,12 +56,21 @@ class RobberResView(arcade.View):
         super().__init__()
         self.board= board
         self.players = players
-        self.current_player = current_player
+        self.current_player = current_player # will stay as the player whose turn it is
         self.die1 = die1
         self.die2 = die2
         self.port_manager = port_manager
+        self._pending = None          # int index of discarding player, or None
+
+        # Build ordered queue: roller first, then wrap around, skip anyone under 8 cards
+        self._discard_queue = [
+            i for i in
+            [current_player] + [(current_player + j) % len(players) for j in range(1, len(players))]
+            if players[i].get_total_resources() >= 8
+        ]
+        self._queue_index = 0   # which position in the queue we're currently on
+        self._active_discarder = self._discard_queue[0] if self._discard_queue else None
         self._resources = {r: 0 for r in _RESOURCES}
-        self._pending = None          # int index of receiving player, or None
 
         # Text buckets — static built once, dynamic rebuilt each frame
         self._static_texts  = []
@@ -68,12 +81,18 @@ class RobberResView(arcade.View):
         self._modal_decline_rect = None
         self._modal_can_afford   = False
 
-        
-
     # ------------------------------------------------------------------
     # Arcade lifecycle
     # ------------------------------------------------------------------
     def on_show_view(self):
+        print(self._discard_queue)
+        if self._discard_queue == []: # checks to make sure than there are players who need to discard
+            from .robber_place_view import RobberPlaceView
+            self.window.show_view(RobberPlaceView(
+                self.board, self.players, self.current_player,
+                self.die1, self.die2, self.port_manager
+            ))
+            return
         self._build_static_texts()
 
     def on_draw(self):
@@ -86,8 +105,8 @@ class RobberResView(arcade.View):
         fill_rect(0, _BAR_H, SCREEN_WIDTH, SCREEN_HEIGHT - _BAR_H, (16, 16, 36, 255))
 
         # Gold header bar at top
-        fill_rect(0, SCREEN_HEIGHT - 58, SCREEN_WIDTH, 58, (18, 18, 48, 255))
-        outline_rect(0, SCREEN_HEIGHT - 58, SCREEN_WIDTH, 1, (60, 60, 90, 200), 1)
+        fill_rect(0, SCREEN_HEIGHT-TOP_BAR_HEIGHT, SCREEN_WIDTH, TOP_BAR_HEIGHT, (18, 18, 48, 255))
+        outline_rect(0, SCREEN_HEIGHT-TOP_BAR_HEIGHT, SCREEN_WIDTH, 1, (60, 60, 90, 200), 1)
 
         # Rebuild dynamic texts each frame
         self._dynamic_texts = []
@@ -114,7 +133,7 @@ class RobberResView(arcade.View):
         _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
         if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
             from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player, 
+            self.window.show_view(CatanView(self.board, self.players, self._active_discarder, 
                                             self.die1, self.die2, self.port_manager ))
             return
 
@@ -127,13 +146,23 @@ class RobberResView(arcade.View):
 
     def _build_static_texts(self):
         self._static_texts = []
-        player = self.players[self.current_player]
+        player = self.players[self._active_discarder]
 
         # Title (matches PlayCardView title style exactly)
         self._static_texts.append(arcade.Text(
             f"A 7 Was Rolled, {player.name} Must Discard",      # text to display
             SCREEN_WIDTH / 2, SCREEN_HEIGHT - 28,   # x location, y location
-            TEXT_GOLD, 20, bold=True,
+            TEXT_GOLD, _LARGE_TEXT_SIZE, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+
+        total = player.get_total_resources()
+        must_discard = total // 2
+        self._static_texts.append(arcade.Text(
+            f"You have {total} cards — discard {must_discard}",
+            SCREEN_WIDTH / 2, _CARD_COUNT_TEXT,   # x location, y location
+            TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         ))
@@ -142,7 +171,7 @@ class RobberResView(arcade.View):
         self._static_texts.append(arcade.Text(
             f"since you have more than 7 cards, you must discard half of your cards rounding down",
             SCREEN_WIDTH / 2, SCREEN_HEIGHT - 52,   # x location, y location
-            TEXT_WHITE, 10, bold=True,
+            TEXT_WHITE, _SMALL_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         ))
@@ -156,7 +185,7 @@ class RobberResView(arcade.View):
             self._static_texts.append(arcade.Text(
                 _RES_DISPLAY[res],
                 col_cx, _OFFT_SPIN_Y + _BTN_H + _SWATCH_H * 0.6,
-                TEXT_WHITE, 9, bold=True,
+                TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
@@ -164,14 +193,14 @@ class RobberResView(arcade.View):
             self._static_texts.append(arcade.Text(
                 "−", col_x + _BTN_W / 2,
                 _OFFT_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, 16, bold=True,
+                TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
             self._static_texts.append(arcade.Text(
                 "+", col_x + _BTN_W + _SPIN_W + _BTN_W / 2,
                 _OFFT_SPIN_Y + _BTN_H / 2,
-                TEXT_WHITE, 16, bold=True,
+                TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
@@ -181,7 +210,7 @@ class RobberResView(arcade.View):
         self._static_texts.append(arcade.Text(
             "← Back to Board",
             _PAD + _BTN_W_BAR / 2, _PAD + _BTN_H_BAR / 2,
-            TEXT_WHITE, 12, bold=True,
+            TEXT_WHITE, _LARGE_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         ))
@@ -200,7 +229,7 @@ class RobberResView(arcade.View):
     
     def _draw_sections(self):
         """Draw offer + receive swatches, spinners, and dynamic counter labels."""
-        player = self.players[self.current_player]
+        player = self.players[self._active_discarder]
 
         # Horizontal divider between sections
         arcade.draw_line(
@@ -215,7 +244,7 @@ class RobberResView(arcade.View):
             spin_cx = col_x + _BTN_W + _SPIN_W / 2
             have    = player.resource_cards.get(res, 0)
 
-            # ---- OFFER section ----
+            # ---- DISCARD section ----
             swatch_color = RESOURCE_COLORS[_RES_COLOR_KEY[res]]
             fill_rect(col_x, _OFFT_SPIN_Y + _BTN_H + 4,
                       _COL_W, _SWATCH_H, swatch_color)
@@ -261,8 +290,6 @@ class RobberResView(arcade.View):
                 anchor_x="center", anchor_y="center",
                 font_name="MedievalSharp",
             ))
-
-
 
     def _draw_pending_modal(self):
         """
@@ -354,7 +381,7 @@ class RobberResView(arcade.View):
     # Click handlers
     # ------------------------------------------------------------------
     def _handle_spinner_click(self, x, y):
-        player = self.players[self.current_player]
+        player = self.players[self._active_discarder]
 
         for i, res in enumerate(_RESOURCES):
             col_x = _PANEL_X + i * (_COL_W + _COL_GAP)
@@ -375,7 +402,7 @@ class RobberResView(arcade.View):
         
         # Check if click is inside the Discard button
         if start_x <= x <= start_x + btn_w and _DISCARD_Y <= y <= _DISCARD_Y + _DISCARD_BTN_H:
-            player = self.players[self.current_player]
+            player = self.players[self._active_discarder]
             
             # 2. Calculate how many they MUST discard (half hand, rounded down)
             total_cards = sum(player.resource_cards.values())
@@ -385,7 +412,7 @@ class RobberResView(arcade.View):
             # 3. Validation: Only proceed if they selected the right amount
             if current_selection == required_discard:
                 # Set pending to current player to trigger the confirmation modal
-                self._pending = self.current_player
+                self._pending = self._active_discarder
             else:
                 # Optional: You could add a message here saying "You must select X cards"
                 print(f"Invalid discard amount: {current_selection}/{required_discard}")
@@ -405,3 +432,28 @@ class RobberResView(arcade.View):
         if dx <= x <= dx + dw and dy <= y <= dy + dh: # decline button location
             self._result_msg = f"{self.players[self._pending].name} Canceled."
             self._pending    = None
+    # ------------------------------------------------------------------
+    # Logic Handlers
+    # ------------------------------------------------------------------
+    def _advance_queue(self):
+        """Move to the next player who needs to discard, or exit if done."""
+        self._queue_index += 1
+        self._resources = {r: 0 for r in _RESOURCES}  # reset spinner
+
+        if self._queue_index < len(self._discard_queue):
+            self._active_discarder = self._discard_queue[self._queue_index]
+            self._pending = None
+            self._build_static_texts()  # rebuild title for new player
+        else:
+            # Everyone's done — move to robber placement
+            from .robber_place_view import RobberPlaceView
+            self.window.show_view(RobberPlaceView(
+                self.board, self.players, self.current_player,
+                self.die1, self.die2, self.port_manager
+            ))
+
+    def _execute_trade(self):
+        player = self.players[self._active_discarder]
+        player.exchange_resources(self._resources, {})
+        self._pending = None
+        self._advance_queue()

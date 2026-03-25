@@ -30,6 +30,3 @@ Amanda:
 
 
 Nick:
-
-* Trading with players “Offer Trade” (medium) (important)
-* Make port graphics more user friendly (medium) (nice-to-have)
