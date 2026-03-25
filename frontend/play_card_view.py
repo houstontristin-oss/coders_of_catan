@@ -25,6 +25,7 @@ from .drawing import fill_rect, outline_rect
 from .constants import *
 from backend.dev_base import *
 
+LARGEST_ARMY_VP = 2
 
 class PlayCardView(arcade.View):
     """
@@ -518,6 +519,9 @@ class PlayCardView(arcade.View):
 
         p         = self.players[self.current_player]
         card_dict = p.development_cards.pop(self._selected_card)
+        # Add to players knights played count to track largest army
+        if card_dict["type"] == "knight":
+            p.knight_count += 1
         card_obj  = DevCard.from_dict(card_dict)
         self._selected_card    = None
         self._played_this_turn = True
@@ -551,6 +555,25 @@ class PlayCardView(arcade.View):
         self._build_text_objects()
 
     def _go_back(self):
+        player = self.players[self.current_player]
+        #if player has played more than 3 knights
+        if player.knight_count >= 3:
+            # loop through opponents to see if any have the largest army card
+            holder_of_card = None
+            for opponent in self.players:
+                if opponent.largest_army:
+                    holder_of_card = opponent
+            # If no one holds the card yet 
+            if holder_of_card is None:
+                player.largest_army = True
+                player.victory_points += LARGEST_ARMY_VP
+            # if someone holds the card, strip them of their title and give player the card
+            elif holder_of_card != player and player.knight_count > holder_of_card.knight_count: 
+                holder_of_card.largest_army = False
+                holder_of_card.victory_points -= LARGEST_ARMY_VP
+                player.largest_army = True
+                player.victory_points += LARGEST_ARMY_VP
+
         from .catan_view import CatanView
         self.window.show_view(
             CatanView(

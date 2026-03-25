@@ -25,6 +25,11 @@ class Player:
         self.ports = []
         self.color = color
         self.name = name
+        self.knight_count = 0
+        self.largest_army = False
+        self.road_length = 0
+        self.longest_road = False
+
 
     def exchange_resources(self, giving_resources:dict, receiving_resources:dict):
         '''

@@ -27,6 +27,10 @@ from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_b
 from .constants import *
 from .view_constants import *  # noqa: F401,F403
 
+CARD_SCALE = 0.25
+ARMY_ROAD_SPRITE_X = SCREEN_WIDTH - 70
+ARMY_ROAD_SPRITE_Y1 = SCREEN_HEIGHT / 2 + 150
+ARMY_ROAD_SPRITE_Y2 = SCREEN_HEIGHT / 2
 
 class CatanView(arcade.View):
     """
@@ -106,6 +110,7 @@ class CatanView(arcade.View):
         self._load_background()
         self._build_text_objects()
         self._load_resource_icons()
+        self._load_card_sprites()
         self._assign_number_tokens()
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
@@ -135,6 +140,14 @@ class CatanView(arcade.View):
         self._dice_animating  = True
         self._dice_anim_timer = DICE_ROLL_DURATION
         self._dice_flip_timer = DICE_ROLL_FLIP_RATE
+
+    # -----------------------------------------------------------------------
+    # Longest Road and Largest Army sprite
+    # -----------------------------------------------------------------------
+    def _load_card_sprites(self):
+        self._road_card_sprite = arcade.Sprite(ROAD_CARD_SPRITE, scale=CARD_SCALE, center_y=ARMY_ROAD_SPRITE_Y1, center_x=ARMY_ROAD_SPRITE_X)
+        self._army_card_sprite = arcade.Sprite(ARMY_CARD_SPRITE, scale=CARD_SCALE, center_y=ARMY_ROAD_SPRITE_Y2, center_x=ARMY_ROAD_SPRITE_X)
+        self._card_list   = arcade.SpriteList()
 
     # -----------------------------------------------------------------------
     # Robber sprite
@@ -691,6 +704,18 @@ class CatanView(arcade.View):
             ).draw()
 
     # -----------------------------------------------------------------------
+    # Largest Army and Longest Road drawing
+    # -----------------------------------------------------------------------
+    def _draw_cards(self):
+        player = self.players[self.current_player]
+        if self._army_card_sprite not in self._card_list and player.largest_army:
+            self._army_card_sprite.center_y = ARMY_ROAD_SPRITE_Y1 if not player.longest_road else ARMY_ROAD_SPRITE_Y2
+            self._card_list.append(self._army_card_sprite)
+        if self._road_card_sprite not in self._card_list and player.longest_road:
+            self._card_list.append(self._road_card_sprite)
+        self._card_list.draw()
+
+    # -----------------------------------------------------------------------
     # Port drawing
     # -----------------------------------------------------------------------
     def _draw_ports(self):
@@ -883,6 +908,7 @@ class CatanView(arcade.View):
         self._draw_bottom_bar()
         self._draw_build_submenu()
         self._draw_trade_submenu()
+        self._draw_cards()
 
     # -----------------------------------------------------------------------
     # Mouse motion
@@ -1182,6 +1208,7 @@ class CatanView(arcade.View):
         self.current_player = (self.current_player + 1) % len(self.players)
         self._cancel_build()
         self._cancel_trade()
+        self._card_list = arcade.SpriteList()
 
         # Reset per-turn dev-card flags for the new player
         self._bought_card_this_turn  = False
