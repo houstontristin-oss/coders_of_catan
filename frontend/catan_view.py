@@ -1202,7 +1202,7 @@ class CatanView(arcade.View):
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
             self.window.show_view(RobberResView(self.board, self.players, self.current_player,
-                                                self.die1, self.die2))
+                                                self.die1, self.die2, self.port_manager))
 
         self._give_resources()
         self._build_player_texts()
