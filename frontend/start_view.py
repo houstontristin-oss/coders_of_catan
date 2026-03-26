@@ -259,7 +259,7 @@ def _draw_title():
     ).draw()
     # Subtitle
     arcade.Text(
-        "Click anywhere to begin  ·  or  Skip Setup ▶",
+        "Click anywhere to begin",
         SCREEN_WIDTH / 2, START_SUBTITLE_Y,
         (184, 137, 44, 255), START_SUBTITLE_FONT_SIZE,
         font_name="MedievalSharp",
