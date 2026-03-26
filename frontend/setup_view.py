@@ -11,11 +11,11 @@ import arcade
 from backend.catan_board import CatanBoard
 
 from .port_manager import PortManager
-from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect
+from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect, draw_ocean_background, draw_shoreline_shimmer
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
-DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,EDGE_SNAP_RADIUS,
-NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX)
+DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD, EDGE_SNAP_RADIUS,
+NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR)
 
 class SetupView(arcade.View):
     """
@@ -28,7 +28,7 @@ class SetupView(arcade.View):
         self.current_player = current_player # index of current player in players list
         self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
         self.last_placed_settlement = None # track last placed settlement for edge verification
-        
+
 
         #Build node states
         self.build_choice  = BUILD_SETTLEMENT
@@ -37,6 +37,9 @@ class SetupView(arcade.View):
         self.selected_node = None
         self.selected_edge = None
         self.show_confirm  = False
+
+        # --- Ocean animation ---
+        self._ocean_time = 0.0
 
         self._node_pixel_cache = {}
         self._edge_pixel_cache = {}
@@ -213,8 +216,19 @@ class SetupView(arcade.View):
         self.selected_edge = None
         self.show_confirm  = False
 
+    def on_update(self, delta_time: float):
+        self._ocean_time += delta_time
+
     def on_draw(self):
         self.clear()
+
+        # --- Animated ocean background (mirrors CatanView) ---
+        if USE_OCEAN_BACKGROUND:
+            draw_ocean_background(self._ocean_time)
+            draw_shoreline_shimmer(self.board, self._ocean_time)
+        else:
+            arcade.set_background_color(OCEAN_BASE_COLOR)
+
         # --- Draw the board ---
         draw_board(self.board)
         self.txt_title.draw()
@@ -307,7 +321,7 @@ class SetupView(arcade.View):
                                     if node.player != None:
                                         player = self.players[node.player]
                                         player.resource_cards[resource] += 1 if node.building == "settlement" else 2
-                                        
+
                         self.window.show_view(
                             CatanView(
                                 self.board,
@@ -319,7 +333,7 @@ class SetupView(arcade.View):
                             ))
                         return
 
-                    self.window.show_view(SetupView(self.board, self.players, 
+                    self.window.show_view(SetupView(self.board, self.players,
                                                     self.current_player, self.cycle, self.port_manager))
                 return
             if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
