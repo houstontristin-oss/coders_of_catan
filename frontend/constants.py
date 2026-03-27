@@ -8,7 +8,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ---------------------------------------------------------------------------
-# Window Size  -  Trying to make it wider not taller for laptops
+# Window Size
 SCREEN_WIDTH  = 1000
 SCREEN_HEIGHT = 701
 SCREEN_TITLE  = "Coders of Catan"
