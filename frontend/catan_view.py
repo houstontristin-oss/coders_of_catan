@@ -32,6 +32,9 @@ ARMY_ROAD_SPRITE_X = SCREEN_WIDTH - 70
 ARMY_ROAD_SPRITE_Y1 = SCREEN_HEIGHT / 2 + 150
 ARMY_ROAD_SPRITE_Y2 = SCREEN_HEIGHT / 2
 
+ROADS_NEEDED = 5
+LONGEST_ROAD_VP = 2
+
 class CatanView(arcade.View):
     """
     CatanView Class
@@ -1150,6 +1153,42 @@ class CatanView(arcade.View):
         self._cancel_build()
         self._build_player_texts()
         print(f"{player.name} built a road!")
+        self._check_longest_road(edge)
+
+    def _check_longest_road(self, edge):
+        player = self.players[self.current_player]
+        #check if player has longest road
+        edge_list = [edge]
+        for e in edge_list:
+            for node in e.nodes:
+                # do not keep searching if another player has a settlement on the node
+                if node.player == self.current_player or node.player is None:
+                    for neighbor_edge in node.edges:
+                        # check if the edge has been explored before and if the player owns another edge
+                        if neighbor_edge not in edge_list and neighbor_edge is not e and neighbor_edge.player == self.current_player:
+                            edge_list.append(neighbor_edge)
+
+        if player.road_length < len(edge_list):
+            player.road_length = len(edge_list)
+
+        #if player has played more than 5 connected roads
+        if player.road_length >= ROADS_NEEDED:
+            # loop through opponents to see if any have the largest army card
+            holder_of_card = None
+            for opponent in self.players:
+                print(f"{player.name}: {opponent.road_length} cont. roads")
+                if opponent.longest_road:
+                    holder_of_card = opponent
+            # If no one holds the card yet 
+            if holder_of_card is None:
+                player.longest_road = True
+                player.victory_points += LONGEST_ROAD_VP
+            # if someone holds the card, strip them of their title and give player the card
+            elif holder_of_card != player and player.road_length > holder_of_card.road_length: 
+                holder_of_card.longest_road = False
+                holder_of_card.victory_points -= LONGEST_ROAD_VP
+                player.longest_road = True
+                player.victory_points += LONGEST_ROAD_VP
 
     def _place_road_free(self, edge):
         """Place a road using a free-road grant from Road Building card."""
@@ -1159,6 +1198,7 @@ class CatanView(arcade.View):
         self._cancel_build()
         self._build_player_texts()
         print(f"{self.players[self.current_player].name} placed a free road! ({self._free_roads} remaining)")
+        self._check_longest_road(edge)
 
     def _cancel_build(self):
         self.build_mode    = False
