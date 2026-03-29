@@ -1,13 +1,18 @@
 """
 Contains Robber Placement Class
 """
+import random
 import arcade
 
 from .drawing import draw_board, fill_rect, outline_rect
-from .constants import*
+from .constants import (SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, TEXT_WHITE,
+                        HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y, ROBBER_SPRITE,
+                        HUD_PANEL_WIDTH, DICE_AREA_WIDTH)
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .setup_view import draw_road, draw_settlement
-from .view_constants import *
+from .view_constants import (CATAN_ROBBER_SCALE_MULT, CATAN_BOARD_TOP_CULL_Y,
+                             CATAN_HUD_LEFT_BLOCK_PAD, CATAN_HIGHLIGHT_RADIUS_HOVER,
+                             CATAN_HIGHLIGHT_RADIUS_OUTLINE, CATAN_DICE_RIGHT_BLOCK_PAD)
 
 class RobberPlaceView(arcade.View):
     """
@@ -43,6 +48,11 @@ class RobberPlaceView(arcade.View):
         self._robber_tile = None
         self._load_robber_sprite()
 
+        # --- Theft state ---
+        self.thief_mode = False
+        self.vic_players = []
+        self.show_vic = False
+
     def _build_text_objects(self):
         player = self.players[self.current_player]
         self.txt_title = arcade.Text(f"{player.name}: Place the Robber", SCREEN_WIDTH / 3,
@@ -55,6 +65,10 @@ class RobberPlaceView(arcade.View):
         self.txt_popup_confirm = arcade.Text("", 0, 0, TEXT_WHITE, 9, bold=True,
                                              anchor_x="center", anchor_y="center",
                                              font_name="MedievalSharp")
+        self.txt_popup_rob = arcade.Text("", 0, 0, TEXT_WHITE, 9, bold=True,
+                                             anchor_x="center", anchor_y="center",
+                                             font_name="MedievalSharp")
+
         self.txt_popup_cancel = arcade.Text("Cancel", 0, 0, TEXT_WHITE, 9, bold=True,
                                             anchor_x="center", anchor_y="center",
                                             font_name="MedievalSharp")
@@ -123,7 +137,6 @@ class RobberPlaceView(arcade.View):
         self.txt_popup_cancel.y = cy + 23
         self.txt_popup_cancel.draw()
 
-
     # -----------------------------------------------------------------------
     # Robber sprite
     # -----------------------------------------------------------------------
@@ -170,13 +183,118 @@ class RobberPlaceView(arcade.View):
         self._place_robber_on_tile()
         self._cancel_build()
         print(f"{player.name} moved the robber!")
-        from .catan_view import CatanView
-        self.window.show_view(CatanView(self.board, self.players, self.current_player,
-                                        self.die1, self.die2, self.port_manager))
+
+        self.vic_players = self._get_victims(tile)
+
+        if self.vic_players:
+            self.thief_mode = True
+            self.show_vic = True
+            self.hovered_tile = None
+        else:
+            print("No victims found.")
+            self._end_robber()
+        #from .catan_view import CatanView
+        #self.window.show_view(CatanView(self.board, self.players, self.current_player,
+                                        #self.die1, self.die2, self.port_manager))
 
     # -----------------------------------------------------------------------
     # Theft function
     # -----------------------------------------------------------------------
+
+    def _get_victims(self, tile):
+        victim_list = set() #make sure a player isn't listed twice
+
+        for node_id, node_obj in self.board.nodes.items():
+            if tile in node_obj.tiles and node_obj.player is not None:
+                if node_obj.player != self.current_player:
+                    vic = self.players[node_obj.player]
+
+                    if sum(vic.resource_cards.values()) > 0: #only rob people with cards
+                        victim_list.add(node_obj.player)
+
+        return victim_list
+
+    def _rob_victim(self, victim_id):
+        victim = self.players[victim_id]
+        current = self.players[self.current_player]
+
+        print(victim.resource_cards)
+        print(current.resource_cards)
+
+        total_res = sum(victim.resource_cards.values())
+
+        if total_res == 0:
+            print(f"{victim.name} has no resources.")
+
+        choice = random.randint(1, total_res)
+
+        total = 0
+        for res, count in victim.resource_cards.items():
+            total += count
+            if choice <= total:
+                stolen = res
+                break
+
+        victim.resource_cards[stolen] -= 1
+        current.resource_cards[stolen] += 1
+        print(f"{current.name} stole 1 {stolen} from {victim.name}")
+
+        print(victim.resource_cards)
+        print(current.resource_cards)
+
+        self.show_vic = False
+        self.thief_mode = False
+        self._end_robber()
+
+
+    def _end_robber(self):
+        from .catan_view import CatanView
+        self.window.show_view(CatanView(self.board, self.players, self.current_player,
+                                        self.die1, self.die2, self.port_manager))
+
+    def _draw_vic_popup(self):
+        if not self.show_vic:
+            return
+
+        cx = SCREEN_WIDTH / 2
+        cy = SCREEN_HEIGHT / 2
+
+        popup_w = 220
+        popup_h = 60 + 40 * len(self.vic_players)
+
+        left = cx - popup_w / 2
+
+        fill_rect(left, cy, popup_w, popup_h, (20,20,40,230))
+        outline_rect(left, cy, popup_w, popup_h, TEXT_GOLD, 2)
+
+        #Title
+        self.txt_popup_rob.text = "Choose a player to rob"
+        self.txt_popup_rob.font_size = 14
+        self.txt_popup_rob.font_color = TEXT_GOLD
+        self.txt_popup_rob.x = cx
+        self.txt_popup_rob.y = cy + popup_h - 20
+        self.txt_popup_rob.draw()
+
+        #Buttons
+        self.vic_buttons = []
+
+        for i, vic in enumerate(self.vic_players):
+            player = self.players[vic]
+
+            bx = left + 20
+            by = cy + popup_h - 70 - i * 40
+            bw = popup_w - 40
+            bh = 30
+
+            fill_rect(bx, by, bw, bh, player.color)
+            self.txt_popup_rob.text = player.name
+            self.txt_popup_rob.font_size = 12
+            self.txt_popup_rob.font_color = TEXT_WHITE
+            self.txt_popup_rob.x = bx + bw / 2
+            self.txt_popup_rob.y = by + 15
+            self.txt_popup_rob.draw()
+
+            self.vic_buttons.append((vic, bx, by, bw, bh))
 
     def on_show_view(self):
         self._build_text_objects()
@@ -197,6 +315,9 @@ class RobberPlaceView(arcade.View):
         if self.show_confirm:
             self._draw_confirm_popup()
 
+        if self.show_vic:
+            self._draw_vic_popup()
+
         self._draw_robber_settle_highlights()
 
     # -----------------------------------------------------------------------
@@ -214,6 +335,9 @@ class RobberPlaceView(arcade.View):
                 draw_settlement(npx, npy, 14, self.players[node_obj.player].color)
 
     def _draw_robber_settle_highlights(self):
+        if self.thief_mode:
+            return
+
         if not self.hovered_tile: #only highlight nodes on hovered tile
             return
 
@@ -239,7 +363,8 @@ class RobberPlaceView(arcade.View):
                                        (*player_color, 120), 3)
 
     def on_mouse_motion(self, x, y, dx, dy):
-        if self.show_confirm:
+        if self.show_confirm or self.show_vic:
+            self.hovered_tile = None
             return
 
         self.hovered_tile = None
@@ -251,6 +376,11 @@ class RobberPlaceView(arcade.View):
                 break
 
     def on_mouse_press(self, x, y, button, modifiers):
+        if self.show_vic:
+            for vic, bx, by, bw, bh in self.vic_buttons:
+                if bx <= x <= bx + bw and by <= y <= by + bh:
+                    self._rob_victim(vic)
+                    return
         # Confirmation popup for placing robber
         if self.show_confirm:
             if self.selected_tile:
