@@ -57,6 +57,7 @@ class CatanView(arcade.View):
         bought_card_this_turn=False,
         played_card_this_turn=False,
         free_roads=0,
+        start_of_turn = False,
     ):
         super().__init__()
         self.board          = board
@@ -87,6 +88,10 @@ class CatanView(arcade.View):
         self._dice_animating  = False
         self._dice_anim_timer = 0.0
         self._dice_flip_timer = 0.0
+        if start_of_turn:
+            self._dice_animating  = True
+            self._dice_anim_timer = DICE_ROLL_DURATION
+            self._dice_flip_timer = DICE_ROLL_FLIP_RATE
         self._anim_die1       = die1   # face showing during animation
         self._anim_die2       = die2
         self._dice_sprites    = {}     # face value (1-6) -> arcade.Sprite | None
@@ -139,11 +144,6 @@ class CatanView(arcade.View):
             except Exception:
                 self._dice_sprites[face] = None
 
-    def _start_dice_animation(self):
-        self._dice_animating  = True
-        self._dice_anim_timer = DICE_ROLL_DURATION
-        self._dice_flip_timer = DICE_ROLL_FLIP_RATE
-
     # -----------------------------------------------------------------------
     # Longest Road and Largest Army sprite
     # -----------------------------------------------------------------------
@@ -177,7 +177,7 @@ class CatanView(arcade.View):
         for xyz, tile in self.board.tiles.items():
             if tile.robber:
                 self._robber_tile = tile
-                if self._robber_sprite_ok:
+                if self._robber_sprite_ok and self._robber_sprite:
                     cx, _, cz = xyz
                     px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
                     target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
@@ -1261,16 +1261,14 @@ class CatanView(arcade.View):
         # Roll dice and start animation
         self.die1 = random.randint(ONE, SIX)
         self.die2 = random.randint(ONE, SIX)
-        self._start_dice_animation()
-
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
             self.window.show_view(RobberResView(self.board, self.players, self.current_player,
                                                 self.die1, self.die2, self.port_manager))
+            return
 
         self._give_resources()
-        self._build_player_texts()
-        self._build_dice_texts()
+        self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager, start_of_turn=True))
 
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")

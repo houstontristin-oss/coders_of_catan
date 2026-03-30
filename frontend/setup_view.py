@@ -330,6 +330,7 @@ class SetupView(arcade.View):
                                 die1,
                                 die2,
                                 self.port_manager,
+                                start_of_turn=True,
                             ))
                         return
 
