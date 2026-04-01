@@ -57,8 +57,9 @@ class TradeViewBarter(arcade.View):
     self._pending : None = showing offer builder
     self._pending : int  = waiting for player[_pending] to accept/decline
     """
-    def __init__(self, board, players, current_player, die1, die2, port_manager):
+    def __init__(self, vm, board, players, current_player, die1, die2, port_manager):
         super().__init__()
+        self.vm             = vm
         self.board          = board
         self.players        = players
         self.current_player = current_player
@@ -123,8 +124,7 @@ class TradeViewBarter(arcade.View):
         # Back button (bottom-left, same position as PlayCardView)
         _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
         if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
-            from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager))
+            self.window.vm.go_back()
             return
 
         self._handle_spinner_click(x, y)
@@ -524,6 +524,8 @@ class TradeViewBarter(arcade.View):
             self._result_msg = "Trade failed — insufficient resources."
             self._pending    = None
             return
-
-        from .catan_view import CatanView
-        self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager))
+        
+        self.window.vm.go_to("catan",
+            board=self.board, players=self.players, current_player=self.current_player, 
+            die1=self.die1, die2=self.die2, port_manager=self.port_manager
+        )
