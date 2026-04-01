@@ -27,6 +27,7 @@ from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
                       draw_board, draw_city, draw_ocean_background)
 from .constants import *
 from .view_constants import *  # noqa: F401,F403
+from .computer_turn_view import ComputerTurnView
 
 CARD_SCALE = 0.25
 ARMY_ROAD_SPRITE_X = SCREEN_WIDTH - 70
@@ -47,26 +48,26 @@ class CatanView(arcade.View):
         free_roads           : int  — free roads remaining from Road Building card
     """
     def __init__(
-        self,
-        board,
-        players,
-        current_player,
-        die1,
-        die2,
-        port_manager,
-        shared_deck=None,
-        bought_card_this_turn=False,
-        played_card_this_turn=False,
-        free_roads=0,
-        start_of_turn = False,
+            self,
+            board,
+            players,
+            current_player,
+            die1,
+            die2,
+            port_manager,
+            shared_deck=None,
+            bought_card_this_turn=False,
+            played_card_this_turn=False,
+            free_roads=0,
+            start_of_turn=False,
     ):
         super().__init__()
-        self.board          = board
-        self.players        = players
+        self.board = board
+        self.players = players
         self.current_player = current_player
-        self.port_manager   = port_manager
-        self.die1           = die1
-        self.die2           = die2
+        self.port_manager = port_manager
+        self.die1 = die1
+        self.die2 = die2
 
         #Dev-card session state (preserved across CatanView <-> PlayCardView round-trips)
         self._shared_deck           = shared_deck   #None = PlayCardView will build it on first open

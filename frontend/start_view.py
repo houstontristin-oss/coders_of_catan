@@ -448,4 +448,5 @@ class StartView(arcade.View):
             )
             return
 
-        self.window.show_view(SetupView(board, players, 0, 1, None))
+        from .gamemode_view import GamemodeView
+        self.window.show_view(GamemodeView(board, players))
