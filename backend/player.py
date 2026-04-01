@@ -105,11 +105,10 @@ class Player:
             self.total_cities -= 1
             self.total_settlements += 1
             node.place_city(board)
-    
+
     def get_total_resources(self):
         # returns the total number of resources cards a player has of any type
         return sum(self.resource_cards.values())
 
     def add_port(self, res):
         self.ports.append(res)
-            

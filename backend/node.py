@@ -34,7 +34,7 @@ class Node:
                 if node is not self and node.player is not None:
                     return False
         return True
-    
+
     def is_valid_settlement_placement(self, player):
         """
         Check if current node is a valid placement for a settlement for the given player.
@@ -76,7 +76,7 @@ class Node:
             player: The player who is attempting to place the city.
         """
         return self.player == player and self.building == "settlement"
-    
+
     def place_settlement(self, player):
         """
         Place a settlement on the node if the placement is valid.

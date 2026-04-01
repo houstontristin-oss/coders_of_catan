@@ -1,13 +1,3 @@
-"""
-port_manager.py — PortManager
-
-     We need to change all the random numbers implemented in the
-  btn_w btw_h for example need to be changed to constants in order to maintain consistency
-"""
-
-"""
-port_manager.py — PortManager
-"""
 import math
 import random
 import arcade
@@ -25,6 +15,17 @@ from .constants import (
 )
 from .board_utils import get_edge_outward_normal, normalize_vector
 from .drawing import draw_port_dock
+
+"""
+port_manager.py — PortManager
+
+     We need to change all the random numbers implemented in the
+  btn_w btw_h for example need to be changed to constants in order to maintain consistency
+"""
+
+"""
+port_manager.py — PortManager
+"""
 
 
 # Hover still keys off ship center only

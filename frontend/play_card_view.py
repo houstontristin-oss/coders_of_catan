@@ -21,9 +21,10 @@ All dev-card game logic lives in dev_base.py.
 import random
 import arcade
 
+from backend.dev_base import *
 from .drawing import fill_rect, outline_rect
 from .constants import *
-from backend.dev_base import *
+
 
 LARGEST_ARMY_VP = 2
 
@@ -563,12 +564,12 @@ class PlayCardView(arcade.View):
             for opponent in self.players:
                 if opponent.largest_army:
                     holder_of_card = opponent
-            # If no one holds the card yet 
+            # If no one holds the card yet
             if holder_of_card is None:
                 player.largest_army = True
                 player.victory_points += LARGEST_ARMY_VP
             # if someone holds the card, strip them of their title and give player the card
-            elif holder_of_card != player and player.knight_count > holder_of_card.knight_count: 
+            elif holder_of_card != player and player.knight_count > holder_of_card.knight_count:
                 holder_of_card.largest_army = False
                 holder_of_card.victory_points -= LARGEST_ARMY_VP
                 player.largest_army = True

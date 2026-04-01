@@ -11,7 +11,8 @@ import arcade
 from backend.catan_board import CatanBoard
 
 from .port_manager import PortManager
-from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect, draw_ocean_background, draw_shoreline_shimmer
+from .drawing import (draw_board, draw_road, draw_settlement, fill_rect,
+                      outline_rect, draw_ocean_background, draw_shoreline_shimmer)
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
 DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD, EDGE_SNAP_RADIUS,
@@ -48,7 +49,7 @@ class SetupView(arcade.View):
         self._build_edge_pixel_cache()
 
         # Build port manager (randomizes port layout each game)
-        if port_manager == None:
+        if port_manager is None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
         else:
             self.port_manager = port_manager
@@ -290,7 +291,8 @@ class SetupView(arcade.View):
 
             if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
                 if self.build_choice == BUILD_SETTLEMENT:
-                    if self.cycle == 2 and self.selected_node != None: # distribute resources for second settlement placements
+                    if self.cycle == 2 and self.selected_node is not None:
+                        # distribute resources for second settlement placements
                         for tile in self.selected_node.tiles:
                             if tile.resource != 'desert':
                                 resource = RESOURCE_ABBR[tile.resource]
@@ -335,7 +337,8 @@ class SetupView(arcade.View):
                         return
 
                     self.window.show_view(SetupView(self.board, self.players,
-                                                    self.current_player, self.cycle, self.port_manager))
+                                                    self.current_player, self.cycle,
+                                                    self.port_manager))
                 return
             if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
                 self.selected_node = None
