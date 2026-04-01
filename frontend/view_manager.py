@@ -49,6 +49,12 @@ class ViewManager:
         elif name == "catan":
             from frontend.catan_view import CatanView
             return CatanView(self, **kwargs)
+        elif name == "gamemode":
+            from frontend.gamemode_view import GamemodeView
+            return GamemodeView(self, **kwargs)
+        elif name == "computer_turn":
+            from frontend.computer_turn_view import ComputerTurnView
+            return ComputerTurnView(self, **kwargs)
         elif name == "play_card":
             from frontend.play_card_view import PlayCardView
             return PlayCardView(self, **kwargs)
