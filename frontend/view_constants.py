@@ -157,8 +157,8 @@ START_SUBTITLE_FONT_SIZE = 16
 START_FARM_HORIZON_Y       = SCREEN_HEIGHT * 0.40   # horizon divides sky & land
 
 # Ground / field tones (RGBA)
-START_FARM_FIELD_COLOR      = (100, 145,  55, 230)   # mid-green pasture
-START_FARM_FIELD_DARK_COLOR = ( 65, 100,  35, 230)   # deeper shadow grass
+START_FARM_FIELD_COLOR      = (100, 145,  55, 250)   # mid-green pasture
+START_FARM_FIELD_DARK_COLOR = ( 65, 100,  35, 250)   # deeper shadow grass
 
 # Tree canopy tones
 START_FARM_TREE_COLOR       = ( 80, 140,  50, 255)   # leafy mid-green

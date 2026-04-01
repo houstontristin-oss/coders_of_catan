@@ -163,11 +163,11 @@ def _draw_farmscape(time_s: float):
         hill2_pts.append((fx, fy))
     hill2_pts.append((W, 0))
     hill2_pts.append((0, 0))
-    arcade.draw_polygon_filled(hill2_pts, (*START_FARM_FIELD_DARK_COLOR[:3], 130))
+    arcade.draw_polygon_filled(hill2_pts, (*START_FARM_FIELD_DARK_COLOR[:3], 230))
 
     # Fence line
     fence_y = H * 0.52
-    fence_color = (110, 70, 40, 200)
+    fence_color = (110, 70, 40, 240)
     post_gap = 55
     for px in range(20, W, post_gap):
         arcade.draw_line(px, fence_y - 10, px, fence_y + 12, fence_color, 3)
