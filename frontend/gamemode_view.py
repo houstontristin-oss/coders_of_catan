@@ -9,12 +9,12 @@ optionally rename them to AI 1, AI 2, AI 3
 then go to SetupView like normal
 """
 
-
 import math
 import random
 import arcade
 
 from .setup_view import SetupView
+""" From setup view, one should add a check to see if the next player is flagged as a computer"""
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, ONE, SIX
 from .drawing import fill_rect, outline_rect
 
@@ -66,15 +66,16 @@ class GamemodeView(arcade.View):
     board : CatanBoard
     players : list[Player]
     """
-    def __init__(self, board, players):
+
+    def __init__(self, vm, board, players):
         super().__init__()
+        self.vm = vm
         self.board = board
         self.players = players
 
         self._time = 0.0
         self._hovered_mode = None
 
-        # title slide animation
         self._title_y = GM_TITLE_START_Y
 
         self._build_text_objects()
@@ -147,7 +148,14 @@ class GamemodeView(arcade.View):
             for player in self.players:
                 player.computer = False
 
-        self.window.show_view(SetupView(self.board, self.players, 0, 1, None))
+        self.vm.go_to(
+            "setup",
+            board=self.board,
+            players=self.players,
+            current_player=0,
+            cycle=1,
+            port_manager=None,
+        )
 
     # ------------------------------------------------------------------
     # Arcade lifecycle

@@ -322,11 +322,25 @@ class SetupView(arcade.View):
                                     if node.player != None:
                                         player = self.players[node.player]
                                         player.resource_cards[resource] += 1 if node.building == "settlement" else 2
-                        self.window.vm.go_to("catan",
-                            board=self.board, players=self.players, 
-                            current_player=self.current_player, die1=die1, die2=die2,
-                            port_manager=self.port_manager, start_of_turn=True,
-                        )
+                        if self.players[self.current_player].computer:
+                            self.window.vm.go_to("computer_turn",
+                                                 board=self.board,
+                                                 players=self.players,
+                                                 current_player=self.current_player,
+                                                 die1=die1,
+                                                 die2=die2,
+                                                 port_manager=self.port_manager,
+                                                 )
+                        else:
+                            self.window.vm.go_to("catan",
+                                                 board=self.board,
+                                                 players=self.players,
+                                                 current_player=self.current_player,
+                                                 die1=die1,
+                                                 die2=die2,
+                                                 port_manager=self.port_manager,
+                                                 start_of_turn=True,
+                                                 )
                         return
 
                     self.window.vm.go_to("setup",

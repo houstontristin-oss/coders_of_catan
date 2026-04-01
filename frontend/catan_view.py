@@ -1277,10 +1277,22 @@ class CatanView(arcade.View):
             return
 
         self._give_resources()
-        self.window.vm.go_to("catan",
-            board=self.board, players=self.players, current_player=self.current_player,
-            die1=self.die1, die2=self.die2, port_manager=self.port_manager, start_of_turn=True,
-        )
-
-        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. "
-              f"Rolled {self.die1 + self.die2}.")
+        if self.players[self.current_player].computer:
+            self.window.vm.go_to("computer_turn",
+                board=self.board,
+                players=self.players,
+                current_player=self.current_player,
+                die1=self.die1,
+                die2=self.die2,
+                port_manager=self.port_manager,
+            )
+        else:
+            self.window.vm.go_to("catan",
+                board=self.board,
+                players=self.players,
+                current_player=self.current_player,
+                die1=self.die1,
+                die2=self.die2,
+                port_manager=self.port_manager,
+                start_of_turn=True,
+            )

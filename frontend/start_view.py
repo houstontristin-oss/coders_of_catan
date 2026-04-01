@@ -15,10 +15,7 @@ from .view_constants import *
 
 # ---------------------------------------------------------------------------
 # Internal drawing helpers — all pure arcade calls, no game state
-# ---------------------------------------------------------------------------
-
 def _draw_sunset_gradient():
-    """Paint the sky as stacked horizontal gradient bands."""
     for (bottom_frac, top_frac, color) in START_GRAD_BANDS:
         y_bot = SCREEN_HEIGHT * bottom_frac
         y_top = SCREEN_HEIGHT * top_frac
@@ -63,7 +60,6 @@ def _draw_sun(time_s: float):
 
 
 def _draw_horizon_water(time_s: float):
-    """Thin ocean strip near the horizon so the island feels coastal."""
     W = SCREEN_WIDTH
 
     # Base water band
@@ -94,7 +90,6 @@ def _draw_horizon_water(time_s: float):
 
 
 def _draw_sheep():
-    """Tiny painterly sheep on the pasture."""
     W = SCREEN_WIDTH
     H = START_FARM_HORIZON_Y
 
@@ -128,10 +123,6 @@ def _draw_sheep():
 
 
 def _draw_farmscape(time_s: float):
-    """
-    Watercolor-style pastoral farmscape at the bottom of the screen.
-    Fades to transparent at the horizon so the sky shows through.
-    """
     H = START_FARM_HORIZON_Y
     W = SCREEN_WIDTH
 
@@ -262,7 +253,6 @@ def _draw_farmscape(time_s: float):
 
 
 def _draw_clouds(time_s: float):
-    """Slow-drifting sunset clouds in warm peachy tones."""
     cloud_defs = [
         (0.08, 0.86, 12.0, 1.1),
         (0.30, 0.91, 8.0,  0.9),
@@ -444,6 +434,6 @@ class StartView(arcade.View):
                 die2=random.randint(ONE, SIX), port_manager=None)
             return
 
-        self.window.vm.go_to("setup",
-            board=board, players=players, current_player=0, cycle=1, port_manager=None,
+        self.window.vm.go_to("gamemode",
+            board=board, players=players,
         )
