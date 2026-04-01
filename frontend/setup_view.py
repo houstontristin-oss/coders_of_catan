@@ -7,9 +7,7 @@ import math
 import random
 
 import arcade
-
 from backend.catan_board import CatanBoard
-
 from .port_manager import PortManager
 from .drawing import draw_board, draw_road, draw_settlement, fill_rect, outline_rect, draw_ocean_background, draw_shoreline_shimmer
 from .board_utils import node_to_pixel
@@ -21,8 +19,9 @@ class SetupView(arcade.View):
     """
     SetupView Class
     """
-    def __init__(self, board, players, current_player, cycle, port_manager: PortManager | None):
+    def __init__(self, vm, board, players, current_player, cycle, port_manager: PortManager | None):
         super().__init__()
+        self.vm = vm
         self.board = board # CatanBoard instance
         self.players = players # list of Player instances
         self.current_player = current_player # index of current player in players list
@@ -290,7 +289,8 @@ class SetupView(arcade.View):
 
             if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
                 if self.build_choice == BUILD_SETTLEMENT:
-                    if self.cycle == 2 and self.selected_node != None: # distribute resources for second settlement placements
+                    if self.cycle == 2 and self.selected_node != None: 
+                        # distribute resources for second settlement placements
                         for tile in self.selected_node.tiles:
                             if tile.resource != 'desert':
                                 resource = RESOURCE_ABBR[tile.resource]
@@ -321,21 +321,17 @@ class SetupView(arcade.View):
                                     if node.player != None:
                                         player = self.players[node.player]
                                         player.resource_cards[resource] += 1 if node.building == "settlement" else 2
-
-                        self.window.show_view(
-                            CatanView(
-                                self.board,
-                                self.players,
-                                self.current_player,
-                                die1,
-                                die2,
-                                self.port_manager,
-                                start_of_turn=True,
-                            ))
+                        self.window.vm.go_to("catan",
+                            board=self.board, players=self.players, 
+                            current_player=self.current_player, die1=die1, die2=die2,
+                            port_manager=self.port_manager, start_of_turn=True,
+                        )
                         return
 
-                    self.window.show_view(SetupView(self.board, self.players,
-                                                    self.current_player, self.cycle, self.port_manager))
+                    self.window.vm.go_to("setup",
+                        board=self.board, players=self.players, current_player=self.current_player,
+                        cycle=self.cycle, port_manager=self.port_manager,
+                    )
                 return
             if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
                 self.selected_node = None
