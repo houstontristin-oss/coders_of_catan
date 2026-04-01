@@ -23,7 +23,8 @@ from .trade_view_barter import TradeViewBarter
 from .trade_view_maritime import TradeViewMaritime
 from .end_view import EndView
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
-from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board, draw_city, draw_ocean_background
+from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
+                      draw_board, draw_city, draw_ocean_background)
 from .constants import *
 from .view_constants import *  # noqa: F401,F403
 
@@ -67,8 +68,8 @@ class CatanView(arcade.View):
         self.die1           = die1
         self.die2           = die2
 
-        # Dev-card session state (preserved across CatanView <-> PlayCardView round-trips)
-        self._shared_deck           = shared_deck   # None = PlayCardView will build it on first open
+        #Dev-card session state (preserved across CatanView <-> PlayCardView round-trips)
+        self._shared_deck           = shared_deck   #None = PlayCardView will build it on first open
         self._bought_card_this_turn = bought_card_this_turn
         self._played_card_this_turn = played_card_this_turn
         self._free_roads            = free_roads    # free road placements remaining
@@ -126,7 +127,7 @@ class CatanView(arcade.View):
 
         if self.port_manager == None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
-        
+
         self._build_text_objects()   # rebuild after caches ready
 
     # -----------------------------------------------------------------------
@@ -148,8 +149,12 @@ class CatanView(arcade.View):
     # Longest Road and Largest Army sprite
     # -----------------------------------------------------------------------
     def _load_card_sprites(self):
-        self._road_card_sprite = arcade.Sprite(ROAD_CARD_SPRITE, scale=CARD_SCALE, center_y=ARMY_ROAD_SPRITE_Y1, center_x=ARMY_ROAD_SPRITE_X)
-        self._army_card_sprite = arcade.Sprite(ARMY_CARD_SPRITE, scale=CARD_SCALE, center_y=ARMY_ROAD_SPRITE_Y2, center_x=ARMY_ROAD_SPRITE_X)
+        self._road_card_sprite = arcade.Sprite(ROAD_CARD_SPRITE, scale=CARD_SCALE,
+                                               center_y=ARMY_ROAD_SPRITE_Y1,
+                                               center_x=ARMY_ROAD_SPRITE_X)
+        self._army_card_sprite = arcade.Sprite(ARMY_CARD_SPRITE, scale=CARD_SCALE,
+                                               center_y=ARMY_ROAD_SPRITE_Y2,
+                                               center_x=ARMY_ROAD_SPRITE_X)
         self._card_list   = arcade.SpriteList()
 
     # -----------------------------------------------------------------------
@@ -968,12 +973,14 @@ class CatanView(arcade.View):
 
         # End Turn
         end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
-        if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
+        if ((end_left <= x <= end_left + CATAN_END_BTN_W) and
+                (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H)):
             self._end_turn()
             return
 
         # --- Trade button ---
-        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (trade_bottom <= y <= trade_bottom + CATAN_BTN_H):
+        if ((CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and
+                (trade_bottom <= y <= trade_bottom + CATAN_BTN_H)):
             if self.trade_mode:
                 self._cancel_trade()
             else:
@@ -991,19 +998,22 @@ class CatanView(arcade.View):
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 self._cancel_trade()
                 self.window.show_view(
-                    TradeViewMaritime(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager)
+                    TradeViewMaritime(self.board, self.players, self.current_player,
+                                      self.die1, self.die2, self.port_manager)
                 )
                 return
             # Barter Trade — bottom row of popup (by+8 .. by+36)
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
                 self._cancel_trade()
                 self.window.show_view(
-                    TradeViewBarter(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager)
+                    TradeViewBarter(self.board, self.players, self.current_player,
+                                    self.die1, self.die2, self.port_manager)
                 )
                 return
 
         # Build button
-        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (build_bottom <= y <= build_bottom + CATAN_BTN_H):
+        if ((CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and
+                (build_bottom <= y <= build_bottom + CATAN_BTN_H)):
             if self.build_mode:
                 self._cancel_build()
             else:
@@ -1090,7 +1100,8 @@ class CatanView(arcade.View):
 
 
         # Dev Cards button
-        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (card_bottom <= y <= card_bottom + CATAN_BTN_H):
+        if ((CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and
+                (card_bottom <= y <= card_bottom + CATAN_BTN_H)):
             self.window.show_view(
                 PlayCardView(
                     self.board, self.players, self.current_player,
@@ -1164,8 +1175,10 @@ class CatanView(arcade.View):
                 # do not keep searching if another player has a settlement on the node
                 if node.player == self.current_player or node.player is None:
                     for neighbor_edge in node.edges:
-                        # check if the edge has been explored before and if the player owns another edge
-                        if neighbor_edge not in edge_list and neighbor_edge is not e and neighbor_edge.player == self.current_player:
+                        #check if edge has been explored before & if player owns another edge
+                        if (neighbor_edge not in edge_list and
+                                neighbor_edge is not e and
+                                neighbor_edge.player == self.current_player):
                             edge_list.append(neighbor_edge)
 
         if player.road_length < len(edge_list):
@@ -1179,12 +1192,12 @@ class CatanView(arcade.View):
                 print(f"{player.name}: {opponent.road_length} cont. roads")
                 if opponent.longest_road:
                     holder_of_card = opponent
-            # If no one holds the card yet 
+                    # If no one holds the card yet
             if holder_of_card is None:
                 player.longest_road = True
                 player.victory_points += LONGEST_ROAD_VP
             # if someone holds the card, strip them of their title and give player the card
-            elif holder_of_card != player and player.road_length > holder_of_card.road_length: 
+            elif holder_of_card != player and player.road_length > holder_of_card.road_length:
                 holder_of_card.longest_road = False
                 holder_of_card.victory_points -= LONGEST_ROAD_VP
                 player.longest_road = True
@@ -1197,7 +1210,8 @@ class CatanView(arcade.View):
         self.players[self.current_player].total_roads -= 1
         self._cancel_build()
         self._build_player_texts()
-        print(f"{self.players[self.current_player].name} placed a free road! ({self._free_roads} remaining)")
+        print(f"{self.players[self.current_player].name} placed a free road! "
+              f"({self._free_roads} remaining)")
         self._check_longest_road(edge)
 
     def _cancel_build(self):
@@ -1269,6 +1283,9 @@ class CatanView(arcade.View):
             return
 
         self._give_resources()
-        self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager, start_of_turn=True))
+        self.window.show_view(CatanView(self.board, self.players, self.current_player,
+                                        self.die1, self.die2, self.port_manager,
+                                        start_of_turn=True))
 
-        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")
+        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. "
+              f"Rolled {self.die1 + self.die2}.")
