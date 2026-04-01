@@ -6,7 +6,8 @@
 ## Member Tasks
 
 Apoorva:
-* Computer Player Class that extends player
+* Computer Player Class that extends player (hard)(essential)
+* PYLINT YAY!!!
 
 Tristin:
 * UI Refinement (easy)(nice-to-have)
@@ -19,10 +20,11 @@ Tristin:
 
 Amanda:
 * Longest Road working properly (medium) (important)
-* ComputerTurnView
+* ComputerTurnView (hard) (essential)
 
 
 Nick:
 * Fix robber backgrounds to always be darker blue (easy) (nice-to-have)
 * View Manager (medium) (essential)
+* Make Dev Cards work (medium) (essential)
     
