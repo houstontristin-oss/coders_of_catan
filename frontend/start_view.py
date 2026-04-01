@@ -7,7 +7,6 @@ import random
 import arcade
 from backend.catan_board import CatanBoard
 from backend.player import Player
-from .setup_view import SetupView
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH,
                         TEXT_GOLD, RESOURCE_ABBR, ONE, SIX)
 from .drawing import fill_rect, outline_rect
@@ -343,8 +342,9 @@ def _auto_place_setup(board, players):
 class StartView(arcade.View):
     """Animated start screen — sunset sky, sun, farmscape, golden title."""
 
-    def __init__(self):
+    def __init__(self, vm):
         super().__init__()
+        self.vm = vm
         self._time = 0.0
         self._build_text_objects()
 
@@ -394,13 +394,11 @@ class StartView(arcade.View):
 
         if self._skip_button_hit(x, y):
             _auto_place_setup(board, players)
-            from .catan_view import CatanView
-            self.window.show_view(
-                CatanView(board, players, 0,
-                          die1=random.randint(ONE, SIX),
-                          die2=random.randint(ONE, SIX),
-                          port_manager=None)
-            )
+            self.window.vm.go_to("catan",
+                board=board, players=players, current_player=0, die1=random.randint(ONE, SIX),
+                die2=random.randint(ONE, SIX), port_manager=None)
             return
 
-        self.window.show_view(SetupView(board, players, 0, 1, None))
+        self.window.vm.go_to("setup",
+            board=board, players=players, current_player=0, cycle=1, port_manager=None,
+        )
