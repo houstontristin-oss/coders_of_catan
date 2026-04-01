@@ -19,7 +19,7 @@ from .view_constants import *
 
 FAST_FORWARD = "Fast Forward"
 NEXT_MOVE = "Next Move"
-
+LOG_COLOR = (229,222,207)
 
 class ComputerTurnView(arcade.View):
     def __init__(self, 
@@ -210,7 +210,7 @@ class ComputerTurnView(arcade.View):
         )
         self.txt_next = arcade.Text(
             NEXT_MOVE,
-            SCREEN_WIDTH - CATAN_BTN_PAD * 2 - CATAN_END_BTN_W * 2,
+            SCREEN_WIDTH - CATAN_BTN_PAD * 2 - CATAN_END_BTN_W * 1.5,
             CATAN_BTN_PAD + CATAN_BTN_H / 2,
             TEXT_WHITE, CATAN_TEXT_SIZE_BTN, bold=True, anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
@@ -234,6 +234,7 @@ class ComputerTurnView(arcade.View):
 
         self._build_player_texts()
         self._build_dice_texts()
+        self._build_log_texts()
 
     def _build_dice_texts(self):
         """Pre-build the fallback number Text objects for the dice area."""
@@ -308,6 +309,10 @@ class ComputerTurnView(arcade.View):
             anchor_x="center", anchor_y="center",
             font_name="MedievalSharp",
         )
+
+    def _build_log_texts(self):
+        player = self.players[self.current_player]
+        self.txt_log_title = arcade.Text(f"{player.name}'s Turn Log:", CATAN_PLAYER_PANEL_MARGIN + 5, 400, HUD_PANEL_BG, CATAN_TEXT_SIZE_RESOURCE, font_name="MedievalSharp",)
 
     # -----------------------------------------------------------------------
     # on_update — dice animation tick
@@ -475,6 +480,14 @@ class ComputerTurnView(arcade.View):
         self._card_list.draw()
 
     # -----------------------------------------------------------------------
+    # Log Scroll
+    # -----------------------------------------------------------------------
+    def _draw_log_reactangle(self):
+        fill_rect(CATAN_PLAYER_PANEL_MARGIN, CARD_PAD, HUD_PANEL_WIDTH, 400, LOG_COLOR)
+        outline_rect(CATAN_PLAYER_PANEL_MARGIN, CARD_PAD, HUD_PANEL_WIDTH, 400, HUD_PANEL_BG)
+        self.txt_log_title.draw()
+
+    # -----------------------------------------------------------------------
     # Port drawing
     # -----------------------------------------------------------------------
     def _draw_ports(self):
@@ -521,6 +534,7 @@ class ComputerTurnView(arcade.View):
         self._draw_player_panel()
         self._draw_dice_area()
         self._draw_bottom_bar()
+        self._draw_log_reactangle()
         self._draw_cards()
 
     # -----------------------------------------------------------------------
