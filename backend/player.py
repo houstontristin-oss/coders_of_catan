@@ -18,13 +18,18 @@ class Player:
     def __init__(self, color, name):
         self.victory_points = 0
         self.resource_cards = {'WOOD':0, 'WHEAT':0, 'BRICK': 0, 'SHEEP': 0, 'ORE':0}
-        self.development_cards = [] # we'll come back to this
+        self.development_cards = []
         self.total_roads = 15
         self.total_settlements = 5
         self.total_cities = 4
         self.ports = []
         self.color = color
         self.name = name
+        self.knight_count = 0
+        self.largest_army = False
+        self.road_length = 0
+        self.longest_road = False
+
 
     def exchange_resources(self, giving_resources:dict, receiving_resources:dict):
         '''

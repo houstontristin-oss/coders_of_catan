@@ -3,6 +3,7 @@ Catan view and other view constants subtracting dev card view
 All magic numbers, colors, paths, costs, and configuration.
 Every other file imports from here.
 """
+from .constants import *
 
 # CatanView layout / HUD
 CATAN_BTN_W = 120
@@ -106,3 +107,71 @@ CATAN_DICE_RIGHT_BLOCK_PAD = 15
 CATAN_SETTLEMENT_DRAW_SIZE = 14
 CATAN_CITY_DRAW_SIZE = 18
 CATAN_ROBBER_SCALE_MULT = 1.1
+
+# ===========================================================================
+# StartView constants
+# ===========================================================================
+
+# Skip button (bottom-right corner)
+START_SKIP_BTN_W  = 220
+START_SKIP_BTN_H  = 46
+START_SKIP_BTN_X  = SCREEN_WIDTH  - START_SKIP_BTN_W - 20   # left edge
+START_SKIP_BTN_Y  = 20                                        # bottom edge
+
+# ---------------------------------------------------------------------------
+# Sun — slightly right of center, sitting in the upper sky
+START_SUN_X           = SCREEN_WIDTH  * 0.60
+START_SUN_Y           = SCREEN_HEIGHT * 0.72
+START_SUN_RADIUS      = 52
+START_SUN_GLOW_RADIUS = 90
+START_SUN_COLOR       = (255, 230, 120)        # warm golden-white disc
+START_SUN_GLOW_COLOR  = (255, 180, 60, 90)     # amber haze
+START_SUN_RAY_COUNT   = 16
+START_SUN_RAY_LEN     = 38                     # extra length added to inner radius
+START_SUN_RAY_WIDTH   = 2
+START_SUN_RAY_COLOR   = (255, 220, 100, 160)
+
+# ---------------------------------------------------------------------------
+# Sunset gradient bands — listed bottom to top (bottom_frac, top_frac, RGBA)
+# Gives a warm orange-red-peach-yellow sky.
+START_GRAD_BANDS = [
+    (0.00, 0.10, (130,  40,  10, 255)),   # deep red-brown near the ground
+    (0.08, 0.25, (190,  70,  20, 255)),   # burnt orange
+    (0.22, 0.42, (230, 110,  40, 255)),   # rich orange
+    (0.38, 0.58, (245, 150,  60, 255)),   # warm orange
+    (0.54, 0.70, (250, 185,  80, 255)),   # golden amber
+    (0.66, 0.80, (252, 210, 110, 255)),   # pale gold
+    (0.76, 0.90, (253, 225, 145, 255)),   # warm cream-yellow
+    (0.86, 1.00, (200, 130,  80, 255)),   # dusty rose at horizon top
+]
+
+# ---------------------------------------------------------------------------
+# Title text
+START_TITLE_Y          = SCREEN_HEIGHT * 0.82
+START_TITLE_FONT_SIZE  = 52
+START_SUBTITLE_Y       = SCREEN_HEIGHT * 0.74
+START_SUBTITLE_FONT_SIZE = 16
+
+# ---------------------------------------------------------------------------
+# Farmscape — everything below this y-fraction belongs to the farm
+START_FARM_HORIZON_Y       = SCREEN_HEIGHT * 0.40   # horizon divides sky & land
+
+# Ground / field tones (RGBA)
+START_FARM_FIELD_COLOR      = (100, 145,  55, 230)   # mid-green pasture
+START_FARM_FIELD_DARK_COLOR = ( 65, 100,  35, 230)   # deeper shadow grass
+
+# Tree canopy tones
+START_FARM_TREE_COLOR       = ( 80, 140,  50, 255)   # leafy mid-green
+START_FARM_TREE_DARK_COLOR  = ( 50,  95,  30, 255)   # deep forest shadow
+
+# Silo tones
+START_FARM_SILO_COLOR       = (210, 200, 180, 254)   # pale concrete
+START_FARM_SILO_DARK_COLOR  = (140, 120,  90, 255)   # weathered shadow
+
+# Barn tones
+START_FARM_BARN_COLOR       = (180,  45,  30, 255)   # classic red barn
+START_FARM_BARN_DARK_COLOR  = ( 90,  20,  10, 255)   # dark timber trim
+START_FARM_ROOF_COLOR       = ( 70,  50,  35, 255)   # dark shingle roof
+
+# Cloud tones (warm peachy-white for sunset)
+START_FARM_CLOUD_COLOR      = (255, 205, 160, 80)    # warm peach cloud tint

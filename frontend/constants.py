@@ -8,8 +8,8 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ---------------------------------------------------------------------------
-# Window Size  -  Trying to make it wider not taller for laptops
-SCREEN_WIDTH  = 1280
+# Window Size -
+SCREEN_WIDTH  = 1000
 SCREEN_HEIGHT = 701
 SCREEN_TITLE  = "Coders of Catan"
 
@@ -111,6 +111,10 @@ DICE_SPRITES = {
 
 # Robber token sprite
 ROBBER_SPRITE = os.path.join(BASE_DIR, "sprites", "robber", "vector", "robber.png")
+
+# Largest Army and Longest Road
+ARMY_CARD_SPRITE = os.path.join(BASE_DIR, "sprites", "special_cards", "army_card.png")
+ROAD_CARD_SPRITE = os.path.join(BASE_DIR, "sprites", "special_cards", "road_card.png")
 
 # Dice-roll animation settings
 DICE_ROLL_DURATION   = 1.2   # total seconds the animation runs
@@ -237,7 +241,8 @@ CARD_RES_NAMES = {
 
 # ----------------------------------------------------------------
 # Dark menu layouts
-TOP_BAR_HEIGHT = 58
+TOP_BAR_HEIGHT = 64
+LARGE_TEXT_SIZE = 20
 
 # ---------------------------------------------------------------------------
 # Colors in HUD
