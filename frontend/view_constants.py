@@ -175,3 +175,24 @@ START_FARM_ROOF_COLOR       = ( 70,  50,  35, 255)   # dark shingle roof
 
 # Cloud tones (warm peachy-white for sunset)
 START_FARM_CLOUD_COLOR      = (255, 205, 160, 80)    # warm peach cloud tint
+
+# ---------------------------------------------------------------------------
+# Horizon water
+START_WATER_TOP_Y            = START_FARM_HORIZON_Y * 0.88
+START_WATER_BOTTOM_Y         = START_FARM_HORIZON_Y * 0.62
+START_WATER_COLOR            = (72, 132, 190, 150)
+START_WATER_DARK_COLOR       = (48, 96, 145, 165)
+START_WATER_FOAM_COLOR       = (240, 250, 255, 95)
+START_WATER_WAVE_COUNT       = 4
+START_WATER_WAVE_AMPLITUDE   = 5
+START_WATER_WAVE_SPACING     = 12
+START_WATER_WAVE_THICKNESS   = 2
+
+# ---------------------------------------------------------------------------
+# Sheep
+START_SHEEP_X_FRAC           = 0.72
+START_SHEEP_Y_FRAC           = 0.18
+START_SHEEP_BODY_COLOR       = (244, 239, 230, 245)
+START_SHEEP_WOOL_SHADOW      = (220, 212, 198, 220)
+START_SHEEP_FACE_COLOR       = (82, 70, 58, 245)
+START_SHEEP_LEG_COLOR        = (70, 56, 44, 245)
