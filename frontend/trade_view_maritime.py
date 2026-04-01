@@ -63,8 +63,8 @@ class TradeViewMaritime(arcade.View):
         self.trade_success = False
         self.valid_trade = False
 
-        # Dictionary {'resource': Bool, ...} to determine if a player can afford a to trade a resource
-        self.affordable_trades = {} 
+        #Dictionary {'resource': Bool, ...} to determine if a player can afford to trade a resource
+        self.affordable_trades = {}
 
         # Dictionary containing amount of a resource a player needs to make a trade
         self.trade_amount = {"base": BASE_TRADE_AMOUNT} # base starts as 4:1 trade
@@ -72,26 +72,41 @@ class TradeViewMaritime(arcade.View):
     def _build_dynamic_text_objects(self):
         # To update resources for each player in between every accepted trade
         # Texts for resource counts
-        self.txt_sheep = arcade.Text(f"Sheep: {self.players[self.current_player].resource_cards["SHEEP"]}", SHEEP_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
+        self.txt_sheep = arcade.Text(f"Sheep: "f"{self.players[self.current_player].resource_cards["SHEEP"]}", SHEEP_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
         self.txt_brick = arcade.Text(f"Brick: {self.players[self.current_player].resource_cards["BRICK"]}", BRICK_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
         self.txt_ore = arcade.Text(f"Ore: {self.players[self.current_player].resource_cards["ORE"]}", ORE_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
         self.txt_wheat = arcade.Text(f"Wheat: {self.players[self.current_player].resource_cards["WHEAT"]}", WHEAT_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
         self.txt_wood = arcade.Text(f"Wood: {self.players[self.current_player].resource_cards["WOOD"]}", WOOD_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
 
         # Need to be able to reset Trade confirmation Text
-        self.txt_confirm = arcade.Text("Not a Valid Trade", CONFIRM_TXT_X, BAR_CENTER_Y, TEXT_LIGHT_GRAY, font_size=FONT_SIZE_TRADE_NUM, bold=True, anchor_y="center", anchor_x="left", font_name="MedievalSharp")
+        self.txt_confirm = arcade.Text("Not a Valid Trade", CONFIRM_TXT_X, BAR_CENTER_Y,
+                                       TEXT_LIGHT_GRAY, font_size=FONT_SIZE_TRADE_NUM, bold=True,
+                                       anchor_y="center", anchor_x="left",
+                                       font_name="MedievalSharp")
 
-    def _build_static_text_objects(self):        
+    def _build_static_text_objects(self):
         # Setup Texts
-        self.txt_title = arcade.Text(f"{self.players[self.current_player].name} — Maritime Trade", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, TEXT_WHITE, bold=True, font_name="MedievalSharp", anchor_x="center", anchor_y="center", font_size=TITLE_FONT_SIZE)
+        self.txt_title = arcade.Text(f"{self.players[self.current_player].name} — Maritime Trade",
+                                     SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, TEXT_WHITE, bold=True,
+                                     font_name="MedievalSharp", anchor_x="center",
+                                     anchor_y="center", font_size=TITLE_FONT_SIZE)
 
-        self.txt_back = arcade.Text("Back to Board",  SCREEN_WIDTH - BTN_W * 0.5 - 20, BAR_CENTER_Y, TEXT_WHITE, 13, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp")
+        self.txt_back = arcade.Text("Back to Board",  SCREEN_WIDTH - BTN_W * 0.5 - 20,
+                                    BAR_CENTER_Y, TEXT_WHITE, 13, bold=True,
+                                    anchor_x="center", anchor_y="center",
+                                    font_name="MedievalSharp")
 
         # Button Text
-        self.txt_trade = arcade.Text("Accept Trade", TRADE_BTN_TXT , BAR_CENTER_Y, TEXT_WHITE, bold=True, anchor_y="center", anchor_x="center", font_name="MedievalSharp")
+        self.txt_trade = arcade.Text("Accept Trade", TRADE_BTN_TXT , BAR_CENTER_Y,
+                                     TEXT_WHITE, bold=True, anchor_y="center", anchor_x="center",
+                                     font_name="MedievalSharp")
 
         # Always 1 resource in return from a maritime trade
-        self.txt_get_trade_amount = arcade.Text("1", x=TRADE_RES_START_X, y=GET_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
+        self.txt_get_trade_amount = arcade.Text("1", x=TRADE_RES_START_X,
+                                                y=GET_TRADE_RES_SPACING_Y, color=TEXT_RED,
+                                                bold=True, font_size=50,
+                                                font_name="MedievalSharp", anchor_x="center",
+                                                anchor_y="center")
 
     def _load_resource_icons(self):
         # Sprite handling for resource icons
@@ -120,7 +135,8 @@ class TradeViewMaritime(arcade.View):
 
     def _draw_trade_button(self):
         #Accept Trade button
-        fill_rect(TRADE_BTN_LEFT, TRADE_BTN_BOTTOM, BTN_W, BTN_H, BTN_BUILD  if self.valid_trade else TEXT_LIGHT_GRAY)
+        fill_rect(TRADE_BTN_LEFT, TRADE_BTN_BOTTOM, BTN_W, BTN_H,
+                  BTN_BUILD  if self.valid_trade else TEXT_LIGHT_GRAY)
         self.txt_trade.draw()
 
     def _draw_resource_numbers(self):
@@ -132,15 +148,19 @@ class TradeViewMaritime(arcade.View):
         self.txt_brick.draw()
 
     def _load_trade_amount_numbers(self):
-        #check to see if player has a port and if so, then update the trade amount for that or all resources
+        #check if player has a port: if so, update the trade amount for that or all resources
         for port in self.players[self.current_player].ports:
             res, amount = port.get_port_info()
-            if res == None:
+            if res is None:
                 self.trade_amount["base"] = amount
             else:
                 self.trade_amount[res] = amount
 
-        self.txt_offer_trade_amount = arcade.Text(f"{self.trade_amount["base"]}", x=TRADE_RES_START_X, y=OFFER_TRADE_RES_SPACING_Y, color=TEXT_RED, bold=True, font_size=50, font_name="MedievalSharp", anchor_x="center", anchor_y="center")
+        self.txt_offer_trade_amount = arcade.Text(f"{self.trade_amount["base"]}",
+                                                  x=TRADE_RES_START_X, y=OFFER_TRADE_RES_SPACING_Y,
+                                                  color=TEXT_RED, bold=True, font_size=50,
+                                                  font_name="MedievalSharp", anchor_x="center",
+                                                  anchor_y="center")
 
     def _get_trade_amount(self, res):
         # update the trade amount to reflects the ports the player has
@@ -153,12 +173,12 @@ class TradeViewMaritime(arcade.View):
     def _check_valid_trade(self):
         valid_offer = False
         valid_get = False
-        confirm_str = ""        
+        confirm_str = ""
 
         # Make sure the player has enough resources to make the trade
         for res, selected in self.offer_selected.items():
             if selected:
-                valid_offer = self.affordable_trades[res] 
+                valid_offer = self.affordable_trades[res]
                 confirm_str += f"You Offer {self._get_trade_amount(res)} {res.capitalize()} "
 
         # Make sure a selection has been made on the bottom row
@@ -176,7 +196,6 @@ class TradeViewMaritime(arcade.View):
             self.txt_confirm.text = "Not a Valid Trade"
             self.txt_confirm.color = TEXT_LIGHT_GRAY
 
-    
     def _afford_trade(self):
         #check if player can afford any trades
         for res in RESOURCE_ABBR.values():
@@ -217,10 +236,12 @@ class TradeViewMaritime(arcade.View):
                 self.txt_offer_trade_amount.y = sprite.center_y
                 self.txt_offer_trade_amount.text = f"{self._get_trade_amount(res)}"
                 if self.affordable_trades[res]:
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W,
+                                 TRADE_SPRITE_W, TEXT_GOLD, 2)
                     self.txt_offer_trade_amount.color = TEXT_RED
                 else:
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W,
+                                 TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
                     self.txt_offer_trade_amount.color = TEXT_LIGHT_GRAY
                 self.txt_offer_trade_amount.draw()
 
@@ -232,13 +253,15 @@ class TradeViewMaritime(arcade.View):
                 self.txt_get_trade_amount.y = sprite.center_y
                 if True in self.affordable_trades.values():
                     #if the player can afford at least one trade
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF,
+                                 TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
                     self.txt_get_trade_amount.color = TEXT_RED
                 else:
                     #if the player cannot afford any trades the bottom highlights are also grey
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W,
+                                 TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
                     self.txt_get_trade_amount.color = TEXT_LIGHT_GRAY
-                    
+
                 self.txt_get_trade_amount.draw()
 
         # Selection for first row (Resource to offer up)
@@ -249,10 +272,12 @@ class TradeViewMaritime(arcade.View):
                 self.txt_offer_trade_amount. y = sprite.center_y
                 self.txt_offer_trade_amount.text = f"{self._get_trade_amount(res)}"
                 if self.affordable_trades[res]:
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W,
+                                 TRADE_SPRITE_W, TEXT_GOLD, 2)
                     self.txt_offer_trade_amount.color = TEXT_RED
                 else:
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W,
+                                 TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
                     self.txt_offer_trade_amount.color = TEXT_LIGHT_GRAY
                 self.txt_offer_trade_amount.draw()
 
@@ -265,11 +290,13 @@ class TradeViewMaritime(arcade.View):
                 self.txt_get_trade_amount. y = sprite.center_y
                 if True in self.affordable_trades.values():
                     #if the player can afford at least one trade
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_GOLD, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W,
+                                 TRADE_SPRITE_W, TEXT_GOLD, 2)
                     self.txt_get_trade_amount.color = TEXT_RED
                 else:
                     #if the player cannot afford any trades the bottom highlights are also grey
-                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W, TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
+                    outline_rect(sprite.center_x - HALF, sprite.center_y - HALF, TRADE_SPRITE_W,
+                                 TRADE_SPRITE_W, TEXT_LIGHT_GRAY, 2)
                     self.txt_get_trade_amount.color = TEXT_LIGHT_GRAY
                 self.txt_get_trade_amount.draw()
 
@@ -283,53 +310,60 @@ class TradeViewMaritime(arcade.View):
             self.trade_success = False
             self.offer_selected = {}
             self.get_selected = {}
-            
+
         self._draw_resource_numbers()
         self._draw_bottom_bar()
         self._draw_trade_button()
 
-        # draw confirmation text on the bottom bar    
+        # draw confirmation text on the bottom bar
         self.txt_confirm.draw()
 
     def on_mouse_motion(self, x, y, dx, dy):
         # Highlights for top row
         for res, sprite in self.offer_resource_icons.items():
-            if(sprite.center_x - HALF <= x <= sprite.center_x + HALF) and (sprite.center_y - HALF <= y <= sprite.center_y + HALF):
+            if((sprite.center_x - HALF <= x <= sprite.center_x + HALF) and
+                    (sprite.center_y - HALF <= y <= sprite.center_y + HALF)):
                 self.offer_highlights[res] = True
             else:
                 self.offer_highlights[res] = False
 
         # Highlights for second row
         for res, sprite in self.get_resource_icons.items():
-            if(sprite.center_x - HALF <= x <= sprite.center_x + HALF) and (sprite.center_y - HALF <= y <= sprite.center_y + HALF):
+            if((sprite.center_x - HALF <= x <= sprite.center_x + HALF) and
+                    (sprite.center_y - HALF <= y <= sprite.center_y + HALF)):
                 self.get_highlights[res] = True
             else:
                 self.get_highlights[res] = False
 
-        
+
     def on_mouse_press(self, x, y, button, modifiers):
         # Back to Board Button
         if (SCREEN_WIDTH - BTN_W - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
             from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager))
+            self.window.show_view(CatanView(self.board, self.players, self.current_player,
+                                            self.die1, self.die2, self.port_manager))
 
         # Accept Trade Button
-        if(TRADE_BTN_LEFT <= x <= TRADE_BTN_LEFT + BTN_W) and (y <= HUD_BOTTOM_HEIGHT) and self.valid_trade:
+        if((TRADE_BTN_LEFT <= x <= TRADE_BTN_LEFT + BTN_W) and
+                (y <= HUD_BOTTOM_HEIGHT) and self.valid_trade):
             for offer_res, offer_selection in self.offer_selected.items():
                 for get_res, get_selection  in self.get_selected.items():
                     if offer_selection and get_selection:
-                        self.players[self.current_player].exchange_resources({offer_res: self._get_trade_amount(offer_res)}, {get_res: 1})
-                        
+                        self.players[self.current_player].exchange_resources(
+                            {offer_res: self._get_trade_amount(offer_res)}, {get_res: 1})
+
                         self.trade_success = True
-            
+
         # Offer Trade Buttons
         for res, sprite in self.offer_resource_icons.items():
-            if(sprite.center_x - HALF <= x <= sprite.center_x + HALF) and (sprite.center_y - HALF <= y <= sprite.center_y + HALF):
+            if((sprite.center_x - HALF <= x <= sprite.center_x + HALF) and
+                    (sprite.center_y - HALF <= y <= sprite.center_y + HALF)):
                 self.offer_selected = {}
                 self.offer_selected[res] = True
 
         # Get Trade Buttons
         for res, sprite in self.get_resource_icons.items():
-            if(sprite.center_x - HALF <= x <= sprite.center_x + HALF) and (sprite.center_y - HALF <= y <= sprite.center_y + HALF):
+            if((sprite.center_x - HALF <= x <= sprite.center_x + HALF) and
+                    (sprite.center_y - HALF <= y <= sprite.center_y + HALF)):
                 self.get_selected = {}
                 self.get_selected[res] = True

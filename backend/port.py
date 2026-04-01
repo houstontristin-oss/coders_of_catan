@@ -8,7 +8,7 @@ class Port:
     """
     def __init__(self, node_ids, resource):
         self.node_ids = node_ids # tuple containing both node ids for the port
-        if resource != None:
+        if resource is not None:
             self.resource = RESOURCE_ABBR[resource]
             self.amount = TWO_FOR_ONE
         else:
@@ -18,9 +18,9 @@ class Port:
     def get_port_info(self):
         #returns port resource and amount
         return self.resource, self.amount
-    
+
     def get_port_nodes(self):
         return self.node_ids
-    
+
     def __str__(self):
         return f"{self.amount}:1 {self.resource}"

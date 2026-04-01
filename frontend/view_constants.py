@@ -197,7 +197,7 @@ START_SHEEP_WOOL_SHADOW      = (220, 212, 198, 220)
 START_SHEEP_FACE_COLOR       = (82, 70, 58, 245)
 START_SHEEP_LEG_COLOR        = (70, 56, 44, 245)
 
-# Longest Road and Largest Army Constants 
+# Longest Road and Largest Army Constants
 CARD_SCALE = 0.25
 ARMY_ROAD_SPRITE_X = SCREEN_WIDTH - 70
 ARMY_ROAD_SPRITE_Y1 = SCREEN_HEIGHT / 2 + 150

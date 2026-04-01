@@ -250,7 +250,8 @@ class RobberPlaceView(arcade.View):
     def _end_robber(self):
         from .catan_view import CatanView
         self.window.show_view(CatanView(self.board, self.players, self.current_player,
-                                        self.die1, self.die2, self.port_manager, start_of_turn=True))
+                                        self.die1, self.die2, self.port_manager,
+                                        start_of_turn=True))
 
     def _draw_vic_popup(self):
         if not self.show_vic:

@@ -1,6 +1,7 @@
 """
 # Stateless draw helper functions that wrap arcade calls:
-# draw_settlement(), draw_road(), draw_number_token(), fill_rect(), outline_rect(), draw_port_label().
+# draw_settlement(), draw_road(), draw_number_token(), fill_rect(),
+# outline_rect(), draw_port_label().
 # Nothing here knows about game state.
 """
 import math
@@ -81,7 +82,8 @@ def draw_port_label(label_x, label_y, label):
     left      = label_x - text_w / 2
     bottom    = label_y - text_h / 2
 
-    arcade.draw_lrbt_rectangle_filled(left, left + text_w, bottom, bottom + text_h, (10, 10, 30, 230))
+    arcade.draw_lrbt_rectangle_filled(left, left + text_w, bottom,
+                                      bottom + text_h, (10, 10, 30, 230))
     arcade.draw_lrbt_rectangle_outline(left, left + text_w, bottom, bottom + text_h, TEXT_GOLD, 1)
     arcade.Text(
         label,
@@ -108,7 +110,8 @@ def _tile_ring_radius(xyz):
     return max(abs(x), abs(y), abs(z))
 
 
-def _draw_wave_band(y_base, time_s, amplitude, wavelength, thickness, color, speed, phase_shift=0.0):
+def _draw_wave_band(y_base, time_s, amplitude, wavelength, thickness, color,
+                    speed, phase_shift=0.0):
     """Draw one wide, gently curving horizontal sea band."""
     step = 22
     points = []
@@ -117,7 +120,8 @@ def _draw_wave_band(y_base, time_s, amplitude, wavelength, thickness, color, spe
         y = (
             y_base
             + math.sin((x / wavelength) + time_s * speed + phase_shift) * amplitude
-            + math.sin((x / (wavelength * 0.55)) + time_s * (speed * 0.6) + phase_shift * 1.7) * (amplitude * 0.25)
+            + math.sin((x / (wavelength * 0.55)) + time_s *
+                       (speed * 0.6) + phase_shift * 1.7) * (amplitude * 0.25)
         )
         points.append((x, y))
 
