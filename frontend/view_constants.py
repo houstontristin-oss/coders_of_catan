@@ -175,3 +175,12 @@ START_FARM_ROOF_COLOR       = ( 70,  50,  35, 255)   # dark shingle roof
 
 # Cloud tones (warm peachy-white for sunset)
 START_FARM_CLOUD_COLOR      = (255, 205, 160, 80)    # warm peach cloud tint
+
+# Longest Road and Largest Army Constants 
+CARD_SCALE = 0.25
+ARMY_ROAD_SPRITE_X = SCREEN_WIDTH - 70
+ARMY_ROAD_SPRITE_Y1 = SCREEN_HEIGHT / 2 + 150
+ARMY_ROAD_SPRITE_Y2 = SCREEN_HEIGHT / 2
+
+ROADS_NEEDED = 5
+LONGEST_ROAD_VP = 2
