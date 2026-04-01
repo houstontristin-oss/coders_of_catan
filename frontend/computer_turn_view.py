@@ -22,9 +22,9 @@ NEXT_MOVE = "Next Move"
 LOG_COLOR = (229,222,207)
 
 class ComputerTurnView(arcade.View):
-    def __init__(self, 
-        board, 
-        players, 
+    def __init__(self,
+        board,
+        players,
         current_player,
         die1,
         die2,
@@ -39,9 +39,11 @@ class ComputerTurnView(arcade.View):
         self.port_manager = port_manager
 
         # --- Human Player ---
+        self.human = self.players[0]
         for p in self.players:
             if not p.computer:
                 self.human = p
+                break
 
         self._dice_animating  = True
         self._dice_anim_timer = DICE_ROLL_DURATION
@@ -76,9 +78,9 @@ class ComputerTurnView(arcade.View):
 
         if self.port_manager == None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
-        
+
         self._build_text_objects()   # rebuild after caches ready
-    
+
     # -----------------------------------------------------------------------
     # Dice sprites
     # -----------------------------------------------------------------------
@@ -230,7 +232,7 @@ class ComputerTurnView(arcade.View):
             TEXT_LIGHT_GRAY, CATAN_TEXT_SIZE_DICE_HINT, anchor_x="center",
             font_name="MedievalSharp",
         )
-        
+
 
         self._build_player_texts()
         self._build_dice_texts()
@@ -511,7 +513,7 @@ class ComputerTurnView(arcade.View):
                 if node_obj.building == "city":
                     draw_city(npx, npy, CATAN_CITY_DRAW_SIZE,
                               self.players[node_obj.player].color)
-                
+
     # -----------------------------------------------------------------------
     # on_draw
     def on_draw(self):
@@ -546,7 +548,7 @@ class ComputerTurnView(arcade.View):
         if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
             self._end_turn()
             return
-        
+
     # -----------------------------------------------------------------------
     # Placement
     # TODO: Add logic in here for computer to place a road, settlement and city
@@ -613,7 +615,7 @@ class ComputerTurnView(arcade.View):
                         if paths == 3:
                             edge_lists[node] = edge_list.copy()
                             print(edge_lists)
-                            
+
 
                 for node in e.nodes:
                     if node.player == self.current_player or node.player is None:
@@ -643,12 +645,12 @@ class ComputerTurnView(arcade.View):
                 print(f"{player.name}: {opponent.road_length} cont. roads")
                 if opponent.longest_road:
                     holder_of_card = opponent
-            # If no one holds the card yet 
+            # If no one holds the card yet
             if holder_of_card is None:
                 player.longest_road = True
                 player.victory_points += LONGEST_ROAD_VP
             # if someone holds the card, strip them of their title and give player the card
-            elif holder_of_card != player and player.road_length > holder_of_card.road_length: 
+            elif holder_of_card != player and player.road_length > holder_of_card.road_length:
                 holder_of_card.longest_road = False
                 holder_of_card.victory_points -= LONGEST_ROAD_VP
                 player.longest_road = True
@@ -714,6 +716,28 @@ class ComputerTurnView(arcade.View):
 
         self._give_resources()
         from .catan_view import CatanView
-        self.window.show_view(CatanView(self.board, self.players, self.current_player, self.die1, self.die2, self.port_manager, start_of_turn=True))
 
+        if self.players[self.current_player].computer:
+            self.window.show_view(
+                ComputerTurnView(
+                    self.board,
+                    self.players,
+                    self.current_player,
+                    self.die1,
+                    self.die2,
+                    self.port_manager,
+                )
+            )
+        else:
+            self.window.show_view(
+                CatanView(
+                    self.board,
+                    self.players,
+                    self.current_player,
+                    self.die1,
+                    self.die2,
+                    self.port_manager,
+                    start_of_turn=True,
+                )
+            )
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")
