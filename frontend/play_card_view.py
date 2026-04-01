@@ -46,6 +46,7 @@ class PlayCardView(arcade.View):
     """
     def __init__(
         self,
+        vm,
         board,
         players,
         current_player,
@@ -58,6 +59,7 @@ class PlayCardView(arcade.View):
         free_roads=0,
     ):
         super().__init__()
+        self.vm                = vm
         self.board             = board
         self.players           = players
         self.current_player    = current_player
@@ -574,20 +576,12 @@ class PlayCardView(arcade.View):
                 player.largest_army = True
                 player.victory_points += LARGEST_ARMY_VP
 
-        from .catan_view import CatanView
-        self.window.show_view(
-            CatanView(
-                self.board,
-                self.players,
-                self.current_player,
-                self.die1,
-                self.die2,
-                self.port_manager,
-                shared_deck=self._deck,
-                bought_card_this_turn=self.bought_this_turn,
-                played_card_this_turn=self._played_this_turn,
-                free_roads=self.free_roads,
-            )
+        self.window.vm.go_to("catan",
+            board=self.board, players=self.players, current_player=self.current_player,
+            die1=self.die1, die2=self.die2, port_manager=self.port_manager, shared_deck=self._deck,
+            bought_card_this_turn=self.bought_this_turn, 
+            played_card_this_turn=self._played_this_turn,
+            free_roads=self.free_roads,
         )
         """ Need
         an option to scroll through dev cards if the amount exceeds what the screen can fit"""

@@ -18,20 +18,21 @@ class RobberPlaceView(arcade.View):
     """
     RobberPlaceView Class
     """
-    def __init__(self, board, players, current_player, die1, die2, port_manager):
-        super().__init__()
-        self.board= board
-        self.players = players
+    def __init__(self, vm, board, players, current_player, die1, die2, port_manager):
+        super().__init__(),
+        self.vm             = vm
+        self.board          = board
+        self.players        = players
         self.current_player = current_player
-        self.die1 = die1
-        self.die2 = die2
-        self.port_manager = port_manager
+        self.die1           = die1
+        self.die2           = die2
+        self.port_manager   = port_manager
 
         # Build tile states
-        self.hovered_tile = None
-        self.selected_tile = None
-        self.show_confirm = False
-        self.hovered_node = None
+        self.hovered_tile   = None
+        self.selected_tile  = None
+        self.show_confirm   = False
+        self.hovered_node   = None
 
         self._tile_pixel_cache = {}
         self._node_pixel_cache = {}
@@ -42,16 +43,16 @@ class RobberPlaceView(arcade.View):
         self._build_tile_pixel_cache()
 
         # --- Robber state ---
-        self._robber_sprite = None
-        self._robber_list = arcade.SpriteList()
-        self._robber_sprite_ok = False
-        self._robber_tile = None
+        self._robber_sprite     = None
+        self._robber_list       = arcade.SpriteList()
+        self._robber_sprite_ok  = False
+        self._robber_tile       = None
         self._load_robber_sprite()
 
         # --- Theft state ---
-        self.thief_mode = False
-        self.vic_players = []
-        self.show_vic = False
+        self.thief_mode     = False
+        self.vic_players    = []
+        self.show_vic       = False
 
     def _build_text_objects(self):
         player = self.players[self.current_player]
@@ -193,9 +194,6 @@ class RobberPlaceView(arcade.View):
         else:
             print("No victims found.")
             self._end_robber()
-        #from .catan_view import CatanView
-        #self.window.show_view(CatanView(self.board, self.players, self.current_player,
-                                        #self.die1, self.die2, self.port_manager))
 
     # -----------------------------------------------------------------------
     # Theft function
@@ -248,9 +246,10 @@ class RobberPlaceView(arcade.View):
 
 
     def _end_robber(self):
-        from .catan_view import CatanView
-        self.window.show_view(CatanView(self.board, self.players, self.current_player,
-                                        self.die1, self.die2, self.port_manager, start_of_turn=True))
+        self.window.vm.go_to("catan",
+            board=self.board, players=self.players, current_player=self.current_player,
+            die1=self.die1, die2=self.die2, port_manager=self.port_manager, start_of_turn=True
+        )
 
     def _draw_vic_popup(self):
         if not self.show_vic:

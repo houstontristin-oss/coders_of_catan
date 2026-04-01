@@ -9,8 +9,9 @@ class EndView(arcade.View):
     """
     EndView Class
     """
-    def __init__(self, players, current_player):
+    def __init__(self, vm, players, current_player):
         super().__init__()
+        self.vm = vm
         self.players = players
         self.winning_player = current_player
 
@@ -33,4 +34,5 @@ class EndView(arcade.View):
         self.txt_instructions.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        self.window.show_view(StartView()) # Has to go back to start view to reset the board and players
+        # Has to go back to start view to reset the board and players
+        self.window.vm.go_to("start")

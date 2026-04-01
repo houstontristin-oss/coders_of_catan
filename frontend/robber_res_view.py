@@ -52,8 +52,9 @@ class RobberResView(arcade.View):
     """
     RobberResView Class
     """
-    def __init__(self, board, players, current_player, die1, die2, port_manager):
+    def __init__(self, vm, board, players, current_player, die1, die2, port_manager):
         super().__init__()
+        self.vm = vm
         self.board= board
         self.players = players
         self.current_player = current_player # will stay as the player whose turn it is
@@ -85,13 +86,12 @@ class RobberResView(arcade.View):
     # Arcade lifecycle
     # ------------------------------------------------------------------
     def on_show_view(self):
-        print(self._discard_queue)
-        if self._discard_queue == []: # checks to make sure than there are players who need to discard
-            from .robber_place_view import RobberPlaceView
-            self.window.show_view(RobberPlaceView(
-                self.board, self.players, self.current_player,
-                self.die1, self.die2, self.port_manager
-            ))
+        if self._discard_queue == []: 
+            # checks to make sure than there are players who need to discard
+            self.window.vm.go_to("robber_place",
+                board=self.board, players=self.players, current_player=self.current_player,
+                die1=self.die1, die2=self.die2, port_manager=self.port_manager
+            )
             return
         self._build_static_texts()
 
@@ -132,9 +132,7 @@ class RobberResView(arcade.View):
         # Back button
         _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
         if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
-            from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self._active_discarder, 
-                                            self.die1, self.die2, self.port_manager ))
+            self.window.vm.go_back()
             return
 
         self._handle_spinner_click(x, y)
@@ -452,11 +450,10 @@ class RobberResView(arcade.View):
             self._build_static_texts()  # rebuild title for new player
         else:
             # Everyone's done — move to robber placement
-            from .robber_place_view import RobberPlaceView
-            self.window.show_view(RobberPlaceView(
-                self.board, self.players, self.current_player,
-                self.die1, self.die2, self.port_manager
-            ))
+            self.window.vm.go_to("robber_res",
+                board=self.board, players=self.players, current_player=self.current_player,
+                die1=self.die1, die2=self.die2, port_manager=self.port_manager
+            )
 
     def _execute_trade(self):
         player = self.players[self._active_discarder]
