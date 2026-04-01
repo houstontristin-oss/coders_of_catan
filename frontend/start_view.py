@@ -10,30 +10,7 @@ from backend.player import Player
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH,
                         TEXT_GOLD, RESOURCE_ABBR, ONE, SIX)
 from .drawing import fill_rect, outline_rect
-from .view_constants import (
-    # Skip button
-    START_SKIP_BTN_W, START_SKIP_BTN_H,
-    START_SKIP_BTN_X, START_SKIP_BTN_Y,
-    # Sun
-    START_SUN_X, START_SUN_Y,
-    START_SUN_RADIUS, START_SUN_GLOW_RADIUS,
-    START_SUN_COLOR, START_SUN_GLOW_COLOR,
-    START_SUN_RAY_COUNT, START_SUN_RAY_LEN, START_SUN_RAY_WIDTH,
-    START_SUN_RAY_COLOR,
-    # Sunset gradient bands
-    START_GRAD_BANDS,
-    # Title
-    START_TITLE_Y, START_TITLE_FONT_SIZE,
-    START_SUBTITLE_Y, START_SUBTITLE_FONT_SIZE,
-    # Farm
-    START_FARM_HORIZON_Y,
-    START_FARM_FIELD_COLOR, START_FARM_FIELD_DARK_COLOR,
-    START_FARM_TREE_COLOR, START_FARM_TREE_DARK_COLOR,
-    START_FARM_SILO_COLOR, START_FARM_SILO_DARK_COLOR,
-    START_FARM_BARN_COLOR, START_FARM_BARN_DARK_COLOR,
-    START_FARM_ROOF_COLOR,
-    START_FARM_CLOUD_COLOR,
-)
+from .view_constants import *
 
 
 # ---------------------------------------------------------------------------
@@ -85,7 +62,72 @@ def _draw_sun(time_s: float):
                                (255, 255, 220, 120))
 
 
-def _draw_farmscape():
+def _draw_horizon_water(time_s: float):
+    """Thin ocean strip near the horizon so the island feels coastal."""
+    W = SCREEN_WIDTH
+
+    # Base water band
+    arcade.draw_lrbt_rectangle_filled(
+        0, W,
+        START_WATER_BOTTOM_Y, START_WATER_TOP_Y,
+        START_WATER_DARK_COLOR
+    )
+    arcade.draw_lrbt_rectangle_filled(
+        0, W,
+        START_WATER_BOTTOM_Y + 6, START_WATER_TOP_Y - 2,
+        START_WATER_COLOR
+    )
+
+    # Soft wave lines
+    for i in range(START_WATER_WAVE_COUNT):
+        y_base = START_WATER_BOTTOM_Y + 10 + i * START_WATER_WAVE_SPACING
+        prev = None
+        for x in range(-20, W + 21, 14):
+            y = y_base + math.sin(x / 55.0 + time_s * 1.3 + i * 0.8) * START_WATER_WAVE_AMPLITUDE
+            if prev is not None:
+                arcade.draw_line(
+                    prev[0], prev[1], x, y,
+                    START_WATER_FOAM_COLOR,
+                    START_WATER_WAVE_THICKNESS
+                )
+            prev = (x, y)
+
+
+def _draw_sheep():
+    """Tiny painterly sheep on the pasture."""
+    W = SCREEN_WIDTH
+    H = START_FARM_HORIZON_Y
+
+    cx = W * START_SHEEP_X_FRAC
+    cy = H * START_SHEEP_Y_FRAC
+
+    # Legs
+    for lx in (-10, -4, 5, 11):
+        arcade.draw_line(cx + lx, cy - 10, cx + lx, cy - 22, START_SHEEP_LEG_COLOR, 2)
+
+    # Body
+    arcade.draw_circle_filled(cx - 10, cy, 10, START_SHEEP_BODY_COLOR)
+    arcade.draw_circle_filled(cx,      cy + 2, 12, START_SHEEP_BODY_COLOR)
+    arcade.draw_circle_filled(cx + 11, cy, 10, START_SHEEP_BODY_COLOR)
+
+    # Soft wool shadow
+    arcade.draw_circle_filled(cx - 3, cy - 2, 10, START_SHEEP_WOOL_SHADOW)
+
+    # Head
+    arcade.draw_ellipse_filled(cx + 20, cy - 2, 13, 11, START_SHEEP_FACE_COLOR)
+
+    # Ear
+    arcade.draw_triangle_filled(
+        cx + 23, cy + 4,
+        cx + 29, cy + 8,
+        cx + 24, cy + 1,
+        START_SHEEP_FACE_COLOR
+    )
+    # Eye
+    arcade.draw_circle_filled(cx + 23, cy, 1.4, (245, 245, 245, 255))
+
+
+def _draw_farmscape(time_s: float):
     """
     Watercolor-style pastoral farmscape at the bottom of the screen.
     Fades to transparent at the horizon so the sky shows through.
@@ -98,6 +140,7 @@ def _draw_farmscape():
                                        START_FARM_FIELD_DARK_COLOR)
     arcade.draw_lrbt_rectangle_filled(0, W, H * 0.28, H * 0.68,
                                        START_FARM_FIELD_COLOR)
+    _draw_horizon_water(time_s)
 
     # Rolling hill silhouettes at horizon (first layer)
     hill_pts = []
@@ -119,11 +162,11 @@ def _draw_farmscape():
         hill2_pts.append((fx, fy))
     hill2_pts.append((W, 0))
     hill2_pts.append((0, 0))
-    arcade.draw_polygon_filled(hill2_pts, (*START_FARM_FIELD_DARK_COLOR[:3], 130))
+    arcade.draw_polygon_filled(hill2_pts, (*START_FARM_FIELD_DARK_COLOR[:3], 230))
 
     # Fence line
     fence_y = H * 0.52
-    fence_color = (110, 70, 40, 200)
+    fence_color = (110, 70, 40, 240)
     post_gap = 55
     for px in range(20, W, post_gap):
         arcade.draw_line(px, fence_y - 10, px, fence_y + 12, fence_color, 3)
@@ -205,6 +248,8 @@ def _draw_farmscape():
             sx2 = wf_x + stalk * 9 + (row % 2) * 4
             arcade.draw_line(sx2, ry, sx2, ry + 14, wheat_color, 2)
             arcade.draw_circle_filled(sx2, ry + 16, 2.5, (230, 195, 80, 151))
+
+    _draw_sheep()
 
     # Horizon glow — fades farmscape softly into sky
     for i in range(10):
@@ -369,7 +414,7 @@ class StartView(arcade.View):
         _draw_sunset_gradient()      # 1. Sky
         _draw_clouds(self._time)     # 2. Drifting clouds
         _draw_sun(self._time)        # 3. Animated sun
-        _draw_farmscape()            # 4. Farmscape (fades at horizon)
+        _draw_farmscape(self._time)            # 4. Farmscape (fades at horizon)
         _draw_title()                # 5. Title + subtitle
         _draw_skip_button(self.txt_skip)  # 6. Skip button
 

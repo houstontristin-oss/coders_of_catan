@@ -66,7 +66,7 @@ class TradeViewBarter(arcade.View):
         self.die1           = die1
         self.die2           = die2
         self.port_manager = port_manager
- 
+
         self._offer   = {r: 0 for r in _RESOURCES}
         self._receive = {r: 0 for r in _RESOURCES}
         self._pending = None          # int index of receiving player, or None

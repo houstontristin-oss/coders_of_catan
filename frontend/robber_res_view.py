@@ -4,7 +4,7 @@ Contains Robber Resource Class
 import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import (
-    HUD_BOTTOM_HEIGHT, HUD_BG, SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN, SCREEN_HEIGHT, BTN_TRADE,
+    SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN, SCREEN_HEIGHT, BTN_TRADE,
     TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG, TOP_BAR_HEIGHT, LARGE_TEXT_SIZE
 )
 
@@ -167,7 +167,7 @@ class RobberResView(arcade.View):
 
         # explanation of rolling a 7 rule
         self._static_texts.append(arcade.Text(
-            f"since you have more than 7 cards, you must discard half of your cards rounding down",
+            "since you have more than 7 cards, you must discard half of your cards rounding down",
             SCREEN_WIDTH / 2, SCREEN_HEIGHT - 52,   # x location, y location
             TEXT_WHITE, _SMALL_TEXT_SIZE, bold=True,
             anchor_x="center", anchor_y="center",
@@ -224,7 +224,7 @@ class RobberResView(arcade.View):
         _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
         fill_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, BTN_TRADE)
         outline_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, (255, 255, 255, 60), 1)
-    
+
     def _draw_sections(self):
         """Draw offer + receive swatches, spinners, and dynamic counter labels."""
         player = self.players[self._active_discarder]
@@ -288,7 +288,7 @@ class RobberResView(arcade.View):
         outline_rect(start_x, _DISCARD_Y, btn_w, _DISCARD_BTN_H, (255, 255, 255, 60), 2)
 
         self._dynamic_texts.append(arcade.Text(
-                f"Discard",
+                "Discard",
                 start_x + btn_w / 2, _DISCARD_Y + _DISCARD_BTN_H / 2,
                 TEXT_WHITE, 12, bold=True,
                 anchor_x="center", anchor_y="center",
@@ -403,16 +403,16 @@ class RobberResView(arcade.View):
         # Define the button bounds (must match _draw_discard_button)
         btn_w = 160
         start_x = (SCREEN_WIDTH - btn_w) / 2
-        
+
         # Check if click is inside the Discard button
         if start_x <= x <= start_x + btn_w and _DISCARD_Y <= y <= _DISCARD_Y + _DISCARD_BTN_H:
             player = self.players[self._active_discarder]
-            
+
             # Calculate how many they MUST discard (half hand, rounded down)
             total_cards = sum(player.resource_cards.values())
             required_discard = total_cards // 2
             current_selection = sum(self._resources.values())
-            
+
             # 3. Validation: Only proceed if they selected the right amount
             if current_selection == required_discard:
                 # Set pending to current player to trigger the confirmation modal
@@ -420,7 +420,7 @@ class RobberResView(arcade.View):
             else:
                 # Optional: You could add a message here saying "You must select X cards"
                 print(f"Invalid discard amount: {current_selection}/{required_discard}")
-            
+
     def _handle_modal_click(self, x, y):
         if self._modal_accept_rect is None:
             return
