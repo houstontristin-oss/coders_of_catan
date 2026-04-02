@@ -7,7 +7,6 @@ import random
 import arcade
 from backend.catan_board import CatanBoard
 from backend.player import Player
-from .setup_view import SetupView
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH,
                         TEXT_GOLD, RESOURCE_ABBR, ONE, SIX)
 from .drawing import fill_rect, outline_rect
@@ -16,10 +15,7 @@ from .view_constants import *
 
 # ---------------------------------------------------------------------------
 # Internal drawing helpers — all pure arcade calls, no game state
-# ---------------------------------------------------------------------------
-
 def _draw_sunset_gradient():
-    """Paint the sky as stacked horizontal gradient bands."""
     for (bottom_frac, top_frac, color) in START_GRAD_BANDS:
         y_bot = SCREEN_HEIGHT * bottom_frac
         y_top = SCREEN_HEIGHT * top_frac
@@ -64,7 +60,6 @@ def _draw_sun(time_s: float):
 
 
 def _draw_horizon_water(time_s: float):
-    """Thin ocean strip near the horizon so the island feels coastal."""
     W = SCREEN_WIDTH
 
     # Base water band
@@ -95,7 +90,6 @@ def _draw_horizon_water(time_s: float):
 
 
 def _draw_sheep():
-    """Tiny painterly sheep on the pasture."""
     W = SCREEN_WIDTH
     H = START_FARM_HORIZON_Y
 
@@ -129,10 +123,6 @@ def _draw_sheep():
 
 
 def _draw_farmscape(time_s: float):
-    """
-    Watercolor-style pastoral farmscape at the bottom of the screen.
-    Fades to transparent at the horizon so the sky shows through.
-    """
     H = START_FARM_HORIZON_Y
     W = SCREEN_WIDTH
 
@@ -263,7 +253,6 @@ def _draw_farmscape(time_s: float):
 
 
 def _draw_clouds(time_s: float):
-    """Slow-drifting sunset clouds in warm peachy tones."""
     cloud_defs = [
         (0.08, 0.86, 12.0, 1.1),
         (0.30, 0.91, 8.0,  0.9),
@@ -388,8 +377,9 @@ def _auto_place_setup(board, players):
 class StartView(arcade.View):
     """Animated start screen — sunset sky, sun, farmscape, golden title."""
 
-    def __init__(self):
+    def __init__(self, vm):
         super().__init__()
+        self.vm = vm
         self._time = 0.0
         self._build_text_objects()
 
@@ -439,14 +429,11 @@ class StartView(arcade.View):
 
         if self._skip_button_hit(x, y):
             _auto_place_setup(board, players)
-            from .catan_view import CatanView
-            self.window.show_view(
-                CatanView(board, players, 0,
-                          die1=random.randint(ONE, SIX),
-                          die2=random.randint(ONE, SIX),
-                          port_manager=None)
-            )
+            self.window.vm.go_to("catan",
+                board=board, players=players, current_player=0, die1=random.randint(ONE, SIX),
+                die2=random.randint(ONE, SIX), port_manager=None)
             return
 
-        from .gamemode_view import GamemodeView
-        self.window.show_view(GamemodeView(board, players))
+        self.window.vm.go_to("gamemode",
+            board=board, players=players,
+        )

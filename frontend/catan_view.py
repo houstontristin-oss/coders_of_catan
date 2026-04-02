@@ -11,17 +11,9 @@ Contains CatanView Class
 import random
 import math
 import arcade
-
+from .port_manager import PortManager
 from backend import node
 from backend.catan_board import CatanBoard
-from .port_manager import PortManager
-from .play_card_view import PlayCardView
-#from .trade_view import TradeView
-from .robber_place_view import RobberPlaceView
-from .robber_res_view import RobberResView
-from .trade_view_barter import TradeViewBarter
-from .trade_view_maritime import TradeViewMaritime
-from .end_view import EndView
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
                       draw_board, draw_city, draw_ocean_background)
@@ -48,22 +40,24 @@ class CatanView(arcade.View):
         free_roads           : int  — free roads remaining from Road Building card
     """
     def __init__(
-            self,
-            board,
-            players,
-            current_player,
-            die1,
-            die2,
-            port_manager,
-            shared_deck=None,
-            bought_card_this_turn=False,
-            played_card_this_turn=False,
-            free_roads=0,
-            start_of_turn=False,
+        self,
+        vm,
+        board,
+        players,
+        current_player,
+        die1,
+        die2,
+        port_manager,
+        shared_deck=None,
+        bought_card_this_turn=False,
+        played_card_this_turn=False,
+        free_roads=0,
+        start_of_turn=False,
     ):
         super().__init__()
-        self.board = board
-        self.players = players
+        self.vm             = vm
+        self.board          = board
+        self.players        = players
         self.current_player = current_player
         self.port_manager = port_manager
         self.die1 = die1
@@ -998,17 +992,17 @@ class CatanView(arcade.View):
             # Maritime Trade — top row of popup (by+44 .. by+72)
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 self._cancel_trade()
-                self.window.show_view(
-                    TradeViewMaritime(self.board, self.players, self.current_player,
-                                      self.die1, self.die2, self.port_manager)
+                self.window.vm.go_to("maritime_trade",
+                    board=self.board, players=self.players, current_player=self.current_player, 
+                    die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
                 return
             # Barter Trade — bottom row of popup (by+8 .. by+36)
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
                 self._cancel_trade()
-                self.window.show_view(
-                    TradeViewBarter(self.board, self.players, self.current_player,
-                                    self.die1, self.die2, self.port_manager)
+                self.window.vm.go_to("barter_trade",
+                    board=self.board, players=self.players, current_player=self.current_player, 
+                    die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
                 return
 
@@ -1101,17 +1095,14 @@ class CatanView(arcade.View):
 
 
         # Dev Cards button
-        if ((CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and
-                (card_bottom <= y <= card_bottom + CATAN_BTN_H)):
-            self.window.show_view(
-                PlayCardView(
-                    self.board, self.players, self.current_player,
-                    self.die1, self.die2, self.port_manager,
-                    shared_deck=self._shared_deck,
-                    bought_this_turn=self._bought_card_this_turn,
-                    played_card_this_turn=self._played_card_this_turn,
-                    free_roads=self._free_roads,
-                )
+        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (card_bottom <= y <= card_bottom + CATAN_BTN_H):
+            self.window.vm.go_to("play_card",
+                board=self.board, players=self.players, current_player=self.current_player,
+                die1=self.die1, die2=self.die2, port_manager=self.port_manager,
+                shared_deck=self._shared_deck,
+                bought_this_turn=self._bought_card_this_turn,
+                played_card_this_turn=self._played_card_this_turn,
+                free_roads=self._free_roads,
             )
             return
 
@@ -1253,7 +1244,7 @@ class CatanView(arcade.View):
     # -----------------------------------------------------------------------
     def _end_turn(self):
         if self.players[self.current_player].victory_points >= 10:
-            self.window.show_view(EndView(self.players, self.current_player))
+            self.window.vm.go_to("end", players=self.players, current_player=self.current_player)
             return
 
         # Clear "just_bought" flag on all cards so they can be played next turn
@@ -1279,14 +1270,29 @@ class CatanView(arcade.View):
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
-            self.window.show_view(RobberResView(self.board, self.players, self.current_player,
-                                                self.die1, self.die2, self.port_manager))
+            self.window.vm.go_to("robber_res", 
+                board=self.board, players=self.players, current_player=self.current_player, 
+                die1=self.die1, die2=self.die2, port_manager=self.port_manager,
+            )
             return
 
         self._give_resources()
-        self.window.show_view(CatanView(self.board, self.players, self.current_player,
-                                        self.die1, self.die2, self.port_manager,
-                                        start_of_turn=True))
-
-        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. "
-              f"Rolled {self.die1 + self.die2}.")
+        if self.players[self.current_player].computer:
+            self.window.vm.go_to("computer_turn",
+                board=self.board,
+                players=self.players,
+                current_player=self.current_player,
+                die1=self.die1,
+                die2=self.die2,
+                port_manager=self.port_manager,
+            )
+        else:
+            self.window.vm.go_to("catan",
+                board=self.board,
+                players=self.players,
+                current_player=self.current_player,
+                die1=self.die1,
+                die2=self.die2,
+                port_manager=self.port_manager,
+                start_of_turn=True,
+            )

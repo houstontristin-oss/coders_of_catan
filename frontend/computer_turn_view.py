@@ -23,6 +23,7 @@ LOG_COLOR = (229,222,207)
 
 class ComputerTurnView(arcade.View):
     def __init__(self,
+        vm,
         board,
         players,
         current_player,
@@ -31,12 +32,16 @@ class ComputerTurnView(arcade.View):
         port_manager,):
 
         super().__init__()
+        self.vm = vm
         self.board = board
         self.players = players
         self.current_player = current_player
         self.die1 = die1
         self.die2 = die2
         self.port_manager = port_manager
+        self._free_roads = 0
+        self._bought_card_this_turn = False
+        self._played_card_this_turn = False
 
         # --- Human Player ---
         self.human = self.players[0]
@@ -692,7 +697,7 @@ class ComputerTurnView(arcade.View):
     # -----------------------------------------------------------------------
     def _end_turn(self):
         if self.players[self.current_player].victory_points >= 10:
-            self.window.show_view(EndView(self.players, self.current_player))
+            self.window.vm.go_to(EndView(self.players, self.current_player))
             return
 
         # Clear "just_bought" flag on all cards so they can be played next turn
@@ -717,7 +722,7 @@ class ComputerTurnView(arcade.View):
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
             #TODO: From RobberResView, we need a way for the computer to pick a new spot for the robber and not show RobberResView if its only computer players that need to discard resources
-            self.window.show_view(RobberResView(self.board, self.players, self.current_player,
+            self.window.vm.go_to(RobberResView(self.board, self.players, self.current_player,
                                                 self.die1, self.die2, self.port_manager))
             return
 
@@ -725,7 +730,7 @@ class ComputerTurnView(arcade.View):
         from .catan_view import CatanView
 
         if self.players[self.current_player].computer:
-            self.window.show_view(
+            self.window.vm.go_to(
                 ComputerTurnView(
                     self.board,
                     self.players,
@@ -737,7 +742,7 @@ class ComputerTurnView(arcade.View):
             )
             return
         else:
-            self.window.show_view(
+            self.window.vm.go_to(
                 CatanView(
                     self.board,
                     self.players,

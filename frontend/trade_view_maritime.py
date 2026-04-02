@@ -45,23 +45,24 @@ class TradeViewMaritime(arcade.View):
     TradeViewMaritime Class
     Handles standard 4:1 trades and allows players to use their ports with 3:1 or 2:1 trades
     """
-    def __init__(self, board, players, current_player, die1, die2, port_manager):
+    def __init__(self, vm, board, players, current_player, die1, die2, port_manager):
         super().__init__()
-        self.board= board
-        self.players = players
+        self.vm             = vm
+        self.board          = board
+        self.players        = players
         self.current_player = current_player
-        self.die1 = die1
-        self.die2 = die2
-        self.port_manager = port_manager
+        self.die1           = die1
+        self.die2           = die2
+        self.port_manager   = port_manager
 
-        self.offer_highlights = {}
-        self.get_highlights = {}
+        self.offer_highlights   = {}
+        self.get_highlights     = {}
 
-        self.offer_selected = {}
-        self.get_selected = {}
+        self.offer_selected     = {}
+        self.get_selected       = {}
 
-        self.trade_success = False
-        self.valid_trade = False
+        self.trade_success  = False
+        self.valid_trade    = False
 
         #Dictionary {'resource': Bool, ...} to determine if a player can afford to trade a resource
         self.affordable_trades = {}
@@ -339,9 +340,7 @@ class TradeViewMaritime(arcade.View):
     def on_mouse_press(self, x, y, button, modifiers):
         # Back to Board Button
         if (SCREEN_WIDTH - BTN_W - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
-            from .catan_view import CatanView
-            self.window.show_view(CatanView(self.board, self.players, self.current_player,
-                                            self.die1, self.die2, self.port_manager))
+            self.window.vm.go_back()
 
         # Accept Trade Button
         if((TRADE_BTN_LEFT <= x <= TRADE_BTN_LEFT + BTN_W) and
