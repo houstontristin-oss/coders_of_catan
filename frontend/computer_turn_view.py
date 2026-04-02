@@ -549,6 +549,14 @@ class ComputerTurnView(arcade.View):
             self._end_turn()
             return
 
+
+    # Make Move Function for computer to make a singular move
+    def _make_move(self):
+        pass
+    # Fast Forward Function for computer to make many moves until either done or need human player input
+    def _fast_forward(self):
+        pass
+
     # -----------------------------------------------------------------------
     # Placement
     # TODO: Add logic in here for computer to place a road, settlement and city
@@ -615,7 +623,6 @@ class ComputerTurnView(arcade.View):
                         if paths == 3:
                             edge_lists[node] = edge_list.copy()
                             print(edge_lists)
-
 
                 for node in e.nodes:
                     if node.player == self.current_player or node.player is None:
@@ -728,6 +735,7 @@ class ComputerTurnView(arcade.View):
                     self.port_manager,
                 )
             )
+            return
         else:
             self.window.show_view(
                 CatanView(
