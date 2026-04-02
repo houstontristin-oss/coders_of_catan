@@ -13,7 +13,6 @@ import math
 import random
 import arcade
 
-from .setup_view import SetupView
 """ From setup view, one should add a check to see if the next player is flagged as a computer"""
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, ONE, SIX
 from .drawing import fill_rect, outline_rect

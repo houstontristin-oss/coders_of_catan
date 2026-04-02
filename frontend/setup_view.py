@@ -367,7 +367,7 @@ class SetupView(arcade.View):
         elif self.cycle == 2 and self.current_player == 0:
             self.current_player = 3
 
-        self.window.vm.go_to("setup",
+        self.vm.go_to("setup",
                 board=self.board, players=self.players, current_player=self.current_player,
                 start_player=self.start_player, cycle=self.cycle, port_manager=self.port_manager,
             )
@@ -393,7 +393,7 @@ class SetupView(arcade.View):
         roll = die1 + die2
         self._give_resources(roll)
         if self.players[self.current_player].computer:
-            self.window.vm.go_to("computer_turn",
+            self.vm.go_to("computer_turn",
                                     board=self.board,
                                     players=self.players,
                                     current_player=self.current_player,
@@ -402,7 +402,7 @@ class SetupView(arcade.View):
                                     port_manager=self.port_manager,
                                     )
         else:
-            self.window.vm.go_to("catan",
+            self.vm.go_to("catan",
                                     board=self.board,
                                     players=self.players,
                                     current_player=self.current_player,

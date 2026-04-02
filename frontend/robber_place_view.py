@@ -246,7 +246,7 @@ class RobberPlaceView(arcade.View):
 
 
     def _end_robber(self):
-        self.window.vm.go_to("catan",
+        self.vm.go_to("catan",
             board=self.board, players=self.players, current_player=self.current_player,
             die1=self.die1, die2=self.die2, port_manager=self.port_manager, start_of_turn=True
         )

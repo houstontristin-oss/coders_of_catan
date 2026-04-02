@@ -727,7 +727,7 @@ class ComputerTurnView(arcade.View):
     # -----------------------------------------------------------------------
     def _end_turn(self):
         if self.players[self.current_player].victory_points >= 10:
-            self.window.vm.go_to("end", self.players, self.current_player)
+            self.vm.go_to("end", self.players, self.current_player)
             return
 
         # Clear "just_bought" flag on all cards so they can be played next turn
@@ -755,7 +755,7 @@ class ComputerTurnView(arcade.View):
             # and not show RobberResView if its only computer players that need to discard resources
             for player in self.players:
                 if player == self.human and self.human.get_total_resources > GET_ROBBED:
-                    self.window.vm.go_to(
+                    self.vm.go_to(
                         "robber_res", 
                         board=self.board, 
                         players=self.players, 
@@ -772,7 +772,7 @@ class ComputerTurnView(arcade.View):
         self._give_resources()
 
         if self.players[self.current_player].computer:
-            self.window.vm.go_to(
+            self.vm.go_to(
                     "computer_turn",
                     board=self.board,
                     players=self.players,
@@ -783,7 +783,7 @@ class ComputerTurnView(arcade.View):
             )
             return
         else:
-            self.window.vm.go_to(
+            self.vm.go_to(
                     "catan",
                     board=self.board,
                     players=self.players,

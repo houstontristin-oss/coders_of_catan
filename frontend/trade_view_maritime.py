@@ -340,7 +340,7 @@ class TradeViewMaritime(arcade.View):
     def on_mouse_press(self, x, y, button, modifiers):
         # Back to Board Button
         if (SCREEN_WIDTH - BTN_W - 20 <= x <= SCREEN_WIDTH - 20) and (y <= HUD_BOTTOM_HEIGHT):
-            self.window.vm.go_back()
+            self.vm.go_back()
 
         # Accept Trade Button
         if((TRADE_BTN_LEFT <= x <= TRADE_BTN_LEFT + BTN_W) and

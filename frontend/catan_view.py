@@ -992,7 +992,7 @@ class CatanView(arcade.View):
             # Maritime Trade — top row of popup (by+44 .. by+72)
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 self._cancel_trade()
-                self.window.vm.go_to("maritime_trade",
+                self.vm.go_to("maritime_trade",
                     board=self.board, players=self.players, current_player=self.current_player, 
                     die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
@@ -1000,7 +1000,7 @@ class CatanView(arcade.View):
             # Barter Trade — bottom row of popup (by+8 .. by+36)
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
                 self._cancel_trade()
-                self.window.vm.go_to("barter_trade",
+                self.vm.go_to("barter_trade",
                     board=self.board, players=self.players, current_player=self.current_player, 
                     die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
@@ -1096,7 +1096,7 @@ class CatanView(arcade.View):
 
         # Dev Cards button
         if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (card_bottom <= y <= card_bottom + CATAN_BTN_H):
-            self.window.vm.go_to("play_card",
+            self.vm.go_to("play_card",
                 board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager,
                 shared_deck=self._shared_deck,
@@ -1244,7 +1244,7 @@ class CatanView(arcade.View):
     # -----------------------------------------------------------------------
     def _end_turn(self):
         if self.players[self.current_player].victory_points >= 10:
-            self.window.vm.go_to("end", players=self.players, current_player=self.current_player)
+            self.vm.go_to("end", players=self.players, current_player=self.current_player)
             return
 
         # Clear "just_bought" flag on all cards so they can be played next turn
@@ -1270,7 +1270,7 @@ class CatanView(arcade.View):
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
-            self.window.vm.go_to("robber_res", 
+            self.vm.go_to("robber_res", 
                 board=self.board, players=self.players, current_player=self.current_player, 
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager,
             )
@@ -1278,7 +1278,7 @@ class CatanView(arcade.View):
 
         self._give_resources()
         if self.players[self.current_player].computer:
-            self.window.vm.go_to("computer_turn",
+            self.vm.go_to("computer_turn",
                 board=self.board,
                 players=self.players,
                 current_player=self.current_player,
@@ -1287,7 +1287,7 @@ class CatanView(arcade.View):
                 port_manager=self.port_manager,
             )
         else:
-            self.window.vm.go_to("catan",
+            self.vm.go_to("catan",
                 board=self.board,
                 players=self.players,
                 current_player=self.current_player,
