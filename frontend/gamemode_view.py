@@ -148,11 +148,14 @@ class GamemodeView(arcade.View):
             for player in self.players:
                 player.computer = False
 
+
+        start_player = random.randint(0,3)
         self.vm.go_to(
             "setup",
             board=self.board,
             players=self.players,
-            current_player=0,
+            current_player=start_player,
+            start_player=start_player,
             cycle=1,
             port_manager=None,
         )

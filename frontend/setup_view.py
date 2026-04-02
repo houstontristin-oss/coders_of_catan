@@ -20,15 +20,15 @@ class SetupView(arcade.View):
     """
     SetupView Class
     """
-    def __init__(self, vm, board, players, current_player, cycle, port_manager: PortManager | None):
+    def __init__(self, vm, board, players, current_player, start_player, cycle, port_manager: PortManager | None):
         super().__init__()
         self.vm = vm
         self.board = board # CatanBoard instance
         self.players = players # list of Player instances
         self.current_player = current_player # index of current player in players list
+        self.start_player = start_player # indec of the player that is going to go first and last for setup
         self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
         self.last_placed_settlement = None # track last placed settlement for edge verification
-
 
         #Build node states
         self.build_choice  = BUILD_SETTLEMENT
@@ -54,6 +54,29 @@ class SetupView(arcade.View):
             self.port_manager = port_manager
 
         self._build_text_objects()
+
+    def _comp_player_placement(self):
+        #TODO: add in placement logic here and redirect to another view
+        best_node = None
+        best_node_val = 0
+        for node in self.board.nodes.values():
+            if node.is_valid_setup_placement():
+                node_val = 0
+                for tile in node.tiles:
+                    node_val += tile.number
+                if node_val > best_node_val:
+                    best_node = node
+                    best_node_val = node_val
+        self._place_settlement(best_node)
+        
+        best_edge = None
+        while best_node is not None and best_edge is None:
+            edge = random.choice(best_node.edges)
+            if edge.player is None and edge.is_valid_setup_road_placement(best_node):
+                best_edge = edge
+       
+        self._place_road(best_edge)
+        self._advance_player()
 
     def _build_text_objects(self):
         player = self.players[self.current_player]
@@ -220,6 +243,9 @@ class SetupView(arcade.View):
         self._ocean_time += delta_time
 
     def on_draw(self):
+        if self.players[self.current_player].computer:
+            self._comp_player_placement()
+
         self.clear()
 
         # --- Animated ocean background (mirrors CatanView) ---
@@ -285,10 +311,10 @@ class SetupView(arcade.View):
                 self.show_confirm = False
                 return
 
-            popup_w  = 160
-            pop_left = pcx - popup_w / 2
+            POPUP_W  = 160
+            POP_LEFT = pcx - POPUP_W / 2
 
-            if (pop_left+8 <= x <= pop_left+74) and (pcy+8 <= y <= pcy+38):
+            if (POP_LEFT+8 <= x <= POP_LEFT+74) and (pcy+8 <= y <= pcy+38):
                 if self.build_choice == BUILD_SETTLEMENT:
                     if self.cycle == 2 and self.selected_node is not None:
                         # distribute resources for second settlement placements
@@ -302,53 +328,8 @@ class SetupView(arcade.View):
                                             "Place your Road")
                 elif self.build_choice == BUILD_ROAD:
                     self._place_road(self.selected_edge)
-                    if self.current_player == 3 and self.cycle == 1:
-                        self.cycle = 2
-                    elif self.cycle == 1:
-                        self.current_player += 1
-                    elif self.cycle == 2 and self.current_player > 0:
-                        self.current_player -= 1
-                    elif self.cycle == 2 and self.current_player == 0:
-                        from .catan_view import CatanView
-                        #setup dice for first player
-                        die1 = random.randint(ONE, SIX)
-                        die2 = random.randint(ONE, SIX)
-                        #give resources
-                        roll = die1 + die2
-                        for tile in self.board.tiles.values():
-                            if tile.number == roll:
-                                resource = RESOURCE_ABBR[tile.resource]
-                                for node in tile.nodes:
-                                    if node.player != None:
-                                        player = self.players[node.player]
-                                        player.resource_cards[resource] += 1 if node.building == "settlement" else 2
-                        if self.players[self.current_player].computer:
-                            self.window.vm.go_to("computer_turn",
-                                                 board=self.board,
-                                                 players=self.players,
-                                                 current_player=self.current_player,
-                                                 die1=die1,
-                                                 die2=die2,
-                                                 port_manager=self.port_manager,
-                                                 )
-                        else:
-                            self.window.vm.go_to("catan",
-                                                 board=self.board,
-                                                 players=self.players,
-                                                 current_player=self.current_player,
-                                                 die1=die1,
-                                                 die2=die2,
-                                                 port_manager=self.port_manager,
-                                                 start_of_turn=True,
-                                                 )
-                        return
-
-                    self.window.vm.go_to("setup",
-                        board=self.board, players=self.players, current_player=self.current_player,
-                        cycle=self.cycle, port_manager=self.port_manager,
-                    )
-                return
-            if (pop_left+popup_w-74 <= x <= pop_left+popup_w-8) and (pcy+8 <= y <= pcy+38):
+                    self._advance_player()
+            if (POP_LEFT+POPUP_W-74 <= x <= POP_LEFT+POPUP_W-8) and (pcy+8 <= y <= pcy+38):
                 self.selected_node = None
                 self.selected_edge = None
                 self.show_confirm  = False
@@ -366,3 +347,67 @@ class SetupView(arcade.View):
             self.selected_edge = self.hovered_edge
             self.show_confirm  = True
             return
+
+    # Update current player and cycle to move to next
+    def _advance_player(self):
+        #handle switching to the next player without starting at player 1
+        last_player = self.start_player - 1 if self.start_player != 0 else 3
+
+        if self.current_player == last_player and self.cycle == 1:
+            self.cycle = 2
+        elif self.cycle == 1 and self.current_player < 3:
+            self.current_player += 1
+        elif self.cycle == 1 and self.current_player == 3:
+            self.current_player = 0
+        elif self.cycle == 2 and self.current_player == self.start_player:
+            self._end_setup()
+            return
+        elif self.cycle == 2 and self.current_player > 0:
+            self.current_player -= 1
+        elif self.cycle == 2 and self.current_player == 0:
+            self.current_player = 3
+
+        self.window.vm.go_to("setup",
+                board=self.board, players=self.players, current_player=self.current_player,
+                start_player=self.start_player, cycle=self.cycle, port_manager=self.port_manager,
+            )
+        return
+        
+    # Resource distribution
+    def _give_resources(self, roll):
+        for tile in self.board.tiles.values():
+            if tile.number == roll:
+                resource = RESOURCE_ABBR[tile.resource]
+                for node in tile.nodes:
+                    if node.player is not None:
+                        player = self.players[node.player]
+                        player.resource_cards[resource] += (
+                            1 if node.building == "settlement" else 2
+                        )
+    # After all players have completed setup
+    def _end_setup(self):    
+        #setup dice for first player
+        die1 = random.randint(ONE, SIX)
+        die2 = random.randint(ONE, SIX)
+        #give resources
+        roll = die1 + die2
+        self._give_resources(roll)
+        if self.players[self.current_player].computer:
+            self.window.vm.go_to("computer_turn",
+                                    board=self.board,
+                                    players=self.players,
+                                    current_player=self.current_player,
+                                    die1=die1,
+                                    die2=die2,
+                                    port_manager=self.port_manager,
+                                    )
+        else:
+            self.window.vm.go_to("catan",
+                                    board=self.board,
+                                    players=self.players,
+                                    current_player=self.current_player,
+                                    die1=die1,
+                                    die2=die2,
+                                    port_manager=self.port_manager,
+                                    start_of_turn=True,
+                                    )

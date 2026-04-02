@@ -7,8 +7,6 @@ import arcade
 import random
 
 from .port_manager import PortManager
-from .robber_res_view import RobberResView
-from .end_view import EndView
 
 from backend.catan_board import CatanBoard
 
@@ -697,7 +695,7 @@ class ComputerTurnView(arcade.View):
     # -----------------------------------------------------------------------
     def _end_turn(self):
         if self.players[self.current_player].victory_points >= 10:
-            self.window.vm.go_to(EndView(self.players, self.current_player))
+            self.window.vm.go_to("end", self.players, self.current_player)
             return
 
         # Clear "just_bought" flag on all cards so they can be played next turn
@@ -722,35 +720,38 @@ class ComputerTurnView(arcade.View):
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
             #TODO: From RobberResView, we need a way for the computer to pick a new spot for the robber and not show RobberResView if its only computer players that need to discard resources
-            self.window.vm.go_to(RobberResView(self.board, self.players, self.current_player,
-                                                self.die1, self.die2, self.port_manager))
+            self.window.vm.go_to(
+                "robber_res", 
+                board=self.board, 
+                players=self.players, 
+                current_player=self.current_player,
+                die1=self.die1, 
+                die2=self.die2, 
+                port_manager=self.port_manager)
             return
 
         self._give_resources()
-        from .catan_view import CatanView
 
         if self.players[self.current_player].computer:
             self.window.vm.go_to(
-                ComputerTurnView(
-                    self.board,
-                    self.players,
-                    self.current_player,
-                    self.die1,
-                    self.die2,
-                    self.port_manager,
-                )
+                    "computer_turn",
+                    board=self.board,
+                    players=self.players,
+                    current_player=self.current_player,
+                    die1=self.die1,
+                    die2=self.die2,
+                    port_manager=self.port_manager,
             )
             return
         else:
             self.window.vm.go_to(
-                CatanView(
-                    self.board,
-                    self.players,
-                    self.current_player,
-                    self.die1,
-                    self.die2,
-                    self.port_manager,
+                    "catan",
+                    board=self.board,
+                    players=self.players,
+                    current_player=self.current_player,
+                    die1=self.die1,
+                    die2=self.die2,
+                    port_manager=self.port_manager,
                     start_of_turn=True,
-                )
             )
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")
