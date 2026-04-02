@@ -21,6 +21,7 @@ Tristin:
 Amanda:
 * Longest Road working properly (medium) (important)
 * ComputerTurnView (hard) (essential)
+* SetupView for Computer player (done)
 
 
 Nick:

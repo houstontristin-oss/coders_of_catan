@@ -18,6 +18,7 @@ from .view_constants import *
 FAST_FORWARD = "Fast Forward"
 NEXT_MOVE = "Next Move"
 LOG_COLOR = (229,222,207)
+GET_ROBBED = 7
 
 class ComputerTurnView(arcade.View):
     def __init__(self,
@@ -47,6 +48,8 @@ class ComputerTurnView(arcade.View):
             if not p.computer:
                 self.human = p
                 break
+        # --- Computer Move Options ---
+        self.moves = ['Trade', 'Build', 'DevCard']
 
         self._dice_animating  = True
         self._dice_anim_timer = DICE_ROLL_DURATION
@@ -318,6 +321,7 @@ class ComputerTurnView(arcade.View):
     def _build_log_texts(self):
         player = self.players[self.current_player]
         self.txt_log_title = arcade.Text(f"{player.name}'s Turn Log:", CATAN_PLAYER_PANEL_MARGIN + 5, 400, HUD_PANEL_BG, CATAN_TEXT_SIZE_RESOURCE, font_name="MedievalSharp",)
+        self.txt_log = arcade.Text("", CATAN_PLAYER_PANEL_MARGIN + 5, 380, HUD_PANEL_BG, CATAN_TEXT_SIZE_RESOURCE, font_name="MedievalSharp",)
 
     # -----------------------------------------------------------------------
     # on_update — dice animation tick
@@ -548,18 +552,46 @@ class ComputerTurnView(arcade.View):
     def on_mouse_press(self, x, y, button, modifiers):
         # End Turn
         end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
+        if len(self.moves) != 0:
+            # TODO: Grey out these buttons once there are no more moves for computer player to make
+            if (x) and (y):
+                self._make_move()
+
+        if (x) and (y):
+            self._fast_forward()
+
         if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
             self._end_turn()
             return
 
-
+    """TODO: to add to computer player class to make this easier
+        - can_place_settlement() : returns node to place settlement at or None
+        - can_afford_road() : returns bool
+        - best_road_location() : returns edge to place road on
+        - can_afford_settlement() : returns bool
+        - can_afford_city() : returns bool
+        - best_city_location() : returns node to make into a city
+        - can_afford_dev_card() : returns bool
+        - play_dev_card() : returns str of what dev card was played for log
+        - 
+    """
     # Make Move Function for computer to make a singular move
     def _make_move(self):
-        pass
+        move = self.moves.pop(0)
+        player = self.players[self.current_player]
+        if move == "Trade":
+            if player.get_total_resources() > GET_ROBBED:
+                pass # Need a human player confirm popup
+        if move == "Build":
+            pass
+        if move == "DevCard":
+            pass
+
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
-        pass
-
+        while len(self.moves) > 0:
+            self._make_move()
+        
     # -----------------------------------------------------------------------
     # Placement
     # TODO: Add logic in here for computer to place a road, settlement and city
