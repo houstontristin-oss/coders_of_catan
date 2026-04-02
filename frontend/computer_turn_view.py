@@ -750,17 +750,24 @@ class ComputerTurnView(arcade.View):
         self.die2 = random.randint(ONE, SIX)
 
         #checks if roll is 7 and initiates robber placement phase
-        if self.die1 + self.die2 == 7:
-            #TODO: From RobberResView, we need a way for the computer to pick a new spot for the robber and not show RobberResView if its only computer players that need to discard resources
-            self.window.vm.go_to(
-                "robber_res", 
-                board=self.board, 
-                players=self.players, 
-                current_player=self.current_player,
-                die1=self.die1, 
-                die2=self.die2, 
-                port_manager=self.port_manager)
-            return
+        if self.die1 + self.die2 == GET_ROBBED:
+            #TODO: From RobberResView, we need a way for the computer to pick a new spot for the robber 
+            # and not show RobberResView if its only computer players that need to discard resources
+            for player in self.players:
+                if player == self.human and self.human.get_total_resources > GET_ROBBED:
+                    self.window.vm.go_to(
+                        "robber_res", 
+                        board=self.board, 
+                        players=self.players, 
+                        current_player=self.current_player,
+                        die1=self.die1, 
+                        die2=self.die2, 
+                        port_manager=self.port_manager)
+                    return
+                else:
+                    # TODO: discard half of the comp players resources
+                    # then move the robber
+                    pass
 
         self._give_resources()
 
