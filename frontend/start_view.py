@@ -429,11 +429,11 @@ class StartView(arcade.View):
 
         if self._skip_button_hit(x, y):
             _auto_place_setup(board, players)
-            self.window.vm.go_to("catan",
+            self.vm.go_to("catan",
                 board=board, players=players, current_player=0, die1=random.randint(ONE, SIX),
                 die2=random.randint(ONE, SIX), port_manager=None)
             return
 
-        self.window.vm.go_to("gamemode",
+        self.vm.go_to("gamemode",
             board=board, players=players,
         )

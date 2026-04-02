@@ -37,4 +37,4 @@ class EndView(arcade.View):
 
     def on_mouse_press(self, x, y, button, modifiers):
         # Has to go back to start view to reset the board and players
-        self.window.vm.go_to("start")
+        self.vm.go_to("start")

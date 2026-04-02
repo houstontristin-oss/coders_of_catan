@@ -577,7 +577,7 @@ class PlayCardView(arcade.View):
                 player.largest_army = True
                 player.victory_points += LARGEST_ARMY_VP
 
-        self.window.vm.go_to("catan",
+        self.vm.go_to("catan",
             board=self.board, players=self.players, current_player=self.current_player,
             die1=self.die1, die2=self.die2, port_manager=self.port_manager, shared_deck=self._deck,
             bought_card_this_turn=self.bought_this_turn, 

@@ -88,7 +88,7 @@ class RobberResView(arcade.View):
     def on_show_view(self):
         if self._discard_queue == []: 
             # checks to make sure than there are players who need to discard
-            self.window.vm.go_to("robber_place",
+            self.vm.go_to("robber_place",
                 board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager
             )
@@ -132,7 +132,7 @@ class RobberResView(arcade.View):
         # Back button
         _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
         if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
-            self.window.vm.go_back()
+            self.vm.go_back()
             return
 
         self._handle_spinner_click(x, y)
@@ -450,7 +450,7 @@ class RobberResView(arcade.View):
             self._build_static_texts()  # rebuild title for new player
         else:
             # Everyone's done — move to robber placement
-            self.window.vm.go_to("robber_res",
+            self.vm.go_to("robber_res",
                 board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager
             )
