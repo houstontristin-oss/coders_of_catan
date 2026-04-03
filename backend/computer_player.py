@@ -1,9 +1,10 @@
 # pylint: disable=C0114,C0116, R0902
-class Player:
-    """Represents a player for Catan
+from .player import Player
+class ComputerPlayer(Player):
+    """Represents a computer layer for Catan
 
-    This class is used to create Player objects and
-    manage Player actions and inventory.
+    This class is used to create ComputerPlayer objects and
+    manage ComputerPlayer actions and inventory.
 
     Attributes:
         victory_points: total victory points
@@ -15,21 +16,20 @@ class Player:
         color: color of player
         name: name of player
     """
+    """to add to computer player class to make this easier
+            - can_place_settlement() : returns node to place settlement at or None
+            - can_afford_road() : returns bool
+            - best_road_location() : returns edge to place road on
+            - can_afford_settlement() : returns bool
+            - can_afford_city() : returns bool
+            - best_city_location() : returns node to make into a city
+            - can_afford_dev_card() : returns bool
+            - play_dev_card() : returns str of what dev card was played for log
+            - 
+    """
     def __init__(self, color, name):
-        self.victory_points = 0
-        self.resource_cards = {'WOOD':10, 'WHEAT':10, 'BRICK': 10, 'SHEEP': 10, 'ORE':10}
-        self.development_cards = []
-        self.total_roads = 15
-        self.total_settlements = 5
-        self.total_cities = 4
-        self.ports = []
-        self.color = color
-        self.name = name
-        self.knight_count = 0
-        self.largest_army = False
-        self.road_length = 0
-        self.longest_road = False
-        self.computer = False
+        super().__init__(color, name)
+        self.computer = True
 
 
     def exchange_resources(self, giving_resources:dict, receiving_resources:dict):
