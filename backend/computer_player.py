@@ -15,7 +15,6 @@ class ComputerPlayer(Player):
             - best_road_location() : returns edge to place road on
             - best_city_location() : returns node to make into a city
             - play_dev_card() : returns str of what dev card was played for log
-            - 
     """
     def __init__(self, color, name):
         super().__init__(color, name)
@@ -43,4 +42,7 @@ class ComputerPlayer(Player):
         pass
 
     def can_place_settlement(self):
+        pass
+
+    def play_dev_card(self):
         pass
