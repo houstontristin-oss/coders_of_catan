@@ -1,4 +1,4 @@
-# pylint: disable=C0114,C0116, R0902
+# pylint: disable= R0902
 class Player:
     """Represents a player for Catan
 
@@ -68,12 +68,6 @@ class Player:
             self.resource_cards['BRICK'] -= 1
             self.total_roads -= 1
             edge.place_road(board)
-            # if a road can be placed, deduct resources and 1 from total_road, then place
-            #if edge.is_valid_road_placement(board):
-               # self.resource_cards['WOOD'] -= 1
-                #self.resource_cards['BRICK'] -= 1
-                #self.total_roads -= 1
-                #edge.place_road(board)
 
     def build_road_setup(self, board, edge):
         if edge.is_valid_road_placement(board):

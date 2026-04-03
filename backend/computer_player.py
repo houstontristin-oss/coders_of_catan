@@ -26,17 +26,31 @@ class ComputerPlayer(Player):
         self.computer = True
 
 
-    def can_place_settlement(self):
-        pass
-
     def can_afford_road(self):
-        pass
+        if self.resource_cards['BRICK'] > 0 and self.resource_cards['WOOD'] > 0:
+            return True
+        else:
+            return False
 
     def can_afford_settlement(self):
-        pass
+        if (self.resource_cards['BRICK'] > 0 and self.resource_cards['WOOD'] > 0 and
+                self.resource_cards['WHEAT'] > 0 and self.resource_cards['SHEEP'] > 0):
+            return True
+        else:
+            return False
 
     def can_afford_city(self):
-        pass
+        if self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3:
+            return True
+        else:
+            return False
+
+    def can_afford_dev_card(self):
+        if (self.resource_cards['WHEAT'] >= 0 and self.resource_cards['ORE'] >= 0 and
+                self.resource_cards['SHEEP'] > 0):
+            return True
+        else:
+            return False
 
     def best_city_location(self):
         pass
@@ -44,7 +58,9 @@ class ComputerPlayer(Player):
     def best_road_location(self):
         pass
 
-    def can_afford_dev_card(self):
+    def can_place_settlement(self):
         pass
+
+
 
 
