@@ -573,18 +573,61 @@ class ComputerTurnView(arcade.View):
         - best_city_location() : returns node to make into a city
         - can_afford_dev_card() : returns bool
         - play_dev_card() : returns str of what dev card was played for log
-        - 
+        - no_resource(): returns list of resources that the player does not have a settlement on or None
+        - min_resource(): returns resource with the least amount (if tie pick random or res from no_resource)
+        - max_resource(): returns resource with the most amount
     """
     # Make Move Function for computer to make a singular move
     def _make_move(self):
         move = self.moves.pop(0)
         player = self.players[self.current_player]
         if move == "Trade":
+            # NOTE: should be turned to a while once confirmed that trading works
             if player.get_total_resources() > GET_ROBBED:
-                pass # Need a human player confirm popup
+                needed_resources = player.no_resource()
+                if len(player.ports) != 0:
+                    port = random.choice(player.ports)
+                    """
+                    get_from_port = player.min_resource()
+                    
+                    self.txt_log.text += f"Used {port} to trade for {get_from_port}\n"
+                    """
+                    pass # use a port
+                    
+                # elif needed_resources is not None: try to trade with another player
+                else:
+                    """
+                    MARITIME_TRADE = 4
+                    to_trade = player.max_resource()
+                    if player.resource_cards[to_trade] >= MARITIME_TRADE:
+                        get_trade = player.min_resource()
+                        player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
+                        self.txt_log.text += f"{player.name} completed a 4 {to_trade}: 1 {get_trade}\n"
+                    """
+                    pass
         if move == "Build":
+            """
+            settle_node = player.can_place_settlement()
+            if settle_node is not None:
+                if player.can_afford_settlement():
+                    self._place_settlement(settle_node)
+            if player.can_afford_road():
+                road_edge = player.best_road_location()
+                self._place_road(road_edge)
+            city_node = player.can_place_city()
+            if city_node is not None:
+                if player.can_afford_city():
+                self._place_city(city_node)
+            """
             pass
         if move == "DevCard":
+            """
+            if player.can_afford_dev_card():
+                self._buy_dev_card()
+            if len(player.development_cards) != 0:
+                card = random.choice(player.development_cards)
+                TODO: make dev cards do something
+            """
             pass
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
@@ -594,7 +637,6 @@ class ComputerTurnView(arcade.View):
         
     # -----------------------------------------------------------------------
     # Placement
-    # TODO: Add logic in here for computer to place a road, settlement and city
     # -----------------------------------------------------------------------
     def _place_settlement(self, node):
         player = self.players[self.current_player]
@@ -606,6 +648,7 @@ class ComputerTurnView(arcade.View):
             if node.node_id in node_ids:
                 player.ports.append(port["port"])
         player.victory_points += 1
+        self.txt_log.text += f"{player.name} built a settlement\n"
         self._build_player_texts()
         print(f"{player.name} built a settlement! VP: {player.victory_points}")
 
@@ -614,6 +657,7 @@ class ComputerTurnView(arcade.View):
         player.build_city(CatanBoard, node)
         node.building = "city"
         player.victory_points += 1
+        self.txt_log.text += f"{player.name} upgraded to a city\n"
         self._build_player_texts()
         print(f"{player.name} upgraded to a city! VP: {player.victory_points}")
 
@@ -631,13 +675,9 @@ class ComputerTurnView(arcade.View):
                     break
             if connected:
                 break
-        if not connected:
-            print(f"{player.name} — road must connect to your settlement or existing road.")
-            self.show_confirm  = False
-            self.selected_edge = None
-            return
         player.build_road(CatanBoard, edge)
         edge.player = self.current_player
+        self.txt_log.text += f"{player.name} built a road\n"
         self._build_player_texts()
         print(f"{player.name} built a road!")
         self._check_longest_road(edge)
@@ -698,6 +738,9 @@ class ComputerTurnView(arcade.View):
                 player.longest_road = True
                 player.victory_points += LONGEST_ROAD_VP
 
+        if player.longest_road:
+            self.txt_log.text += f"{player.name} built the Longest Road\n"
+
     def _place_road_free(self, edge):
         """Place a road using a free-road grant from Road Building card."""
         edge.player       = self.current_player
@@ -751,11 +794,21 @@ class ComputerTurnView(arcade.View):
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == GET_ROBBED:
-            #TODO: From RobberResView, we need a way for the computer to pick a new spot for the robber 
-            # and not show RobberResView if its only computer players that need to discard resources
+            #From RobberResView, we need a way for the computer to pick a new spot for the robber 
+            # do not show RobberResView if its only computer players that need to discard resources
             for player in self.players:
-                if player == self.human and self.human.get_total_resources > GET_ROBBED:
-                    self.vm.go_to(
+                if player.computer and player.get_total_resources() > GET_ROBBED:
+                    # discard half of the comp players resources
+                    giving_resources = {}
+                    amt_to_discard = player.get_total_resources() // 2
+                    for resource, amount in player.resources:
+                        if amt_to_discard > 0:
+                            get_rid_of = random.randint(0, amount if amount < amt_to_discard else amt_to_discard)
+                            amt_to_discard -= get_rid_of
+                            giving_resources[resource] = get_rid_of
+                    player.exchange_resources(giving_resources, {})
+                #once the computer has discarded cards, the player may have to too so go to robber res
+                self.vm.go_to(
                         "robber_res", 
                         board=self.board, 
                         players=self.players, 
@@ -763,11 +816,7 @@ class ComputerTurnView(arcade.View):
                         die1=self.die1, 
                         die2=self.die2, 
                         port_manager=self.port_manager)
-                    return
-                else:
-                    # TODO: discard half of the comp players resources
-                    # then move the robber
-                    pass
+                return
 
         self._give_resources()
 
