@@ -1,4 +1,4 @@
-# pylint: disable=C0114,C0116
+# pylint: disable= R0902
 class Player:
     """Represents a player for Catan
 
@@ -33,10 +33,10 @@ class Player:
 
 
     def exchange_resources(self, giving_resources:dict, receiving_resources:dict):
-        '''
+        """
         subtracts giving_resources and adds receiving_resources to current player
         dictionary organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
-        '''
+        """
         for resource, amount in giving_resources.items():
             if self.resource_cards.get(resource, 0) >= amount:
                 self.resource_cards[resource] -= amount
@@ -46,10 +46,10 @@ class Player:
             self.resource_cards[resource] += amount
 
     def can_afford_trade(self, offered_resources:dict) -> bool:
-        '''
+        """
         checks players current resources against values in the dictionary
-        dictionary organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
-        '''
+        organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
+        """
         for resource, amount in offered_resources.items():
             if self.resource_cards.get(resource, 0) < amount:
                 return False
@@ -68,12 +68,6 @@ class Player:
             self.resource_cards['BRICK'] -= 1
             self.total_roads -= 1
             edge.place_road(board)
-            # if a road can be placed, deduct resources and 1 from total_road, then place
-            #if edge.is_valid_road_placement(board):
-               # self.resource_cards['WOOD'] -= 1
-                #self.resource_cards['BRICK'] -= 1
-                #self.total_roads -= 1
-                #edge.place_road(board)
 
     def build_road_setup(self, board, edge):
         if edge.is_valid_road_placement(board):
@@ -110,6 +104,10 @@ class Player:
     def get_total_resources(self):
         # returns the total number of resources cards a player has of any type
         return sum(self.resource_cards.values())
+
+    def get_total_cards(self):
+        # total hand size = resource cards + development cards currently held
+        return self.get_total_resources() + len(self.development_cards)
 
     def add_port(self, res):
         self.ports.append(res)
