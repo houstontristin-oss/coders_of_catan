@@ -67,7 +67,7 @@ class RobberResView(arcade.View):
         self._discard_queue = [
             i for i in
             [current_player] + [(current_player + j) % len(players) for j in range(1, len(players))]
-            if players[i].get_total_resources() >= 8
+            if players[i].get_total_resources() >= 8 and not players[i].computer
         ]
         self._queue_index = 0   # which position in the queue we're currently on
         self._active_discarder = self._discard_queue[0] if self._discard_queue else None

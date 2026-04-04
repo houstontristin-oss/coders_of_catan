@@ -56,7 +56,7 @@ class SetupView(arcade.View):
         self._build_text_objects()
 
     def _comp_player_placement(self):
-        #TODO: add in placement logic here and redirect to another view
+        #add in placement logic here and redirect to another view
         best_node = None
         best_node_val = 0
         for node in self.board.nodes.values():
