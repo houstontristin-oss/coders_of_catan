@@ -1,5 +1,6 @@
 # pylint: disable = R0902
 
+import random
 from .player import Player
 
 class ComputerPlayer(Player):
@@ -50,3 +51,21 @@ class ComputerPlayer(Player):
     def play_dev_card(self):
         if self.can_afford_dev_card():
             pass
+    
+    # returns resource the player has the most of
+    def max_resource(self):
+        max_res = []
+        max_amt = max(self.resource_cards.values())
+        for res, amt in self.resource_cards.items():
+            if max_amt == amt:
+                max_res.append(res)
+        return random.choice(max_res)
+    
+    # returns the resource with the minimum amount
+    def min_resource(self):
+        min_res = []
+        min_amt = min(self.resource_cards.values())
+        for res, amt in self.resource_cards.items():
+            if min_amt == amt:
+                min_res.append(res)
+        return random.choice(min_res)

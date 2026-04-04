@@ -434,6 +434,4 @@ class StartView(arcade.View):
                 die2=random.randint(ONE, SIX), port_manager=None)
             return
 
-        self.vm.go_to("gamemode",
-            board=board, players=players,
-        )
+        self.vm.go_to("gamemode", board=board)

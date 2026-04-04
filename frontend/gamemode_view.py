@@ -13,6 +13,9 @@ import math
 import random
 import arcade
 
+from backend.player import Player
+from backend.computer_player import ComputerPlayer
+
 """ From setup view, one should add a check to see if the next player is flagged as a computer"""
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, ONE, SIX
 from .drawing import fill_rect, outline_rect
@@ -55,6 +58,10 @@ GM_BTN_TEXT = (236, 223, 187, 255)
 GM_HINT_TEXT = (184, 137, 44, 255)
 GM_SHADOW = (60, 20, 0, 185)
 
+P1_COLOR = (231, 76,  60)
+P2_COLOR = (39,  174, 96)
+P3_COLOR = (219, 118, 51)
+P4_COLOR = (142, 68,  173)
 
 class GamemodeView(arcade.View):
     """
@@ -66,11 +73,10 @@ class GamemodeView(arcade.View):
     players : list[Player]
     """
 
-    def __init__(self, vm, board, players):
+    def __init__(self, vm, board):
         super().__init__()
         self.vm = vm
         self.board = board
-        self.players = players
 
         self._time = 0.0
         self._hovered_mode = None
@@ -134,25 +140,23 @@ class GamemodeView(arcade.View):
         return left <= x <= left + w and bottom <= y <= bottom + h
 
     def _go_to_selected_mode(self, mode_name: str):
+        players = []
+        
+        players.append(Player(P1_COLOR, "Player 1"))
         if mode_name == "ai":
-            self.players[0].computer = False
-            self.players[1].computer = True
-            self.players[2].computer = True
-            self.players[3].computer = True
-
-            self.players[1].name = "AI 1"
-            self.players[2].name = "AI 2"
-            self.players[3].name = "AI 3"
+            players.append(ComputerPlayer(P2_COLOR, "AI 2"))
+            players.append(ComputerPlayer(P3_COLOR, "AI 3"))
+            players.append(ComputerPlayer(P4_COLOR, "AI 4"))
         else:
-            for player in self.players:
-                player.computer = False
-
+            players.append(Player(P2_COLOR, "Player 2"))
+            players.append(Player(P3_COLOR, "Player 3"))
+            players.append(Player(P4_COLOR, "Player 4"))
 
         start_player = random.randint(0,3)
         self.vm.go_to(
             "setup",
             board=self.board,
-            players=self.players,
+            players=players,
             current_player=start_player,
             start_player=start_player,
             cycle=1,
