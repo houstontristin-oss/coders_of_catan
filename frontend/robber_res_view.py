@@ -88,11 +88,17 @@ class RobberResView(arcade.View):
     def on_show_view(self):
         if self._discard_queue == []: 
             # checks to make sure than there are players who need to discard
-            self.vm.go_to("robber_place",
-                board=self.board, players=self.players, current_player=self.current_player,
-                die1=self.die1, die2=self.die2, port_manager=self.port_manager
-            )
-            return
+            if self.players[self.current_player].computer:
+                # computer moves the robber 
+                # self._computer_move_robber()
+                # self.vm.go_to("computer_turn", board=self.board, players=self.players, current_player=self.current_player, die1=self.die1, die2=self.die2, port_manager=self.port_manager)
+                pass 
+            else:
+                self.vm.go_to("robber_place",
+                    board=self.board, players=self.players, current_player=self.current_player,
+                    die1=self.die1, die2=self.die2, port_manager=self.port_manager
+                )
+                return
         self._build_static_texts()
 
     def on_draw(self):
@@ -460,3 +466,14 @@ class RobberResView(arcade.View):
         player.exchange_resources(self._resources, {})
         self._pending = None
         self._advance_queue()
+
+    def _computer_move_robber(self):
+        #NOTE: logs for moving the robber may be difficult
+        best_tiles = []
+        for tile in self.board.tiles:
+            if not tile.robber:
+                player_count = 0
+                for node in tile.nodes:
+                    if node.player is not None and node.player != self.current_player:
+                        pass
+                                       
