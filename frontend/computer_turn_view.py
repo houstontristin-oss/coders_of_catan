@@ -19,6 +19,9 @@ FAST_FORWARD = "Fast Forward"
 NEXT_MOVE = "Next Move"
 LOG_COLOR = (229,222,207)
 GET_ROBBED = 7
+NONE_PORT = 3
+RES_PORT = 2
+MARITIME_TRADE = 4
 
 class ComputerTurnView(arcade.View):
     def __init__(self,
@@ -28,7 +31,8 @@ class ComputerTurnView(arcade.View):
         current_player,
         die1,
         die2,
-        port_manager,):
+        port_manager,
+        shared_deck=None,):
 
         super().__init__()
         self.vm = vm
@@ -58,6 +62,13 @@ class ComputerTurnView(arcade.View):
         self._anim_die2       = die2
         self._dice_sprites    = {}     # face value (1-6) -> arcade.Sprite | None
         self._load_dice_sprites()
+
+        # --- Shared persistent deck ---
+        if shared_deck is None:
+            self._deck = list(DEV_CARD_DECK)
+            random.shuffle(self._deck)
+        else:
+            self._deck = shared_deck
 
         # --- Robber state ---
         self._robber_sprite    = None
@@ -646,51 +657,52 @@ class ComputerTurnView(arcade.View):
         if move == "Trade":
             # NOTE: should be turned to a while once confirmed that trading works
             if player.get_total_resources() > GET_ROBBED:
-                needed_resources = player.no_resource()
                 if len(player.ports) != 0:
                     port = random.choice(player.ports)
-                    """
                     get_from_port = player.min_resource()
-                    
+                    trade_amt = RES_PORT
+                    give_to_port = port.resource
+                    if port.resource is not None:
+                        trade_amt = NONE_PORT
+                        give_to_port = player.max_resource()
+                    player.exchange_resources({give_to_port: trade_amt}, {get_from_port: 1})
                     self.txt_log.text += f"Used {port} to trade for {get_from_port}\n"
-                    """
-                    pass # use a port
                     
                 # elif needed_resources is not None: try to trade with another player
                 else:
-                    """
-                    MARITIME_TRADE = 4
                     to_trade = player.max_resource()
                     if player.resource_cards[to_trade] >= MARITIME_TRADE:
                         get_trade = player.min_resource()
                         player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
                         self.txt_log.text += f"{player.name} completed a 4 {to_trade}: 1 {get_trade}\n"
-                    """
-                    pass
+
         if move == "Build":
-            """
-            settle_node = player.can_place_settlement()
+            #place a settlement
+            settle_node = player.best_settlement_location()
             if settle_node is not None:
                 if player.can_afford_settlement():
                     self._place_settlement(settle_node)
+            #place a city
+            city_node = player.best_city_location()
+            if city_node is not None:
+                if player.can_afford_city():
+                    self._place_city(city_node)
+            #place a road
             if player.can_afford_road():
                 road_edge = player.best_road_location()
                 self._place_road(road_edge)
-            city_node = player.can_place_city()
-            if city_node is not None:
-                if player.can_afford_city():
-                self._place_city(city_node)
-            """
-            pass
         if move == "DevCard":
-            """
-            if player.can_afford_dev_card():
-                self._buy_dev_card()
+            #play a card first if computer has
             if len(player.development_cards) != 0:
                 card = random.choice(player.development_cards)
-                TODO: make dev cards do something
-            """
-            pass
+                self.txt_log.text += f"Played a {card}"
+                #TODO: make dev cards do something
+            #then buy a dev card because 
+            if player.can_afford_dev_card():
+                self._buy_dev_card()
+        self._build_log_texts()
+            
+            
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
@@ -812,6 +824,35 @@ class ComputerTurnView(arcade.View):
         print(f"{self.players[self.current_player].name} placed a free road! ({self._free_roads} remaining)")
         self._check_longest_road(edge)
 
+     # -----------------------------------------------------------------------
+    # Buy Dev Card
+    # -----------------------------------------------------------------------
+    def _buy_dev_card(self):
+        card_type = self._deck.pop()
+        self.players[self.current_player].development_cards.append({"type": card_type, "just_bought": True})
+
+        if card_type == "victory_point":
+            self.players[self.current_player].victory_points += 1
+    
+    # -----------------------------------------------------------------------
+    # Trading Helper functions
+    # returns a list of resources that the player does not have access to from their settlements
+    # -----------------------------------------------------------------------
+    
+    def _no_resource_access(self):
+        # find all res they have access to
+        accessible_res = []
+        for tile in self.board:
+            for node in tile.nodes:
+                if node.player == self.current_player:
+                    accessible_res.append(tile.resource)
+        # make list of uppercase res they cant access
+        no_access_res = []
+        for lower_res, upper_res in RESOURCE_ABBR.items():
+            if lower_res not in accessible_res:
+                no_access_res.append(upper_res)
+
+        return no_access_res
      # -----------------------------------------------------------------------
     # Resource distribution
     # -----------------------------------------------------------------------
