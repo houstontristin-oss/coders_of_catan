@@ -28,4 +28,5 @@ Nick:
 * Fix robber backgrounds to always be darker blue (easy) (nice-to-have)
 * View Manager (medium) (essential)
 * Make Dev Cards work (medium) (essential)
+    * There appears to be built in free road card from dev cards
     
