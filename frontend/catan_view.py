@@ -329,6 +329,70 @@ class CatanView(arcade.View):
         self._build_player_texts()
         self._build_dice_texts()
 
+    def _get_summary_players(self):
+        """
+        Regular Catan mode:
+        show the other 3 players to the right of the main panel,
+        in turn order after the current player.
+        """
+        summary_players = []
+        total_players = len(self.players)
+
+        for offset in range(1, total_players):
+            idx = (self.current_player + offset) % total_players
+            summary_players.append((idx, self.players[idx]))
+
+        return summary_players
+
+    def _draw_player_summary_boxes(self):
+        """
+        Draw 3 compact player boxes to the right of the main player panel.
+        Each box shows player label and total hand size.
+        """
+        panel_x = CATAN_PLAYER_PANEL_MARGIN
+        panel_y = SCREEN_HEIGHT - HUD_PANEL_HEIGHT - CATAN_PLAYER_PANEL_MARGIN
+
+        start_x = panel_x + HUD_PANEL_WIDTH + CATAN_SUMMARY_BOX_GAP
+        top_y = panel_y + HUD_PANEL_HEIGHT - CATAN_SUMMARY_BOX_TOP_INSET
+
+        for i, (player_idx, player) in enumerate(self._get_summary_players()):
+            left = start_x + i * (CATAN_SUMMARY_BOX_W + CATAN_SUMMARY_BOX_GAP)
+            bottom = top_y - CATAN_SUMMARY_BOX_H
+
+            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG)
+            outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, player.color, 2)
+
+            arcade.Text(
+                player.name,
+                left + CATAN_SUMMARY_BOX_W / 2,
+                bottom + CATAN_SUMMARY_BOX_H - 18,
+                CATAN_COLOR_SUMMARY_TEXT,
+                CATAN_TEXT_SIZE_SUMMARY_LABEL,
+                bold=True,
+                anchor_x="center",
+                anchor_y="center",
+                font_name="MedievalSharp",
+            ).draw()
+
+            arcade.Text(
+                str(player.get_total_cards()),
+                left + CATAN_SUMMARY_BOX_W / 2,
+                bottom + CATAN_SUMMARY_BOX_COUNT_Y_OFFSET,
+                CATAN_COLOR_SUMMARY_COUNT,
+                CATAN_TEXT_SIZE_SUMMARY_COUNT,
+                bold=True,
+                anchor_x="center",
+                anchor_y="center",
+                font_name="MedievalSharp",
+            ).draw()
+
+            arcade.draw_circle_filled(
+                left + 10,
+                bottom + CATAN_SUMMARY_BOX_H - 10,
+                5,
+                player.color,
+            )
+
     def _build_dice_texts(self):
         """Pre-build the fallback number Text objects for the dice area."""
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
@@ -907,6 +971,7 @@ class CatanView(arcade.View):
             self._draw_confirm_popup()
 
         self._draw_player_panel()
+        self._draw_player_summary_boxes()
         self._draw_dice_area()
         self._draw_bottom_bar()
         self._draw_build_submenu()

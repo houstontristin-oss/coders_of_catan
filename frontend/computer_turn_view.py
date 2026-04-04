@@ -269,6 +269,67 @@ class ComputerTurnView(arcade.View):
 
         self._build_player_texts()
 
+    def _get_ai_summary_players(self):
+        """
+        Settler vs. AI mode:
+        always show the AI players in fixed order.
+        """
+        ai_players = []
+        for idx, player in enumerate(self.players):
+            if player.computer:
+                ai_players.append((idx, player))
+        return ai_players
+
+    def _draw_player_summary_boxes(self):
+        """
+        Draw compact AI summary boxes to the right of the human player's panel.
+        """
+        panel_x = CATAN_PLAYER_PANEL_MARGIN
+        panel_y = SCREEN_HEIGHT - HUD_PANEL_HEIGHT - CATAN_PLAYER_PANEL_MARGIN
+
+        start_x = panel_x + HUD_PANEL_WIDTH + CATAN_SUMMARY_BOX_GAP
+        top_y = panel_y + HUD_PANEL_HEIGHT - CATAN_SUMMARY_BOX_TOP_INSET
+
+        ai_players = self._get_ai_summary_players()
+
+        for i, (player_idx, player) in enumerate(ai_players):
+            left = start_x + i * (CATAN_SUMMARY_BOX_W + CATAN_SUMMARY_BOX_GAP)
+            bottom = top_y - CATAN_SUMMARY_BOX_H
+
+            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG)
+            outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, player.color, 2)
+
+            arcade.Text(
+                player.name,
+                left + CATAN_SUMMARY_BOX_W / 2,
+                bottom + CATAN_SUMMARY_BOX_H - 18,
+                CATAN_COLOR_SUMMARY_TEXT,
+                9,
+                bold=True,
+                anchor_x="center",
+                anchor_y="center",
+                font_name="MedievalSharp",
+            ).draw()
+
+            arcade.Text(
+                str(player.get_total_cards()),
+                left + CATAN_SUMMARY_BOX_W / 2,
+                bottom + CATAN_SUMMARY_BOX_COUNT_Y_OFFSET,
+                CATAN_COLOR_SUMMARY_COUNT,
+                CATAN_TEXT_SIZE_SUMMARY_COUNT,
+                bold=True,
+                anchor_x="center",
+                anchor_y="center",
+                font_name="MedievalSharp",
+            ).draw()
+
+            arcade.draw_circle_filled(
+                left + 10,
+                bottom + CATAN_SUMMARY_BOX_H - 10,
+                5,
+                player.color,
+            )
+
     def _build_player_texts(self):
         panel_x   = CATAN_PLAYER_PANEL_MARGIN
         panel_top = SCREEN_HEIGHT - CATAN_PLAYER_PANEL_MARGIN
@@ -541,6 +602,7 @@ class ComputerTurnView(arcade.View):
             self._robber_list.draw()
 
         self._draw_player_panel()
+        self._draw_player_summary_boxes()
         self._draw_dice_area()
         self._draw_bottom_bar()
         self._draw_log_reactangle()

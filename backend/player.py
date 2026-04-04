@@ -105,5 +105,9 @@ class Player:
         # returns the total number of resources cards a player has of any type
         return sum(self.resource_cards.values())
 
+    def get_total_cards(self):
+        # total hand size = resource cards + development cards currently held
+        return self.get_total_resources() + len(self.development_cards)
+
     def add_port(self, res):
         self.ports.append(res)
