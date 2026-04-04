@@ -618,6 +618,7 @@ class ComputerTurnView(arcade.View):
         self._draw_bottom_bar()
         self._draw_log_reactangle()
         self._draw_cards()
+        self.txt_log.draw()
 
     # -----------------------------------------------------------------------
     # Mouse press
@@ -627,13 +628,12 @@ class ComputerTurnView(arcade.View):
         end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
         if len(self.moves) != 0:
             # TODO: Grey out these buttons once there are no more moves for computer player to make
-            if (x) and (y):
+            if (end_left - CATAN_BTN_W <= x < end_left) and  (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
                 self._make_move()
-
-        if (x) and (y):
-            self._fast_forward()
+                print(f"{self.players[self.current_player].name} made a move")
 
         if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
+            self._fast_forward()
             self._end_turn()
             return
 
@@ -690,7 +690,9 @@ class ComputerTurnView(arcade.View):
             #place a road
             if player.can_afford_road():
                 road_edge = player.best_road_location()
-                self._place_road(road_edge)
+                if road_edge is not None:
+                    self._place_road(road_edge)
+
         if move == "DevCard":
             #play a card first if computer has
             if len(player.development_cards) != 0:
@@ -700,9 +702,6 @@ class ComputerTurnView(arcade.View):
             #then buy a dev card because 
             if player.can_afford_dev_card():
                 self._buy_dev_card()
-        self._build_log_texts()
-            
-            
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
@@ -838,7 +837,6 @@ class ComputerTurnView(arcade.View):
     # Trading Helper functions
     # returns a list of resources that the player does not have access to from their settlements
     # -----------------------------------------------------------------------
-    
     def _no_resource_access(self):
         # find all res they have access to
         accessible_res = []
@@ -853,7 +851,7 @@ class ComputerTurnView(arcade.View):
                 no_access_res.append(upper_res)
 
         return no_access_res
-     # -----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Resource distribution
     # -----------------------------------------------------------------------
     def _give_resources(self):

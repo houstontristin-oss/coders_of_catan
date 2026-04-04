@@ -1,7 +1,9 @@
 """
 Contains Robber Resource Class
 """
+import random
 import arcade
+
 from .drawing import fill_rect, outline_rect
 from .constants import (
     SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN, SCREEN_HEIGHT, BTN_TRADE,
@@ -71,6 +73,7 @@ class RobberResView(arcade.View):
         ]
         self._queue_index = 0   # which position in the queue we're currently on
         self._active_discarder = self._discard_queue[0] if self._discard_queue else None
+        print(self._active_discarder)
         self._resources = {r: 0 for r in _RESOURCES}
 
         # Text buckets — static built once, dynamic rebuilt each frame
@@ -90,15 +93,16 @@ class RobberResView(arcade.View):
             # checks to make sure than there are players who need to discard
             if self.players[self.current_player].computer:
                 # computer moves the robber 
-                # self._computer_move_robber()
-                # self.vm.go_to("computer_turn", board=self.board, players=self.players, current_player=self.current_player, die1=self.die1, die2=self.die2, port_manager=self.port_manager)
-                pass 
+                self._computer_move_robber()
+                self.vm.go_to("computer_turn", board=self.board, players=self.players, current_player=self.current_player, die1=self.die1, die2=self.die2, port_manager=self.port_manager)
+                return
             else:
                 self.vm.go_to("robber_place",
                     board=self.board, players=self.players, current_player=self.current_player,
                     die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
                 return
+        
         self._build_static_texts()
 
     def on_draw(self):
@@ -468,12 +472,56 @@ class RobberResView(arcade.View):
         self._advance_queue()
 
     def _computer_move_robber(self):
-        #NOTE: logs for moving the robber may be difficult
-        best_tiles = []
-        for tile in self.board.tiles:
-            if not tile.robber:
+        #NOTE: logs for computer moving the robber may be difficult
+        best_tiles = {}
+        max_player_count = 0
+        robber_tile = None
+        # Find the tile with the most players surrounding it
+        for tile in self.board.tiles.values():
+            if tile.robber:
+                robber_tile = tile
+            elif not tile.robber:
                 player_count = 0
                 for node in tile.nodes:
                     if node.player is not None and node.player != self.current_player:
-                        pass
-                                       
+                        player_count += 1
+                    if node.building == "city":
+                        player_count += 1
+                if player_count > max_player_count:
+                    max_player_count = player_count
+                    best_tiles[tile] = tile.number
+        # Account for if the tile number is better than another
+        new_robber_tiles = []
+        for tile, info in best_tiles.items():
+            if info >= 5 and info <= 9:
+                new_robber_tiles.append(tile)
+        if len(new_robber_tiles) == 0:
+            new_robber_tile = random.choice(list(best_tiles.keys()))
+        else:
+            new_robber_tile = random.choice(new_robber_tiles)
+        
+        # Move the robber to new_robber_tile
+        if robber_tile is not None:
+            robber_tile.robber = False
+        new_robber_tile.robber = True
+
+        # Steal from a player that on new_robber_tile
+        to_steal_from = []
+        for node in new_robber_tile.nodes:
+            if node.player is not None:
+                to_steal_from.append(node.player)
+        to_steal_from = random.choice(to_steal_from)
+
+        total_res = self.players[to_steal_from].get_total_resources()
+        if total_res != 0:
+            choice = random.randint(1, total_res)
+            res_choice = None
+            for res, amount in self.players[to_steal_from].resource_cards.items():
+                if choice > amount:
+                    choice -= amount
+                else: 
+                    res_choice = res
+
+            if res_choice is not None:
+                self.players[to_steal_from].resource_cards[res_choice] -= 1
+                self.players[self.current_player].resource_cards[res_choice] += 1
