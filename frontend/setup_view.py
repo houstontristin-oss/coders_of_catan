@@ -68,6 +68,11 @@ class SetupView(arcade.View):
                     best_node = node
                     best_node_val = node_val
         self._place_settlement(best_node)
+
+        if self.cycle == 2 and best_node:
+            for tile in best_node.tiles:
+                res = RESOURCE_ABBR[tile.resource]
+                self.players[self.current_player].resource_cards[res] += 1
         
         best_edge = None
         while best_node is not None and best_edge is None:
@@ -127,8 +132,6 @@ class SetupView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Ghost highlights
-    # NOTE: Currently if you place a road on a not valid spot during setup it will disappear and if
-    # you place a settlement on a not valid spot it will violate the rules
     # -----------------------------------------------------------------------
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color

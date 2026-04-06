@@ -35,6 +35,7 @@ _PANEL_X   = (SCREEN_WIDTH - _PANEL_W) / 2  # horizontally centred
 # ---------------------------------------------------------------------------
 # Layout — vertical  (built bottom-up from the 70-px bottom bar)
 # ---------------------------------------------------------------------------
+BG_COLOR = (14, 14, 30, 1)
 _BAR_H       = 70   # matches PlayCardView bottom bar height
 
 _DISCARD_BTN_H  = 44
@@ -71,7 +72,6 @@ class RobberResView(arcade.View):
 
         self._queue_index = 0   # which position in the queue we're currently on
         self._active_discarder = self._discard_queue[0] if self._discard_queue else None
-        print(self._active_discarder)
         self._resources = {r: 0 for r in _RESOURCES}
 
         # Text buckets — static built once, dynamic rebuilt each frame
@@ -107,7 +107,7 @@ class RobberResView(arcade.View):
         self.clear()
         self._draw_bottom_bar()
 
-        arcade.set_background_color((14, 14, 30))
+        arcade.set_background_color(BG_COLOR)
 
         # Main dark panel (same as dev card view)
         fill_rect(0, _BAR_H, SCREEN_WIDTH, SCREEN_HEIGHT - _BAR_H, (16, 16, 36, 255))
@@ -470,7 +470,6 @@ class RobberResView(arcade.View):
         self._advance_queue()
 
     def _computer_move_robber(self):
-        #NOTE: logs for computer moving the robber may be difficult
         best_tiles = {}
         max_player_count = 0
         robber_tile = None

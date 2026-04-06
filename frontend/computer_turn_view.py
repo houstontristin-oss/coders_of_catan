@@ -677,31 +677,32 @@ class ComputerTurnView(arcade.View):
                         self.txt_log.text += f"{player.name} completed a 4 {to_trade}: 1 {get_trade}\n"
 
         if move == "Build":
+             #place a city
+            city_node = player.best_city_location()
+            if city_node is not None:
+                if player.can_afford_city():
+                    self._place_city(city_node)
             #place a settlement
             settle_node = player.best_settlement_location()
             if settle_node is not None:
                 if player.can_afford_settlement():
                     self._place_settlement(settle_node)
-            #place a city
-            city_node = player.best_city_location()
-            if city_node is not None:
-                if player.can_afford_city():
-                    self._place_city(city_node)
             #place a road
             if player.can_afford_road():
                 road_edge = player.best_road_location()
                 if road_edge is not None:
                     self._place_road(road_edge)
+            # buy a dev card because 
+            if player.can_afford_dev_card():
+                self._buy_dev_card()
 
         if move == "DevCard":
+            #TODO: make knight dev cards do something (Nick)
             #play a card first if computer has
             if len(player.development_cards) != 0:
                 card = random.choice(player.development_cards)
                 self.txt_log.text += f"Played a {card}"
-                #TODO: make dev cards do something
-            #then buy a dev card because 
-            if player.can_afford_dev_card():
-                self._buy_dev_card()
+            
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
@@ -823,7 +824,7 @@ class ComputerTurnView(arcade.View):
         print(f"{self.players[self.current_player].name} placed a free road! ({self._free_roads} remaining)")
         self._check_longest_road(edge)
 
-     # -----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Buy Dev Card
     # -----------------------------------------------------------------------
     def _buy_dev_card(self):
@@ -857,7 +858,7 @@ class ComputerTurnView(arcade.View):
     def _give_resources(self):
         roll = self.die1 + self.die2
         for tile in self.board.tiles.values():
-            if tile.number == roll:
+            if tile.number == roll and not tile.robber:
                 resource = RESOURCE_ABBR[tile.resource]
                 for node in tile.nodes:
                     if node.player is not None:
@@ -865,6 +866,33 @@ class ComputerTurnView(arcade.View):
                         player.resource_cards[resource] += (
                             1 if node.building == "settlement" else 2
                         )
+
+    # -----------------------------------------------------------------------
+    # Computer Players Discarding half their hand when a 7 is rolled
+    # -----------------------------------------------------------------------
+    def _comp_robber_discard(self):
+        #From RobberResView, we need a way for the computer to pick a new spot for the robber 
+        # do not show RobberResView if its only computer players that need to discard resources
+        for player in self.players:
+            if player.computer and player.get_total_resources() > GET_ROBBED:
+                # discard half of the comp players resources
+                giving_resources = {}
+                amt_to_discard = player.get_total_resources() // 2
+                for resource, amount in player.resource_cards.items():
+                    giving_resources[resource] = 0
+                    if amt_to_discard > 0:
+                        get_rid_of = random.randint(0, amount if amount < amt_to_discard else amt_to_discard)
+                        amt_to_discard -= get_rid_of
+                        giving_resources[resource] += get_rid_of
+                while amt_to_discard > 0:
+                    for resource, amount in player.resource_cards.items():
+                        if amt_to_discard > 0:
+                            get_rid_of = random.randint(0, amount - giving_resources[resource] if amount - giving_resources[resource] < amt_to_discard else amt_to_discard)
+                            amt_to_discard -= get_rid_of
+                            giving_resources[resource] += get_rid_of
+
+                player.exchange_resources(giving_resources, {})
+                print(f"ROBBER! {player.name} discarded {giving_resources}")
 
     # -----------------------------------------------------------------------
     # End turn
@@ -895,29 +923,17 @@ class ComputerTurnView(arcade.View):
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == GET_ROBBED:
-            #From RobberResView, we need a way for the computer to pick a new spot for the robber 
-            # do not show RobberResView if its only computer players that need to discard resources
-            for player in self.players:
-                if player.computer and player.get_total_resources() > GET_ROBBED:
-                    # discard half of the comp players resources
-                    giving_resources = {}
-                    amt_to_discard = player.get_total_resources() // 2
-                    for resource, amount in player.resources:
-                        if amt_to_discard > 0:
-                            get_rid_of = random.randint(0, amount if amount < amt_to_discard else amt_to_discard)
-                            amt_to_discard -= get_rid_of
-                            giving_resources[resource] = get_rid_of
-                    player.exchange_resources(giving_resources, {})
-                #once the computer has discarded cards, the player may have to too so go to robber res
-                self.vm.go_to(
-                        "robber_res", 
-                        board=self.board, 
-                        players=self.players, 
-                        current_player=self.current_player,
-                        die1=self.die1, 
-                        die2=self.die2, 
-                        port_manager=self.port_manager)
-                return
+            self._comp_robber_discard()
+            #once the computer has discarded cards, the player may have to too so go to robber res
+            self.vm.go_to(
+                    "robber_res", 
+                    board=self.board, 
+                    players=self.players, 
+                    current_player=self.current_player,
+                    die1=self.die1, 
+                    die2=self.die2, 
+                    port_manager=self.port_manager)
+            return
 
         self._give_resources()
 
