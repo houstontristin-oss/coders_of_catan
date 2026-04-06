@@ -14,9 +14,10 @@ class ComputerPlayer(Player):
         computer: returns bool
     """
 
-    def __init__(self, color, name):
+    def __init__(self, color, name, board):
         super().__init__(color, name)
         self.computer = True
+        self.board = board
 
     def can_afford_road(self):
         return bool(self.resource_cards['BRICK'] > 0 and self.resource_cards['WOOD'] > 0)
@@ -34,24 +35,49 @@ class ComputerPlayer(Player):
 
     # returns edge to place road at or None
     def best_road_location(self):
-        if self.can_afford_road():
-            pass
+        possible_roads = []
+        for edge in self.board.edges:
+            if edge.player:
+                continue
+            for node in edge.nodes:
+                for edge2 in node.edges:
+                    if edge2.player.name == self.name:
+                        possible_roads.append(edge)
+
+        return random.choice(possible_roads)
 
     # returns node to place settlement at or None
     def best_settlement_location(self):
-        if self.can_afford_settlement():
-            pass
+        possible_settlements = []
+        has_own_road = False
+        for node in self.board.nodes:
+            if node.building:
+                return None
+            for edge in node.edges:
+                if edge.player.name == self.name:
+                    has_own_road = True
+                for node2 in edge.nodes:
+                    if node2 is not node and node2.building:
+                        return None
+                    if has_own_road:
+                        possible_settlements.append(node)
+
+        return random.choice(possible_settlements)
 
     # returns node to place city at or None
     def best_city_location(self):
-        if self.can_afford_city():
-            pass
+        possible_cities = []
+        for node in self.board.nodes:
+            if node.player.name == self.name and node.building:
+                possible_cities.append(node)
+
+        return random.choice(possible_cities)
 
     # returns string of what dev card was played for log
     def play_dev_card(self):
         if self.can_afford_dev_card():
             pass
-    
+
     # returns resource the player has the most of
     def max_resource(self):
         max_res = []
@@ -60,7 +86,7 @@ class ComputerPlayer(Player):
             if max_amt == amt:
                 max_res.append(res)
         return random.choice(max_res)
-    
+
     # returns the resource with the minimum amount
     def min_resource(self):
         min_res = []
