@@ -158,6 +158,11 @@ DEV_CARD_LABELS = {
     "victory_point":  "Victory Point",
 }
 
+ACTION_NONE           = "none"
+ACTION_BACK_TO_BOARD  = "back_to_board"
+ACTION_POPUP_YOP      = "popup_yop"         
+ACTION_POPUP_MONOPOLY = "popup_monopoly"
+
 DEV_CARD_DESCRIPTIONS = {
     "knight":         "Move the robber & optionally steal a resource",
     "road_building":  "Place 2 free roads anywhere connected to your network",
