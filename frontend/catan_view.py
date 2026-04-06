@@ -1303,6 +1303,35 @@ class CatanView(arcade.View):
                         player.resource_cards[resource] += (
                             1 if node.building == "settlement" else 2
                         )
+     # -----------------------------------------------------------------------
+    # Computer Players Discarding half their hand when a 7 is rolled
+    # -----------------------------------------------------------------------
+    def _comp_robber_discard(self):
+        print("ROBBER!")
+        #From RobberResView, we need a way for the computer to pick a new spot for the robber 
+        # do not show RobberResView if its only computer players that need to discard resources
+        for player in self.players:
+            if player.computer and player.get_total_resources() > GET_ROBBED:
+                # discard half of the comp players resources
+                giving_resources = {}
+                amt_to_discard = player.get_total_resources() // 2
+                for resource, amount in player.resource_cards.items():
+                    giving_resources[resource] = 0
+                    if amt_to_discard > 0:
+                        get_rid_of = random.randint(0, amount if amount < amt_to_discard else amt_to_discard)
+                        amt_to_discard -= get_rid_of
+                        giving_resources[resource] += get_rid_of
+                        print(giving_resources)
+                while amt_to_discard > 0:
+                    for resource, amount in player.resource_cards.items():
+                        if amt_to_discard > 0:
+                            get_rid_of = random.randint(0, amount - giving_resources[resource] if amount - giving_resources[resource] < amt_to_discard else amt_to_discard)
+                            amt_to_discard -= get_rid_of
+                            giving_resources[resource] += get_rid_of
+                            print(giving_resources)
+
+                player.exchange_resources(giving_resources, {})
+                print(f"{player.name} discarded {giving_resources}")
 
     # -----------------------------------------------------------------------
     # End turn
@@ -1330,11 +1359,12 @@ class CatanView(arcade.View):
             self._free_roads = 0
 
         # Roll dice and start animation
-        self.die1 = random.randint(ONE, SIX)
-        self.die2 = random.randint(ONE, SIX)
+        self.die1 = 3 #random.randint(ONE, SIX)
+        self.die2 = 4 #random.randint(ONE, SIX)
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == 7:
+            self._comp_robber_discard()
             self.vm.go_to("robber_res", 
                 board=self.board, players=self.players, current_player=self.current_player, 
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager,
