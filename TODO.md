@@ -10,12 +10,16 @@ Apoorva:
 * PYLINT YAY!!!
 
 Tristin:
-* UI Refinement (easy)(nice-to-have)
+* UI Refinement (easy)(nice-to-have) (done)
     * Resource count for other players and AI players
     * New screen after start_view 
         * grants selection or 4 player game or 1 player vs 3 AI
+              * Added new function to player.py which returns the total number of resources a player has
+              * Created gamemode_view.py view file for gamemode selection
+              * Added constants for the new view within view_constants.py near the top 
 * A way to see the computer players moves  (unknown) (nice-to-have)
     * Active log of what computer players do on each of their turns written to a text box above the end turn button
+* Menu and Gameboard music royalty free
 
 
 Amanda:
