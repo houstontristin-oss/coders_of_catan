@@ -26,7 +26,9 @@ Amanda:
 
 Nick:
 * Fix robber backgrounds to always be darker blue (easy) (nice-to-have)
-* View Manager (medium) (essential)
+
 * Make Dev Cards work (medium) (essential)
-    * There appears to be built in free road card from dev cards
+    * dev cards for computer players as well
+    * figure out order of play for dev cards for computer players,
+      * check flags for if card was just bough, may need to update flags
     
