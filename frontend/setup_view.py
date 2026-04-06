@@ -68,6 +68,11 @@ class SetupView(arcade.View):
                     best_node = node
                     best_node_val = node_val
         self._place_settlement(best_node)
+
+        if self.cycle == 2 and best_node:
+            for tile in best_node.tiles:
+                res = RESOURCE_ABBR[tile.resource]
+                self.players[self.current_player].resource_cards[res] += 1
         
         best_edge = None
         while best_node is not None and best_edge is None:
