@@ -77,7 +77,7 @@ class PlayCardView(arcade.View):
         self.die2              = die2
         self.port_manager      = port_manager
         self.bought_this_turn  = bought_this_turn
-        self._played_this_turn = played_card_this_turn
+        self._played_this_turn = played_card_this_turn # bool flag
         self.free_roads        = free_roads
 
         # Shared persistent deck
@@ -429,14 +429,17 @@ class PlayCardView(arcade.View):
         bx_play = SCREEN_WIDTH - CARD_PAD - CARD_PLAY_BTN_W
 
         if CARD_PAD <= x <= CARD_PAD + CARD_BACK_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
-            self._go_back()
+            # go back to board
+            self._go_back("")
             return
 
         if bx_buy <= x <= bx_buy + CARD_BUY_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
+            # buy card button
             self._buy_card()
             return
 
         if bx_play <= x <= bx_play + CARD_PLAY_BTN_W and CARD_PAD <= y <= CARD_PAD + CARD_BTN_H:
+            # play card button
             self._play_selected_card()
             return
 
@@ -554,7 +557,7 @@ class PlayCardView(arcade.View):
                 self._notify("Knight played! Return to the board to move the robber.")
             elif isinstance(card_obj, RoadBuildingCard):
                 self._notify("Road Building! You may place 2 free roads on the board.")
-            self._go_back()
+            self._go_back(card_dict["type"])
             return
         elif action == ACTION_POPUP_YOP:
             self._sub_popup  = ACTION_POPUP_YOP
@@ -566,7 +569,7 @@ class PlayCardView(arcade.View):
 
         self._build_text_objects()
 
-    def _go_back(self):
+    def _go_back(self, card_type):
         player = self.players[self.current_player]
         #if player has played more than 3 knights
         if player.knight_count >= 3:
@@ -586,12 +589,20 @@ class PlayCardView(arcade.View):
                 player.largest_army = True
                 player.victory_points += LARGEST_ARMY_VP
 
+        # if knight is played go to the robber place view
+        if card_type == "knight":
+            self.vm.go_to("robber_place",
+                board=self.board, players=self.players, current_player=self.current_player,
+                die1=self.die1, die2=self.die2, port_manager=self.port_manager   
+                )
+            return
+        print(card_type)
         self.vm.go_to("catan",
             board=self.board, players=self.players, current_player=self.current_player,
             die1=self.die1, die2=self.die2, port_manager=self.port_manager, shared_deck=self._deck,
             bought_card_this_turn=self.bought_this_turn, 
             played_card_this_turn=self._played_this_turn,
-            free_roads=self.free_roads,
+            free_roads=self.free_roads
         )
         """ Need
         an option to scroll through dev cards if the amount exceeds what the screen can fit"""
