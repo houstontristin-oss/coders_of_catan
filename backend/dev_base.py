@@ -6,20 +6,10 @@ Base class DevCard and one child class per card type.
 All visual data (labels, descriptions, tints) live in constants.py.
 This file contains ONLY game logic so it can be unit-tested without arcade.
 """
-
 from frontend.constants import (
-    DEV_CARD_LABELS,
-    DEV_CARD_DESCRIPTIONS,
-    DEV_CARD_TINTS,
+    DEV_CARD_LABELS, DEV_CARD_DESCRIPTIONS, DEV_CARD_TINTS, ACTION_NONE, ACTION_BACK_TO_BOARD,
+    ACTION_POPUP_YOP, ACTION_POPUP_MONOPOLY
 )
-
-# ---------------------------------------------------------------------------
-# Action-tag constants  (returned by DevCard.apply())
-ACTION_NONE           = "none"
-ACTION_BACK_TO_BOARD  = "back_to_board"
-ACTION_POPUP_YOP      = "popup_year_of_plenty"
-ACTION_POPUP_MONOPOLY = "popup_monopoly"
-
 
 class DevCard:
     """
@@ -116,7 +106,9 @@ class KnightCard(DevCard):
         return "knight"
 
     def apply(self, game_state: dict) -> str:
-        game_state["player"].__dict__["pending_robber"] = True
+        # Signal to CatanView that the player must now move the robber.
+        # CatanView already checks player.pending_robber to enter robber-move mode.
+        setattr(game_state["player"], "pending_robber", True)
         return ACTION_BACK_TO_BOARD
 
 
@@ -130,7 +122,9 @@ class RoadBuildingCard(DevCard):
         return "road_building"
 
     def apply(self, game_state: dict) -> str:
-        game_state["free_roads"] = 2
+        # Add 2 free roads on top of whatever may already be remaining
+        # (guards the edge case where a previous card wasn't fully used).
+        game_state["free_roads"] = game_state.get("free_roads", 0) + 2
         return ACTION_BACK_TO_BOARD
 
 

@@ -67,11 +67,9 @@ class RobberResView(arcade.View):
         self._pending = None          # int index of discarding player, or None
 
         # Build ordered queue: roller first, then wrap around, skip anyone under 8 cards
-        self._discard_queue = [
-            i for i in
-            [current_player] + [(current_player + j) % len(players) for j in range(1, len(players))]
-            if players[i].get_total_resources() >= 8 and not players[i].computer
-        ]
+        turn_order = [current_player] + [(current_player + j) % len(players) for j in range(1, len(players))]
+        self._discard_queue = [i for i in turn_order if players[i].get_total_resources() >= 8 and not players[i].computer]
+
         self._queue_index = 0   # which position in the queue we're currently on
         self._active_discarder = self._discard_queue[0] if self._discard_queue else None
         self._resources = {r: 0 for r in _RESOURCES}
@@ -460,7 +458,7 @@ class RobberResView(arcade.View):
             self._build_static_texts()  # rebuild title for new player
         else:
             # Everyone's done — move to robber placement
-            self.vm.go_to("robber_res",
+            self.vm.go_to("robber_place",
                 board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager
             )
