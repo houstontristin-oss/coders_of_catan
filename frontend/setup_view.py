@@ -132,8 +132,6 @@ class SetupView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Ghost highlights
-    # NOTE: Currently if you place a road on a not valid spot during setup it will disappear and if
-    # you place a settlement on a not valid spot it will violate the rules
     # -----------------------------------------------------------------------
     def _draw_node_highlights(self):
         player_color = self.players[self.current_player].color
