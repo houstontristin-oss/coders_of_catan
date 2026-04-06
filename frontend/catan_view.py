@@ -1296,6 +1296,8 @@ class CatanView(arcade.View):
         roll = self.die1 + self.die2
         for tile in self.board.tiles.values():
             if tile.number == roll:
+                if tile.robber:
+                    continue
                 resource = RESOURCE_ABBR[tile.resource]
                 for node in tile.nodes:
                     if node.player is not None:
