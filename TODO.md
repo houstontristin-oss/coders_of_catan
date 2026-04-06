@@ -19,6 +19,7 @@ Tristin:
               * Added constants for the new view within view_constants.py near the top 
 * A way to see the computer players moves  (unknown) (nice-to-have)
     * Active log of what computer players do on each of their turns written to a text box above the end turn button
+* Menu and Gameboard music royalty free
 
 
 Amanda:
