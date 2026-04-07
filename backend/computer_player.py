@@ -30,7 +30,7 @@ class ComputerPlayer(Player):
         return bool (self.resource_cards['WHEAT'] >= 2 and self.resource_cards['ORE'] >= 3)
 
     def can_afford_dev_card(self):
-        return bool(self.resource_cards['WHEAT'] >= 0 and self.resource_cards['ORE'] >= 0 and
+        return bool(self.resource_cards['WHEAT'] > 0 and self.resource_cards['ORE'] > 0 and
                     self.resource_cards['SHEEP'] > 0)
 
     # returns edge to place road at or None

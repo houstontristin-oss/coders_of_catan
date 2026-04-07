@@ -71,8 +71,8 @@ class SetupView(arcade.View):
 
         if self.cycle == 2 and best_node:
             for tile in best_node.tiles:
-                res = RESOURCE_ABBR[tile.resource]
-                if res != "desert":
+                if tile.resource != "desert":
+                    res = RESOURCE_ABBR[tile.resource]
                     self.players[self.current_player].resource_cards[res] += 1
         
         best_edge = None
