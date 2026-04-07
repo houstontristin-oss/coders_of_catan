@@ -52,8 +52,14 @@ class ComputerTurnView(arcade.View):
             if not p.computer:
                 self.human = p
                 break
+
         # --- Computer Move Options ---
         self.moves = ['Trade', 'Build', 'DevCard']
+
+        # --- Turn log state ---
+        self._log_messages = []
+        self._log_line_texts = []
+        self._log_max_lines = 16
 
         self._dice_animating  = True
         self._dice_anim_timer = DICE_ROLL_DURATION
@@ -159,7 +165,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Background
-    # -----------------------------------------------------------------------
     def _load_background(self):
         self.bg_sprite = None
         self.bg_list = None
@@ -184,7 +189,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Caches
-    # -----------------------------------------------------------------------
     def _build_node_pixel_cache(self):
         for node_id in self.board.nodes:
             px, py = node_to_pixel(node_id)
@@ -207,7 +211,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Sprites
-    # -----------------------------------------------------------------------
     def _load_resource_icons(self):
         self.resource_icons   = {}
         self.icon_sprite_list = arcade.SpriteList()
@@ -218,7 +221,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Text objects
-    # -----------------------------------------------------------------------
     def _build_text_objects(self):
         self.txt_fast = arcade.Text(
             FAST_FORWARD,
@@ -255,6 +257,7 @@ class ComputerTurnView(arcade.View):
         self._build_dice_texts()
         self._build_log_texts()
 
+
     def _build_dice_texts(self):
         """Pre-build the fallback number Text objects for the dice area."""
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
@@ -280,6 +283,7 @@ class ComputerTurnView(arcade.View):
 
         self._build_player_texts()
 
+
     def _get_ai_summary_players(self):
         """
         Settler vs. AI mode:
@@ -290,6 +294,7 @@ class ComputerTurnView(arcade.View):
             if player.computer:
                 ai_players.append((idx, player))
         return ai_players
+
 
     def _draw_player_summary_boxes(self):
         """
@@ -341,6 +346,7 @@ class ComputerTurnView(arcade.View):
                 player.color,
             )
 
+
     def _build_player_texts(self):
         panel_x   = CATAN_PLAYER_PANEL_MARGIN
         panel_top = SCREEN_HEIGHT - CATAN_PLAYER_PANEL_MARGIN
@@ -390,6 +396,7 @@ class ComputerTurnView(arcade.View):
             font_name="MedievalSharp",
         )
 
+
     def _build_log_texts(self):
         player = self.players[self.current_player]
         self.txt_log_title = arcade.Text(f"{player.name}'s Turn Log:", CATAN_PLAYER_PANEL_MARGIN + 5, 400, HUD_PANEL_BG, CATAN_TEXT_SIZE_RESOURCE, font_name="MedievalSharp",)
@@ -421,9 +428,9 @@ class ComputerTurnView(arcade.View):
             self.txt_die1.text = str(self.die1)
             self.txt_die2.text = str(self.die2)
 
+
     # -----------------------------------------------------------------------
     # HUD draw helpers
-    # -----------------------------------------------------------------------
     def _draw_bottom_bar(self):
         fill_rect(SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W + 2,
                   CATAN_BTN_PAD - 2, CATAN_END_BTN_W, CATAN_BTN_H,
@@ -472,6 +479,7 @@ class ComputerTurnView(arcade.View):
         for txt in self.txt_resources:
             txt.draw()
         self.txt_dev_card_count.draw()
+
 
     def _draw_dice_area(self):
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
@@ -548,9 +556,9 @@ class ComputerTurnView(arcade.View):
                 font_name="MedievalSharp",
             ).draw()
 
+
     # -----------------------------------------------------------------------
     # Largest Army and Longest Road drawing
-    # -----------------------------------------------------------------------
     def _draw_cards(self):
         player = self.players[self.current_player]
         if self._army_card_sprite not in self._card_list and player.largest_army:
@@ -562,7 +570,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Log Scroll
-    # -----------------------------------------------------------------------
     def _draw_log_reactangle(self):
         fill_rect(CATAN_PLAYER_PANEL_MARGIN, CARD_PAD, HUD_PANEL_WIDTH, 400, LOG_COLOR)
         outline_rect(CATAN_PLAYER_PANEL_MARGIN, CARD_PAD, HUD_PANEL_WIDTH, 400, HUD_PANEL_BG)
@@ -570,13 +577,11 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Port drawing
-    # -----------------------------------------------------------------------
     def _draw_ports(self):
         self.port_manager.draw()
 
     # -----------------------------------------------------------------------
     # Board pieces (always drawn)
-    # -----------------------------------------------------------------------
     def _draw_placed_pieces(self):
         for edge_id, edge_obj in self.board.edges.items():
             if edge_obj.player is not None:
@@ -622,7 +627,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Mouse press
-    # -----------------------------------------------------------------------
     def on_mouse_press(self, x, y, button, modifiers):
         # End Turn
         end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
@@ -649,6 +653,8 @@ class ComputerTurnView(arcade.View):
         - no_resource(): returns list of resources that the player does not have a settlement on or None
         - min_resource(): returns resource with the least amount (if tie pick random or res from no_resource)
         - max_resource(): returns resource with the most amount
+                I BELIEVE MOST OF THESE HAVE BEEN IMPLEMENTED INTO PLAYER.PY AND OTHER BACKEND FILES
+
     """
     # Make Move Function for computer to make a singular move
     def _make_move(self):
@@ -708,10 +714,10 @@ class ComputerTurnView(arcade.View):
     def _fast_forward(self):
         while len(self.moves) > 0:
             self._make_move()
-        
+
+
     # -----------------------------------------------------------------------
     # Placement
-    # -----------------------------------------------------------------------
     def _place_settlement(self, node):
         player = self.players[self.current_player]
         player.build_settlement(CatanBoard, node)
@@ -735,6 +741,7 @@ class ComputerTurnView(arcade.View):
         self._build_player_texts()
         print(f"{player.name} upgraded to a city! VP: {player.victory_points}")
 
+
     def _place_road(self, edge):
         player    = self.players[self.current_player]
         idx       = self.current_player
@@ -755,6 +762,7 @@ class ComputerTurnView(arcade.View):
         self._build_player_texts()
         print(f"{player.name} built a road!")
         self._check_longest_road(edge)
+
 
     def _check_longest_road(self, edge):
         player = self.players[self.current_player]
@@ -815,6 +823,7 @@ class ComputerTurnView(arcade.View):
         if player.longest_road:
             self.txt_log.text += f"{player.name} built the Longest Road\n"
 
+
     def _place_road_free(self, edge):
         """Place a road using a free-road grant from Road Building card."""
         edge.player       = self.current_player
@@ -824,9 +833,9 @@ class ComputerTurnView(arcade.View):
         print(f"{self.players[self.current_player].name} placed a free road! ({self._free_roads} remaining)")
         self._check_longest_road(edge)
 
+
     # -----------------------------------------------------------------------
     # Buy Dev Card
-    # -----------------------------------------------------------------------
     def _buy_dev_card(self):
         card_type = self._deck.pop()
         self.players[self.current_player].development_cards.append({"type": card_type, "just_bought": True})
@@ -852,9 +861,9 @@ class ComputerTurnView(arcade.View):
                 no_access_res.append(upper_res)
 
         return no_access_res
+
     # -----------------------------------------------------------------------
     # Resource distribution
-    # -----------------------------------------------------------------------
     def _give_resources(self):
         roll = self.die1 + self.die2
         for tile in self.board.tiles.values():
@@ -867,9 +876,9 @@ class ComputerTurnView(arcade.View):
                             1 if node.building == "settlement" else 2
                         )
 
+
     # -----------------------------------------------------------------------
     # Computer Players Discarding half their hand when a 7 is rolled
-    # -----------------------------------------------------------------------
     def _comp_robber_discard(self):
         #From RobberResView, we need a way for the computer to pick a new spot for the robber 
         # do not show RobberResView if its only computer players that need to discard resources
@@ -894,9 +903,9 @@ class ComputerTurnView(arcade.View):
                 player.exchange_resources(giving_resources, {})
                 print(f"ROBBER! {player.name} discarded {giving_resources}")
 
+
     # -----------------------------------------------------------------------
     # End turn
-    # -----------------------------------------------------------------------
     def _end_turn(self):
         if self.players[self.current_player].victory_points >= 10:
             self.vm.go_to("end", self.players, self.current_player)
