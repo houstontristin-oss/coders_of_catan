@@ -18,15 +18,9 @@ from .drawing import draw_port_dock
 
 """
 port_manager.py — PortManager
-
      We need to change all the random numbers implemented in the
   btn_w btw_h for example need to be changed to constants in order to maintain consistency
 """
-
-"""
-port_manager.py — PortManager
-"""
-
 
 # Hover still keys off ship center only
 _PORT_HOVER_RADIUS = 52
@@ -36,8 +30,8 @@ _PORT_SHIP_SCALE = 0.07
 _PORT_DOCK_START_OFFSET = HEX_SIZE * 0.10   # where dock leaves the island nodes
 _PORT_DOCK_END_OFFSET   = HEX_SIZE * 0.48   # where dock reaches toward the ship
 _PORT_SHIP_OFFSET       = HEX_SIZE * 1.18   # push ship farther into the water
-_PORT_LABEL_OUTWARD     = HEX_SIZE * 0.44
-_PORT_LABEL_SIDE        = HEX_SIZE * 0.18
+_PORT_LABEL_OUTWARD     = HEX_SIZE * 0.72
+_PORT_LABEL_SIDE        = HEX_SIZE * 0.12
 
 
 class PortManager:
@@ -60,8 +54,6 @@ class PortManager:
 
     # ------------------------------------------------------------------
     # Public API
-    # ------------------------------------------------------------------
-
     def draw(self):
         for entry in self._port_data:
             draw_port_dock(
@@ -91,8 +83,6 @@ class PortManager:
 
     # ------------------------------------------------------------------
     # Internal helpers
-    # ------------------------------------------------------------------
-
     def _test_sprite(self):
         try:
             arcade.Sprite(PORT_SHIP_SPRITE, scale=_PORT_SHIP_SCALE)
