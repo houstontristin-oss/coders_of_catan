@@ -120,7 +120,11 @@ ROAD_CARD_SPRITE = os.path.join(BASE_DIR, "sprites", "special_cards", "road_card
 DICE_ROLL_DURATION   = 1.2   # total seconds the animation runs
 DICE_ROLL_FLIP_RATE  = 0.07  # seconds between face-flips while rolling
 
-
+DEV_KEY_K  = "knight"
+DEV_KEY_RB = "road_building"
+DEV_KEY_VP = "victory_point"
+DEV_KEY_YOP= "year_of_plenty"
+DEV_KEY_M  = "monopoly"
 
 
 # Development card sprites  (discovery folder)
