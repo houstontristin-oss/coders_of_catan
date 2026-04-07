@@ -141,12 +141,12 @@ class GamemodeView(arcade.View):
 
     def _go_to_selected_mode(self, mode_name: str):
         players = []
-        
+
         players.append(Player(P1_COLOR, "Player 1"))
         if mode_name == "ai":
-            players.append(ComputerPlayer(P2_COLOR, "AI 2"))
-            players.append(ComputerPlayer(P3_COLOR, "AI 3"))
-            players.append(ComputerPlayer(P4_COLOR, "AI 4"))
+            players.append(ComputerPlayer(P2_COLOR, "AI 2", self.board))
+            players.append(ComputerPlayer(P3_COLOR, "AI 3", self.board))
+            players.append(ComputerPlayer(P4_COLOR, "AI 4", self.board))
         else:
             players.append(Player(P2_COLOR, "Player 2"))
             players.append(Player(P3_COLOR, "Player 3"))
