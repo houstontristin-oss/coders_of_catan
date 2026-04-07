@@ -1,4 +1,6 @@
 # pylint: disable= R0902
+import random
+
 class Player:
     """Represents a player for Catan
 
@@ -17,7 +19,7 @@ class Player:
     """
     def __init__(self, color, name):
         self.victory_points = 0
-        self.resource_cards = {'WOOD': 0, 'WHEAT':0, 'BRICK': 0, 'SHEEP': 0, 'ORE': 0}
+        self.resource_cards = {'WOOD': 0, 'WHEAT':2, 'BRICK': 0, 'SHEEP': 2, 'ORE': 2}
         self.development_cards = []
         self.total_roads = 15
         self.total_settlements = 5
@@ -111,3 +113,11 @@ class Player:
 
     def add_port(self, res):
         self.ports.append(res)
+
+    # returns the a random resource, with proper probability
+    def random_resource(self):
+        resources = []
+        for res, amt in self.resource_cards.items():
+            for _ in range(amt):
+                resources.append(res)
+        return random.choice(resources)

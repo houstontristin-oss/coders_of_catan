@@ -704,32 +704,53 @@ class ComputerTurnView(arcade.View):
             return
         
         elif move == "DevCard":
-            #TODO: make dev cards do something (Nick)
-            #play a card first if computer has
-            if len(player.development_cards) != 0:
-                card = random.choice(player.development_cards)
-                if card["type"] == DEV_KEY_VP:
-                    # vp already added to total, dont need to keep around the card since it cant be
-                    # played
-                    player.development_cards.remove(card)
-                    return
-                elif card["type"] == DEV_KEY_K:
-                    # move the robber to a tile that which comp isnt next to, and is a high number
-                    pass
-                elif card["type"] == DEV_KEY_YOP:
-                    # check resources for what it needs more of and picks accordingly
-                    pass
-                elif card["type"] == DEV_KEY_M:
-                    # comp picks what it has the least of
-                    pass
-                elif card["type"] == DEV_KEY_RB:
-                    # gives comp two roads to build for free, handled by build logic
-                    self._free_roads += 2
-                    pass
-                else:
-                    print("computer_turn_view.py: Error with dev card type checking")
-                self.txt_log.text += f"Played a {card}"
+            # Filter to cards that are playable this turn (not just bought, not VP cards)
+            playable_cards = [
+                card for card in player.development_cards
+                if not card["just_bought"] and card["type"] != DEV_KEY_VP
+            ]
+
+            if not playable_cards or self._played_card_this_turn:
+                return
+
+            card = random.choice(player.development_cards)
+
+            if card["type"] == DEV_KEY_VP:
+                # vp already added to total, dont need to keep around the card since it cant be
+                # played
+                player.development_cards.remove(card)
+                return
+            elif card["type"] == DEV_KEY_K:
+                # Move robber to a high-value tile the computer isn't adjacent to
+                self._play_knight(player, card)
+            elif card["type"] == DEV_KEY_YOP:
+                # Take the 2 resources the computer has least of
+                res1 = player.min_resource()
+                player.resource_cards[res1] += 1
+                player.development_cards.remove(card)
+                res2 = player.min_resource()          # re-check after first grant
+                player.resource_cards[res2] += 1
+                self.txt_log.text += f"{player.name} played Year of Plenty: +1 {res1}, +1 {res2}\n"
+            elif card["type"] == DEV_KEY_M:
+                # Steal whatever resource the computer has least of from all opponents
+                target_res = player.min_resource()
+                for opponent in self.players:
+                    if opponent is not player:
+                        stolen = opponent.resource_cards.get(target_res, 0)
+                        opponent.resource_cards[target_res] = 0
+                        player.resource_cards[target_res] += stolen
+                player.development_cards.remove(card)
+                self.txt_log.text += f"{player.name} played Monopoly on {target_res}\n"
+            elif card["type"] == DEV_KEY_RB:
+                # gives comp two roads to build for free, handled by build logic
+                player.development_cards.remove(card)
+                self.txt_log.text += f"{player.name} played Road Building (+2 free roads)\n"
+            else:
+                print("computer_turn_view.py: Unrecognised dev card type:", card["type"])
+                return
             
+            self._played_card_this_turn = True
+            self._build_player_texts()
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
@@ -852,7 +873,7 @@ class ComputerTurnView(arcade.View):
         self._check_longest_road(edge)
 
     # -----------------------------------------------------------------------
-    # Buy Dev Card
+    # Dev Card
     # -----------------------------------------------------------------------
     def _buy_dev_card(self):
         card_type = self._deck.pop()
@@ -860,6 +881,91 @@ class ComputerTurnView(arcade.View):
 
         if card_type == DEV_KEY_VP:
             self.players[self.current_player].victory_points += 1
+
+    def _play_knight(self, player, card):
+        best_tile = None
+        best_score = -1
+
+        winning_player = max(self.players, key=lambda p: p.victory_points) # used in picking tile
+        # select best tile to place robber on
+        for xyz, tile in self.board.tiles.items():
+            if tile.robber or tile.resource == "desert":
+                continue
+            # skip tiles comp player is adjacent to
+            computer_adjacent = any(
+                node.player == self.current_player for node in tile.nodes
+            )
+            if computer_adjacent:
+                continue
+
+            # Prefer high-probability numbers, value is number of pips on each number tile
+            prob = {2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5,
+                    9: 4, 10: 3, 11: 2, 12: 1}.get(tile.number, 0)
+             # Count distinct opponents with a settlement/city on this tile
+            opponent_nodes = [
+                node for node in tile.nodes
+                if node.player is not None and node.player != self.current_player
+            ]
+            num_opponents = len(set(node.player for node in opponent_nodes))
+
+            # Bonus if the winning player borders this tile
+            winning_player_adjacent = any(
+                node.player == self.players.index(winning_player)
+                for node in tile.nodes
+            )
+            winner_bonus = 2 if winning_player_adjacent else 0
+
+            score = prob + num_opponents + winner_bonus
+            if score > best_score:
+                best_score = score
+                best_tile = (xyz, tile)
+
+        if best_tile is None:
+            # Fallback: any non-desert, non-current tile
+            for xyz, tile in self.board.tiles.items():
+                if not tile.robber and tile.resource != "desert":
+                    best_tile = (xyz, tile)
+                    break
+
+        if best_tile:
+            # Move robber from current tile
+            for _, t in self.board.tiles.items():
+                t.robber = False
+            xyz, tile = best_tile
+            tile.robber = True
+            self._place_robber_on_tile()
+
+            # Steal from avaiable victim
+            victims = [
+                self.players[node.player]
+                for node in tile.nodes
+                if node.player is not None and node.player != self.current_player 
+            ]
+            if victims:
+                victim = max(victims, key=lambda p: p.get_total_resources())
+                stolen_res = victim.random_resource()
+                if victim.resource_cards[stolen_res] > 0:
+                    victim.resource_cards[stolen_res] -= 1
+                    player.resource_cards[stolen_res] += 1
+                    self.txt_log.text += (
+                        f"{player.name} played Knight — stole {stolen_res} from {victim.name}\n"
+                    )
+            else:
+                self.txt_log.text += f"{player.name} played Knight — moved robber\n"
+            # Check for largest army and update
+            player.knight_count += 1
+            if player.knight_count >= 3:
+                holder = next((p for p in self.players if p.largest_army), None)
+                if holder is None:
+                    player.largest_army = True
+                    player.victory_points += 2
+                elif player.knight_count > holder.knight_count:
+                    holder.largest_army = False
+                    holder.victory_points -= 2
+                    player.largest_army = True
+                    player.victory_points += 2
+
+        player.development_cards.remove(card)
 
     # -----------------------------------------------------------------------
     # Trading Helper functions
