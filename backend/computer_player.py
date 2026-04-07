@@ -34,44 +34,70 @@ class ComputerPlayer(Player):
                     self.resource_cards['SHEEP'] > 0)
 
     # returns edge to place road at or None
+    # Apr 6th - current versions is iterating the board incorrectly and also assumes edge.player / node.player
+    # are player objects with .name, but in board code they are stored as player indices. Patched...
     def best_road_location(self):
         possible_roads = []
-        for edge in self.board.edges:
-            if edge.player:
-                continue
-            for node in edge.nodes:
-                for edge2 in node.edges:
-                    if edge2.player.name == self.name:
-                        possible_roads.append(edge)
 
-        return random.choice(possible_roads)
+        for edge in self.board.edges.values():
+            if edge.player is not None:
+                continue
+
+            for node in edge.nodes:
+                # build off one of this AI's settlements/cities
+                if node.player == self.player_index:
+                    possible_roads.append(edge)
+                    break
+
+                # or build off one of this AI's existing roads
+                for edge2 in node.edges:
+                    if edge2.player == self.player_index:
+                        possible_roads.append(edge)
+                        break
+                else:
+                    continue
+                break
+
+        return random.choice(possible_roads) if possible_roads else None
 
     # returns node to place settlement at or None
+    # Apr 6th -
     def best_settlement_location(self):
         possible_settlements = []
-        has_own_road = False
-        for node in self.board.nodes:
-            if node.building:
-                return None
-            for edge in node.edges:
-                if edge.player.name == self.name:
-                    has_own_road = True
-                for node2 in edge.nodes:
-                    if node2 is not node and node2.building:
-                        return None
-                    if has_own_road:
-                        possible_settlements.append(node)
 
-        return random.choice(possible_settlements)
+        for node in self.board.nodes.values():
+            if node.building is not None:
+                continue
+
+            has_own_road = False
+            blocked = False
+
+            for edge in node.edges:
+                if edge.player == self.player_index:
+                    has_own_road = True
+
+                for node2 in edge.nodes:
+                    if node2 is not node and node2.building is not None:
+                        blocked = True
+                        break
+
+                if blocked:
+                    break
+
+            if has_own_road and not blocked:
+                possible_settlements.append(node)
+
+        return random.choice(possible_settlements) if possible_settlements else None
 
     # returns node to place city at or None
     def best_city_location(self):
         possible_cities = []
-        for node in self.board.nodes:
-            if node.player.name == self.name and node.building:
+
+        for node in self.board.nodes.values():
+            if node.player == self.player_index and node.building == "settlement":
                 possible_cities.append(node)
 
-        return random.choice(possible_cities)
+        return random.choice(possible_cities) if possible_cities else None
 
     # returns string of what dev card was played for log
     def play_dev_card(self):
