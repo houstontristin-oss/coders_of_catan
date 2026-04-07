@@ -675,19 +675,25 @@ class ComputerTurnView(arcade.View):
                         get_trade = player.min_resource()
                         player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
                         self.txt_log.text += f"{player.name} completed a 4 {to_trade}: 1 {get_trade}\n"
+            return
 
-        if move == "Build":
-             #place a city
+        elif move == "Build":
+            # place free road
+            if self._free_roads > 0:
+                road_edge = player.best_road_location()
+                if road_edge is not None:
+                    self._place_road_free()
+            # place a city
             city_node = player.best_city_location()
             if city_node is not None:
                 if player.can_afford_city():
                     self._place_city(city_node)
-            #place a settlement
+            # place a settlement
             settle_node = player.best_settlement_location()
             if settle_node is not None:
                 if player.can_afford_settlement():
                     self._place_settlement(settle_node)
-            #place a road
+            # place a road
             if player.can_afford_road():
                 road_edge = player.best_road_location()
                 if road_edge is not None:
@@ -695,12 +701,33 @@ class ComputerTurnView(arcade.View):
             # buy a dev card because 
             if player.can_afford_dev_card():
                 self._buy_dev_card()
-
-        if move == "DevCard":
-            #TODO: make knight dev cards do something (Nick)
+            return
+        
+        elif move == "DevCard":
+            #TODO: make dev cards do something (Nick)
             #play a card first if computer has
             if len(player.development_cards) != 0:
                 card = random.choice(player.development_cards)
+                if card["type"] == DEV_KEY_VP:
+                    # vp already added to total, dont need to keep around the card since it cant be
+                    # played
+                    player.development_cards.remove(card)
+                    return
+                elif card["type"] == DEV_KEY_K:
+                    # move the robber to a tile that which comp isnt next to, and is a high number
+                    pass
+                elif card["type"] == DEV_KEY_YOP:
+                    # check resources for what it needs more of and picks accordingly
+                    pass
+                elif card["type"] == DEV_KEY_M:
+                    # comp picks what it has the least of
+                    pass
+                elif card["type"] == DEV_KEY_RB:
+                    # gives comp two roads to build for free, handled by build logic
+                    self._free_roads += 2
+                    pass
+                else:
+                    print("computer_turn_view.py: Error with dev card type checking")
                 self.txt_log.text += f"Played a {card}"
             
 
@@ -831,9 +858,9 @@ class ComputerTurnView(arcade.View):
         card_type = self._deck.pop()
         self.players[self.current_player].development_cards.append({"type": card_type, "just_bought": True})
 
-        if card_type == "victory_point":
+        if card_type == DEV_KEY_VP:
             self.players[self.current_player].victory_points += 1
-    
+
     # -----------------------------------------------------------------------
     # Trading Helper functions
     # returns a list of resources that the player does not have access to from their settlements
