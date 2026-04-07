@@ -757,10 +757,11 @@ class ComputerTurnView(arcade.View):
                     # vp already added to total, dont need to keep around the card since it cant be
                     # played
                     player.development_cards.remove(card)
-                    return
+                    move_success = True
                 elif card["type"] == DEV_KEY_K:
                     # Move robber to a high-value tile the computer isn't adjacent to
                     self._play_knight(player, card)
+                    move_success = True
                 elif card["type"] == DEV_KEY_YOP:
                     # Take the 2 resources the computer has least of
                     res1 = player.min_resource()
@@ -769,6 +770,7 @@ class ComputerTurnView(arcade.View):
                     res2 = player.min_resource()          # re-check after first grant
                     player.resource_cards[res2] += 1
                     self.txt_log.text += f"{player.name} played Year of Plenty: +1 {res1}, +1 {res2}\n"
+                    move_success = True
                 elif card["type"] == DEV_KEY_M:
                     # Steal whatever resource the computer has least of from all opponents
                     target_res = player.min_resource()
@@ -779,13 +781,14 @@ class ComputerTurnView(arcade.View):
                             player.resource_cards[target_res] += stolen
                     player.development_cards.remove(card)
                     self.txt_log.text += f"{player.name} played Monopoly on {target_res}\n"
+                    move_success = True
                 elif card["type"] == DEV_KEY_RB:
                     # gives comp two roads to build for free, handled by build logic
                     player.development_cards.remove(card)
                     self.txt_log.text += f"{player.name} played Road Building (+2 free roads)\n"
+                    move_success = True
                 else:
                     print("computer_turn_view.py: Unrecognised dev card type:", card["type"])
-                    return
                 
                 self._played_card_this_turn = True
                 self._build_player_texts()
