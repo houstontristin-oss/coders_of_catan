@@ -943,6 +943,8 @@ class ComputerTurnView(arcade.View):
         if self.die1 + self.die2 == GET_ROBBED:
             self._comp_robber_discard()
             #once the computer has discarded cards, the player may have to too so go to robber res
+            for player in self.players:
+                print(f"{player.name}: {player.resource_cards}")
             self.vm.go_to(
                     "robber_res", 
                     board=self.board, 

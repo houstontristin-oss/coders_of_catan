@@ -19,7 +19,7 @@ class RobberPlaceView(arcade.View):
     RobberPlaceView Class
     """
     def __init__(self, vm, board, players, current_player, die1, die2, port_manager):
-        super().__init__(),
+        super().__init__()
         self.vm             = vm
         self.board          = board
         self.players        = players
@@ -155,7 +155,7 @@ class RobberPlaceView(arcade.View):
         for xyz, tile in self.board.tiles.items():
             if tile.robber:
                 self._robber_tile = tile
-                if self._robber_sprite_ok:
+                if self._robber_sprite_ok and self._robber_sprite:
                     cx, _, cz = xyz
                     px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
                     target_h  = HEX_SIZE * CATAN_ROBBER_SCALE_MULT
@@ -178,7 +178,8 @@ class RobberPlaceView(arcade.View):
             self.show_confirm = False
             self.selected_tile = None
             return
-        self._robber_tile.robber = False #switch current robber tile robber status to false
+        if self._robber_tile:
+            self._robber_tile.robber = False #switch current robber tile robber status to false
         tile.robber = True #switch new robber tile robber status to true
         self._robber_tile = tile
         self._place_robber_on_tile()
@@ -194,6 +195,61 @@ class RobberPlaceView(arcade.View):
         else:
             print("No victims found.")
             self._end_robber()
+
+    def _computer_move_robber(self):
+        best_tiles = {}
+        max_player_count = 0
+        robber_tile = None
+        # Find the tile with the most players surrounding it
+        for tile in self.board.tiles.values():
+            if tile.robber:
+                robber_tile = tile
+            elif not tile.robber:
+                player_count = 0
+                for node in tile.nodes:
+                    if node.player is not None and node.player != self.current_player:
+                        player_count += 1
+                    if node.building == "city":
+                        player_count += 1
+                if player_count > max_player_count:
+                    max_player_count = player_count
+                    best_tiles[tile] = tile.number
+        # Account for if the tile number is better than another
+        new_robber_tiles = []
+        for tile, info in best_tiles.items():
+            if info >= 5 and info <= 9:
+                new_robber_tiles.append(tile)
+        if len(new_robber_tiles) == 0:
+            new_robber_tile = random.choice(list(best_tiles.keys()))
+        else:
+            new_robber_tile = random.choice(new_robber_tiles)
+        
+        # Move the robber to new_robber_tile
+        if robber_tile is not None:
+            robber_tile.robber = False
+        new_robber_tile.robber = True
+
+        # Steal from a player that on new_robber_tile
+        to_steal_from = []
+        for node in new_robber_tile.nodes:
+            if node.player is not None:
+                to_steal_from.append(node.player)
+        to_steal_from = random.choice(to_steal_from)
+
+        total_res = self.players[to_steal_from].get_total_resources()
+        if total_res != 0:
+            choice = random.randint(1, total_res)
+            res_choice = None
+            for res, amount in self.players[to_steal_from].resource_cards.items():
+                if choice > amount:
+                    choice -= amount
+                else: 
+                    res_choice = res
+
+            if res_choice is not None:
+                self.players[to_steal_from].resource_cards[res_choice] -= 1
+                self.players[self.current_player].resource_cards[res_choice] += 1
+
 
     # -----------------------------------------------------------------------
     # Theft function
@@ -269,7 +325,7 @@ class RobberPlaceView(arcade.View):
         #Title
         self.txt_popup_rob.text = "Choose a player to rob"
         self.txt_popup_rob.font_size = 14
-        self.txt_popup_rob.font_color = TEXT_GOLD
+        self.txt_popup_rob.color = TEXT_GOLD
         self.txt_popup_rob.x = cx
         self.txt_popup_rob.y = cy + popup_h - 20
         self.txt_popup_rob.draw()
@@ -288,7 +344,7 @@ class RobberPlaceView(arcade.View):
             fill_rect(bx, by, bw, bh, player.color)
             self.txt_popup_rob.text = player.name
             self.txt_popup_rob.font_size = 12
-            self.txt_popup_rob.font_color = TEXT_WHITE
+            self.txt_popup_rob.color = TEXT_WHITE
             self.txt_popup_rob.x = bx + bw / 2
             self.txt_popup_rob.y = by + 15
             self.txt_popup_rob.draw()
@@ -297,6 +353,11 @@ class RobberPlaceView(arcade.View):
 
     def on_show_view(self):
         self._build_text_objects()
+        if self.players[self.current_player].computer:
+                # computer moves the robber 
+                self._computer_move_robber()
+                self.vm.go_to("computer_turn", board=self.board, players=self.players, current_player=self.current_player, die1=self.die1, die2=self.die2, port_manager=self.port_manager)
+                return
 
     def on_draw(self):
         self.clear()
