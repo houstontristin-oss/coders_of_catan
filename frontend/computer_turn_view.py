@@ -2,6 +2,16 @@
 Contains ComputerTurnView class 
 
 Allows player when its 1 person versus 3 computer players so that the player can see the computer moves
+
+Need to add AI player move log
+play settlement, place road, place city all have examples of what I should do for the log implementation
+Make a highlight of which computer AI is having their turn
+I believe that to do down there states "Grey out these buttons once there are no more moves for computer player to make"
+So I must have the "next move" button grey out when there are no more available moves for the AI to make on their turn
+Indicating that the player must press skip turn.  Or even make a flag that changes the botton right button to next turn
+when all moves are used up by the AI instead of having the "skip turn" button.  Since skip turn makes no sense
+when you're at the end of the turn.
+Ill look into the wrapping of the text in the log
 """
 import arcade
 import random
@@ -15,7 +25,7 @@ from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_b
 from .constants import *
 from .view_constants import *
 
-FAST_FORWARD = "Fast Forward"
+FAST_FORWARD = "Next Player"
 NEXT_MOVE = "Next Move"
 LOG_COLOR = (229,222,207)
 GET_ROBBED = 7
@@ -52,8 +62,14 @@ class ComputerTurnView(arcade.View):
             if not p.computer:
                 self.human = p
                 break
+
         # --- Computer Move Options ---
         self.moves = ['Trade', 'Build', 'DevCard']
+
+        # --- Turn log state ---
+        self._log_messages = []
+        self._log_line_texts = []
+        self._log_max_lines = 16
 
         self._dice_animating  = True
         self._dice_anim_timer = DICE_ROLL_DURATION
@@ -159,7 +175,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Background
-    # -----------------------------------------------------------------------
     def _load_background(self):
         self.bg_sprite = None
         self.bg_list = None
@@ -184,7 +199,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Caches
-    # -----------------------------------------------------------------------
     def _build_node_pixel_cache(self):
         for node_id in self.board.nodes:
             px, py = node_to_pixel(node_id)
@@ -207,7 +221,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Sprites
-    # -----------------------------------------------------------------------
     def _load_resource_icons(self):
         self.resource_icons   = {}
         self.icon_sprite_list = arcade.SpriteList()
@@ -218,7 +231,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Text objects
-    # -----------------------------------------------------------------------
     def _build_text_objects(self):
         self.txt_fast = arcade.Text(
             FAST_FORWARD,
@@ -255,6 +267,7 @@ class ComputerTurnView(arcade.View):
         self._build_dice_texts()
         self._build_log_texts()
 
+
     def _build_dice_texts(self):
         """Pre-build the fallback number Text objects for the dice area."""
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
@@ -280,6 +293,7 @@ class ComputerTurnView(arcade.View):
 
         self._build_player_texts()
 
+
     def _get_ai_summary_players(self):
         """
         Settler vs. AI mode:
@@ -290,6 +304,7 @@ class ComputerTurnView(arcade.View):
             if player.computer:
                 ai_players.append((idx, player))
         return ai_players
+
 
     def _draw_player_summary_boxes(self):
         """
@@ -340,6 +355,7 @@ class ComputerTurnView(arcade.View):
                 5,
                 player.color,
             )
+
 
     def _build_player_texts(self):
         panel_x   = CATAN_PLAYER_PANEL_MARGIN
@@ -393,7 +409,7 @@ class ComputerTurnView(arcade.View):
     def _build_log_texts(self):
         player = self.players[self.current_player]
         self.txt_log_title = arcade.Text(f"{player.name}'s Turn Log:", CATAN_PLAYER_PANEL_MARGIN + 5, 400, HUD_PANEL_BG, CATAN_TEXT_SIZE_RESOURCE, font_name="MedievalSharp",)
-        self.txt_log = arcade.Text("", CATAN_PLAYER_PANEL_MARGIN + 5, 380, HUD_PANEL_BG, CATAN_TEXT_SIZE_RESOURCE, font_name="MedievalSharp",)
+        self.txt_log = arcade.Text("", CATAN_PLAYER_PANEL_MARGIN + 5, 380, HUD_PANEL_BG, CATAN_TEXT_SIZE_RESOURCE, font_name="MedievalSharp", multiline=True, width=HUD_PANEL_WIDTH)
 
     # -----------------------------------------------------------------------
     # on_update — dice animation tick
@@ -421,9 +437,9 @@ class ComputerTurnView(arcade.View):
             self.txt_die1.text = str(self.die1)
             self.txt_die2.text = str(self.die2)
 
+
     # -----------------------------------------------------------------------
     # HUD draw helpers
-    # -----------------------------------------------------------------------
     def _draw_bottom_bar(self):
         fill_rect(SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W + 2,
                   CATAN_BTN_PAD - 2, CATAN_END_BTN_W, CATAN_BTN_H,
@@ -434,7 +450,7 @@ class ComputerTurnView(arcade.View):
                      CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H,
                      CATAN_COLOR_BTN_OUTLINE, 1)
         fill_rect(SCREEN_WIDTH - CATAN_BTN_PAD * 2 - CATAN_END_BTN_W * 2,
-                  CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H, BTN_ENDTURN)
+                  CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H, BTN_ENDTURN if len(self.moves) != 0 else TEXT_LIGHT_GRAY)
         outline_rect(SCREEN_WIDTH - CATAN_BTN_PAD * 2 - CATAN_END_BTN_W * 2,
                      CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H,
                      CATAN_COLOR_BTN_OUTLINE, 1)
@@ -472,6 +488,7 @@ class ComputerTurnView(arcade.View):
         for txt in self.txt_resources:
             txt.draw()
         self.txt_dev_card_count.draw()
+
 
     def _draw_dice_area(self):
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
@@ -548,9 +565,9 @@ class ComputerTurnView(arcade.View):
                 font_name="MedievalSharp",
             ).draw()
 
+
     # -----------------------------------------------------------------------
     # Largest Army and Longest Road drawing
-    # -----------------------------------------------------------------------
     def _draw_cards(self):
         player = self.players[self.current_player]
         if self._army_card_sprite not in self._card_list and player.largest_army:
@@ -562,7 +579,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Log Scroll
-    # -----------------------------------------------------------------------
     def _draw_log_reactangle(self):
         fill_rect(CATAN_PLAYER_PANEL_MARGIN, CARD_PAD, HUD_PANEL_WIDTH, 400, LOG_COLOR)
         outline_rect(CATAN_PLAYER_PANEL_MARGIN, CARD_PAD, HUD_PANEL_WIDTH, 400, HUD_PANEL_BG)
@@ -570,13 +586,11 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Port drawing
-    # -----------------------------------------------------------------------
     def _draw_ports(self):
         self.port_manager.draw()
 
     # -----------------------------------------------------------------------
     # Board pieces (always drawn)
-    # -----------------------------------------------------------------------
     def _draw_placed_pieces(self):
         for edge_id, edge_obj in self.board.edges.items():
             if edge_obj.player is not None:
@@ -622,7 +636,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Mouse press
-    # -----------------------------------------------------------------------
     def on_mouse_press(self, x, y, button, modifiers):
         # End Turn
         end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
@@ -630,136 +643,168 @@ class ComputerTurnView(arcade.View):
             # TODO: Grey out these buttons once there are no more moves for computer player to make
             if (end_left - CATAN_BTN_W <= x < end_left) and  (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
                 self._make_move()
-                print(f"{self.players[self.current_player].name} made a move")
 
         if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
             self._fast_forward()
             self._end_turn()
             return
 
-    """TODO: to add to computer player class to make this easier
-        - can_place_settlement() : returns node to place settlement at or None
-        - can_afford_road() : returns bool
-        - best_road_location() : returns edge to place road on
-        - can_afford_settlement() : returns bool
-        - can_afford_city() : returns bool
-        - best_city_location() : returns node to make into a city
-        - can_afford_dev_card() : returns bool
-        - play_dev_card() : returns str of what dev card was played for log
-        - no_resource(): returns list of resources that the player does not have a settlement on or None
-        - min_resource(): returns resource with the least amount (if tie pick random or res from no_resource)
-        - max_resource(): returns resource with the most amount
-    """
     # Make Move Function for computer to make a singular move
     def _make_move(self):
         move = self.moves.pop(0)
         player = self.players[self.current_player]
-        if move == "Trade":
-            # NOTE: should be turned to a while once confirmed that trading works
-            if player.get_total_resources() > GET_ROBBED:
-                if len(player.ports) != 0:
-                    port = random.choice(player.ports)
-                    get_from_port = player.min_resource()
-                    trade_amt = RES_PORT
-                    give_to_port = port.resource
-                    if port.resource is not None:
-                        trade_amt = NONE_PORT
-                        give_to_port = player.max_resource()
-                    player.exchange_resources({give_to_port: trade_amt}, {get_from_port: 1})
-                    self.txt_log.text += f"Used {port} to trade for {get_from_port}\n"
-                    
-                # elif needed_resources is not None: try to trade with another player
+        move_success = False
+        while not move_success and move is not None:
+            if move == "Trade":
+                needed_resources = self._no_resource_access()
+                # NOTE: should be turned to a while once confirmed that trading works
+                if player.get_total_resources() > GET_ROBBED:
+                    if len(player.ports) != 0:
+                        port = random.choice(player.ports)
+                        get_from_port = player.min_resource()
+                        trade_amt = RES_PORT
+                        give_to_port = port.resource
+                        if port.resource is not None:
+                            trade_amt = NONE_PORT
+                            give_to_port = player.max_resource()
+                        player.exchange_resources({give_to_port: trade_amt}, {get_from_port: 1})
+                        self.txt_log.text += f"Used {port} to trade for {get_from_port}\n"
+                        move_success = True
+                        
+                    elif len(needed_resources) != 0:
+                        # find resource of the most amount
+                        res_to_trade = player.max_resource()
+                        # pick a random number between 
+                        amt_to_offer = random.randint(1, player.resource_cards[res_to_trade])
+                        res_to_get = random.choice(needed_resources)
+
+                        # Find player with the most cards to offer trade to
+                        player_to_trade_with = None
+                        max_res = 0
+                        for p in self.players:
+                            if p != player and p.get_total_resources() > max_res:
+                                player_to_trade_with = p
+                                max_res = p.get_total_resources()
+                        # ask for 1, 2, or 3 of a resource in return
+                        amt_to_get = random.randint(1, 3)
+
+                        to_trade = {res_to_trade: amt_to_offer}
+                        to_get = {res_to_get: amt_to_get}
+                        if player_to_trade_with and player_to_trade_with.can_afford_trade(to_get):
+                            if player_to_trade_with == self.human:
+                                # TODO (Nick): Show computer player pop up to confirm or deny
+                                pass
+                            else:
+                                accept = random.randint(0,1)
+                                if accept:
+                                    player.exchange_resources(to_trade, to_get)
+                                    player_to_trade_with.exchange_resources(to_get, to_trade)
+                                    self.txt_log.text += f"{player.name} traded {to_trade} with {player_to_trade_with.name} for {to_get}\n"
+                                    move_success = True
+                    else:
+                        to_trade = player.max_resource()
+                        if player.resource_cards[to_trade] >= MARITIME_TRADE:
+                            get_trade = player.min_resource()
+                            player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
+                            self.txt_log.text += f"{player.name} completed a 4 {to_trade}: 1 {get_trade}\n"
+                            move_success = True
+
+            if move == "Build":
+                # place free road
+                if self._free_roads > 0:
+                    road_edge = player.best_road_location()
+                    if road_edge is not None:
+                        self._place_road_free()
+                        move_success = True
+
+                # place a city
+                city_node = player.best_city_location()
+                if city_node is not None:
+                    if player.can_afford_city():
+                        self._place_city(city_node)
+                        move_success = True
+                # place a settlement
+                settle_node = player.best_settlement_location()
+                if settle_node is not None:
+                    if player.can_afford_settlement():
+                        self._place_settlement(settle_node)
+                        move_success = True
+                # place a road
+                if player.can_afford_road():
+                    road_edge = player.best_road_location()
+                    if road_edge is not None:
+                        self._place_road(road_edge)
+                        move_success = True
+                # buy a dev card because 
+                if player.can_afford_dev_card():
+                    self._buy_dev_card()
+                    self.txt_log.text += f"{player.name} bought a Dev Card\n"
+                    move_success = True
+
+            elif move == "DevCard":
+                # Filter to cards that are playable this turn (not just bought, not VP cards)
+                playable_cards = [
+                    card for card in player.development_cards
+                    if not card["just_bought"] and card["type"] != DEV_KEY_VP
+                ]
+
+                if not playable_cards or self._played_card_this_turn:
+                    return
+
+                card = random.choice(player.development_cards)
+
+                if card["type"] == DEV_KEY_VP:
+                    # vp already added to total, dont need to keep around the card since it cant be
+                    # played
+                    player.development_cards.remove(card)
+                    return
+                elif card["type"] == DEV_KEY_K:
+                    # Move robber to a high-value tile the computer isn't adjacent to
+                    self._play_knight(player, card)
+                elif card["type"] == DEV_KEY_YOP:
+                    # Take the 2 resources the computer has least of
+                    res1 = player.min_resource()
+                    player.resource_cards[res1] += 1
+                    player.development_cards.remove(card)
+                    res2 = player.min_resource()          # re-check after first grant
+                    player.resource_cards[res2] += 1
+                    self.txt_log.text += f"{player.name} played Year of Plenty: +1 {res1}, +1 {res2}\n"
+                elif card["type"] == DEV_KEY_M:
+                    # Steal whatever resource the computer has least of from all opponents
+                    target_res = player.min_resource()
+                    for opponent in self.players:
+                        if opponent is not player:
+                            stolen = opponent.resource_cards.get(target_res, 0)
+                            opponent.resource_cards[target_res] = 0
+                            player.resource_cards[target_res] += stolen
+                    player.development_cards.remove(card)
+                    self.txt_log.text += f"{player.name} played Monopoly on {target_res}\n"
+                elif card["type"] == DEV_KEY_RB:
+                    # gives comp two roads to build for free, handled by build logic
+                    player.development_cards.remove(card)
+                    self.txt_log.text += f"{player.name} played Road Building (+2 free roads)\n"
                 else:
-                    to_trade = player.max_resource()
-                    if player.resource_cards[to_trade] >= MARITIME_TRADE:
-                        get_trade = player.min_resource()
-                        player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
-                        self.txt_log.text += f"{player.name} completed a 4 {to_trade}: 1 {get_trade}\n"
-            return
+                    print("computer_turn_view.py: Unrecognised dev card type:", card["type"])
+                    return
+                
+                self._played_card_this_turn = True
+                self._build_player_texts()
 
-        elif move == "Build":
-            # place free road
-            if self._free_roads > 0:
-                road_edge = player.best_road_location()
-                if road_edge is not None:
-                    self._place_road_free()
-            # place a city
-            city_node = player.best_city_location()
-            if city_node is not None:
-                if player.can_afford_city():
-                    self._place_city(city_node)
-            # place a settlement
-            settle_node = player.best_settlement_location()
-            if settle_node is not None:
-                if player.can_afford_settlement():
-                    self._place_settlement(settle_node)
-            # place a road
-            if player.can_afford_road():
-                road_edge = player.best_road_location()
-                if road_edge is not None:
-                    self._place_road(road_edge)
-            # buy a dev card because 
-            if player.can_afford_dev_card():
-                self._buy_dev_card()
-            return
-        
-        elif move == "DevCard":
-            # Filter to cards that are playable this turn (not just bought, not VP cards)
-            playable_cards = [
-                card for card in player.development_cards
-                if not card["just_bought"] and card["type"] != DEV_KEY_VP
-            ]
-
-            if not playable_cards or self._played_card_this_turn:
-                return
-
-            card = random.choice(player.development_cards)
-
-            if card["type"] == DEV_KEY_VP:
-                # vp already added to total, dont need to keep around the card since it cant be
-                # played
-                player.development_cards.remove(card)
-                return
-            elif card["type"] == DEV_KEY_K:
-                # Move robber to a high-value tile the computer isn't adjacent to
-                self._play_knight(player, card)
-            elif card["type"] == DEV_KEY_YOP:
-                # Take the 2 resources the computer has least of
-                res1 = player.min_resource()
-                player.resource_cards[res1] += 1
-                player.development_cards.remove(card)
-                res2 = player.min_resource()          # re-check after first grant
-                player.resource_cards[res2] += 1
-                self.txt_log.text += f"{player.name} played Year of Plenty: +1 {res1}, +1 {res2}\n"
-            elif card["type"] == DEV_KEY_M:
-                # Steal whatever resource the computer has least of from all opponents
-                target_res = player.min_resource()
-                for opponent in self.players:
-                    if opponent is not player:
-                        stolen = opponent.resource_cards.get(target_res, 0)
-                        opponent.resource_cards[target_res] = 0
-                        player.resource_cards[target_res] += stolen
-                player.development_cards.remove(card)
-                self.txt_log.text += f"{player.name} played Monopoly on {target_res}\n"
-            elif card["type"] == DEV_KEY_RB:
-                # gives comp two roads to build for free, handled by build logic
-                player.development_cards.remove(card)
-                self.txt_log.text += f"{player.name} played Road Building (+2 free roads)\n"
-            else:
-                print("computer_turn_view.py: Unrecognised dev card type:", card["type"])
-                return
-            
-            self._played_card_this_turn = True
-            self._build_player_texts()
+            if not move_success:
+                try:
+                    move = self.moves.pop(0)
+                except IndexError:
+                    move = None
+                    self.txt_log.text += f"{player.name} cannot make any more moves\n"
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
         while len(self.moves) > 0:
             self._make_move()
-        
+
+
     # -----------------------------------------------------------------------
     # Placement
-    # -----------------------------------------------------------------------
     def _place_settlement(self, node):
         player = self.players[self.current_player]
         player.build_settlement(CatanBoard, node)
@@ -783,6 +828,7 @@ class ComputerTurnView(arcade.View):
         self._build_player_texts()
         print(f"{player.name} upgraded to a city! VP: {player.victory_points}")
 
+
     def _place_road(self, edge):
         player    = self.players[self.current_player]
         idx       = self.current_player
@@ -803,6 +849,7 @@ class ComputerTurnView(arcade.View):
         self._build_player_texts()
         print(f"{player.name} built a road!")
         self._check_longest_road(edge)
+
 
     def _check_longest_road(self, edge):
         player = self.players[self.current_player]
@@ -863,6 +910,7 @@ class ComputerTurnView(arcade.View):
         if player.longest_road:
             self.txt_log.text += f"{player.name} built the Longest Road\n"
 
+
     def _place_road_free(self, edge):
         """Place a road using a free-road grant from Road Building card."""
         edge.player       = self.current_player
@@ -871,6 +919,7 @@ class ComputerTurnView(arcade.View):
         self._build_player_texts()
         print(f"{self.players[self.current_player].name} placed a free road! ({self._free_roads} remaining)")
         self._check_longest_road(edge)
+
 
     # -----------------------------------------------------------------------
     # Dev Card
@@ -974,7 +1023,7 @@ class ComputerTurnView(arcade.View):
     def _no_resource_access(self):
         # find all res they have access to
         accessible_res = []
-        for tile in self.board:
+        for tile in self.board.tiles.values():
             for node in tile.nodes:
                 if node.player == self.current_player:
                     accessible_res.append(tile.resource)
@@ -985,9 +1034,9 @@ class ComputerTurnView(arcade.View):
                 no_access_res.append(upper_res)
 
         return no_access_res
+
     # -----------------------------------------------------------------------
     # Resource distribution
-    # -----------------------------------------------------------------------
     def _give_resources(self):
         roll = self.die1 + self.die2
         for tile in self.board.tiles.values():
@@ -1000,9 +1049,9 @@ class ComputerTurnView(arcade.View):
                             1 if node.building == "settlement" else 2
                         )
 
+
     # -----------------------------------------------------------------------
     # Computer Players Discarding half their hand when a 7 is rolled
-    # -----------------------------------------------------------------------
     def _comp_robber_discard(self):
         #From RobberResView, we need a way for the computer to pick a new spot for the robber 
         # do not show RobberResView if its only computer players that need to discard resources
@@ -1029,7 +1078,6 @@ class ComputerTurnView(arcade.View):
 
     # -----------------------------------------------------------------------
     # End turn
-    # -----------------------------------------------------------------------
     def _end_turn(self):
         if self.players[self.current_player].victory_points >= 10:
             self.vm.go_to("end", self.players, self.current_player)
@@ -1058,6 +1106,8 @@ class ComputerTurnView(arcade.View):
         if self.die1 + self.die2 == GET_ROBBED:
             self._comp_robber_discard()
             #once the computer has discarded cards, the player may have to too so go to robber res
+            for player in self.players:
+                print(f"{player.name}: {player.resource_cards}")
             self.vm.go_to(
                     "robber_res", 
                     board=self.board, 

@@ -14,7 +14,7 @@ from .drawing import (draw_board, draw_road, draw_settlement, fill_rect,
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
 DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD, EDGE_SNAP_RADIUS,
-NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR)
+NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR, GET_ROBBED)
 
 class SetupView(arcade.View):
     """
@@ -71,8 +71,9 @@ class SetupView(arcade.View):
 
         if self.cycle == 2 and best_node:
             for tile in best_node.tiles:
-                res = RESOURCE_ABBR[tile.resource]
-                self.players[self.current_player].resource_cards[res] += 1
+                if tile.resource != "desert":
+                    res = RESOURCE_ABBR[tile.resource]
+                    self.players[self.current_player].resource_cards[res] += 1
         
         best_edge = None
         while best_node is not None and best_edge is None:
@@ -387,6 +388,7 @@ class SetupView(arcade.View):
                         player.resource_cards[resource] += (
                             1 if node.building == "settlement" else 2
                         )
+
     # After all players have completed setup
     def _end_setup(self):    
         #setup dice for first player
@@ -394,6 +396,13 @@ class SetupView(arcade.View):
         die2 = random.randint(ONE, SIX)
         #give resources
         roll = die1 + die2
+        #checks if roll is 7 and initiates robber placement phase
+        if die1 + die2 == GET_ROBBED:
+            self.vm.go_to("robber_res", 
+                board=self.board, players=self.players, current_player=self.current_player, 
+                die1=die1, die2=die2, port_manager=self.port_manager,
+            )
+            return
         self._give_resources(roll)
         if self.players[self.current_player].computer:
             self.vm.go_to("computer_turn",
