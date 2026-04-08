@@ -943,7 +943,7 @@ class ComputerTurnView(arcade.View):
                     move = self.moves.pop(0)
                 except IndexError:
                     move = None
-                    self._add_log(f"{player.name} cannot make any more moves this turn\n")
+                    self._add_log(f"{player.name} cannot make any more moves this turn.")
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
@@ -979,7 +979,7 @@ class ComputerTurnView(arcade.View):
             if node.node_id in node_ids:
                 player.ports.append(port["port"])
         player.victory_points += 1
-        self._add_log(f"{player.name} built a settlement\n")
+        self._add_log(f"{player.name} built a settlement.")
         self._build_player_texts()
         print(f"{player.name} built a settlement! VP: {player.victory_points}")
 
@@ -988,7 +988,7 @@ class ComputerTurnView(arcade.View):
         player.build_city(CatanBoard, node)
         node.building = "city"
         player.victory_points += 1
-        self._add_log(f"{player.name} upgraded to a city\n")
+        self._add_log(f"{player.name} upgraded to a city!")
         self._build_player_texts()
         print(f"{player.name} upgraded to a city! VP: {player.victory_points}")
 
@@ -1009,7 +1009,7 @@ class ComputerTurnView(arcade.View):
                 break
         player.build_road(CatanBoard, edge)
         edge.player = self.current_player
-        self._add_log(f"{player.name} built a road\n")
+        self._add_log(f"{player.name} built a road!")
         self._build_player_texts()
         print(f"{player.name} built a road!")
         self._check_longest_road(edge)
@@ -1072,7 +1072,7 @@ class ComputerTurnView(arcade.View):
                 player.victory_points += LONGEST_ROAD_VP
 
         if player.longest_road:
-            self._add_log(f"{player.name} built the Longest Road\n")
+            self._add_log(f"{player.name} built the Longest Road.")
 
 
     def _place_road_free(self, edge):
@@ -1242,7 +1242,7 @@ class ComputerTurnView(arcade.View):
     # End turn
     def _end_turn(self):
         player = self.players[self.current_player]
-        self._add_log(f"{player.name}'s turn ends.")
+        self._add_log(f"{player.name}'s turn ends.\n")
         if self.players[self.current_player].victory_points >= 10:
             self.vm.go_to("end", self.players, self.current_player)
             return
