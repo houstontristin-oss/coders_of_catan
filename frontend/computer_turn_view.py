@@ -964,8 +964,8 @@ class ComputerTurnView(arcade.View):
             return
 
         if dx <= x <= dx + dw and dy <= y <= dy + dh: # decline button location
-            self._result_msg = f"{self.players[self._pending].name} declined the trade."
-            self._pending    = None
+            self._result_msg = f"{self.players[self._trade_pending].name} declined the trade."
+            self._trade_pending    = None
 
     # -----------------------------------------------------------------------
     # Placement
