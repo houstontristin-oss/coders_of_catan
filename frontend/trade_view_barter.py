@@ -532,12 +532,12 @@ class TradeViewBarter(arcade.View):
             self._result_msg = "Trade failed — insufficient resources."
             self._pending    = None
             return
-        
+
         self.vm.go_to("catan",
-            board=self.board, players=self.players, current_player=self.current_player, 
+            board=self.board, players=self.players, current_player=self.current_player,
             die1=self.die1, die2=self.die2, port_manager=self.port_manager
         )
-    
+
     def _no_resource_access(self):
         # find all res they have access to
         accessible_res = []

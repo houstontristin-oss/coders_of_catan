@@ -10,7 +10,24 @@ from backend.player import Player
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH,
                         TEXT_GOLD, RESOURCE_ABBR, ONE, SIX)
 from .drawing import fill_rect, outline_rect
-from .view_constants import *
+from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_X,
+                             START_SUN_Y, START_SUN_GLOW_COLOR, START_SUN_RAY_COUNT,
+                             START_SUN_RADIUS, START_SUN_RAY_LEN, START_SUN_RAY_COLOR,
+                             START_SUN_RAY_WIDTH, START_SUN_COLOR, START_WATER_BOTTOM_Y,
+                             START_WATER_TOP_Y, START_WATER_DARK_COLOR, START_WATER_COLOR,
+                             START_WATER_WAVE_COUNT, START_WATER_WAVE_SPACING,
+                             START_WATER_WAVE_AMPLITUDE, START_WATER_FOAM_COLOR,
+                             START_WATER_WAVE_THICKNESS, START_FARM_HORIZON_Y,
+                             START_SHEEP_X_FRAC, START_SHEEP_Y_FRAC, START_SHEEP_LEG_COLOR,
+                             START_SHEEP_BODY_COLOR, START_SHEEP_WOOL_SHADOW,
+                             START_SHEEP_FACE_COLOR, START_FARM_FIELD_DARK_COLOR,
+                             START_FARM_FIELD_COLOR, START_FARM_BARN_COLOR,
+                             START_FARM_BARN_DARK_COLOR, START_FARM_ROOF_COLOR,
+                             START_FARM_SILO_COLOR, START_FARM_SILO_DARK_COLOR,
+                             START_FARM_TREE_DARK_COLOR, START_FARM_TREE_COLOR,
+                             START_FARM_CLOUD_COLOR, START_TITLE_Y, START_TITLE_FONT_SIZE,
+                             START_SUBTITLE_Y, START_SUBTITLE_FONT_SIZE, START_SKIP_BTN_X,
+                             START_SKIP_BTN_Y, START_SKIP_BTN_W, START_SKIP_BTN_H)
 
 
 # ---------------------------------------------------------------------------

@@ -164,7 +164,7 @@ DEV_CARD_LABELS = {
 
 ACTION_NONE           = "none"
 ACTION_BACK_TO_BOARD  = "back_to_board"
-ACTION_POPUP_YOP      = "popup_yop"         
+ACTION_POPUP_YOP      = "popup_yop"
 ACTION_POPUP_MONOPOLY = "popup_monopoly"
 
 DEV_CARD_DESCRIPTIONS = {
