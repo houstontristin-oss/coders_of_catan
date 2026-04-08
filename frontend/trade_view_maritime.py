@@ -3,7 +3,9 @@ Contains TradeViewMaritime Class
 """
 import arcade
 from .drawing import fill_rect, outline_rect
-from .constants import *
+from .constants import (HUD_BOTTOM_HEIGHT, SCREEN_WIDTH, TEXT_GOLD, TEXT_LIGHT_GRAY,
+                        SCREEN_HEIGHT, TEXT_WHITE, RESOURCE_ABBR, RESOURCE_SPRITES,
+                        HUD_BG, BTN_ENDTURN, BTN_BUILD)
 
 TITLE_FONT_SIZE = 30
 TEXT_RED = (238, 0, 0)

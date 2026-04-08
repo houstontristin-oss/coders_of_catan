@@ -14,8 +14,40 @@ from .port_manager import PortManager
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement,
                       draw_road, draw_board, draw_city, draw_ocean_background)
-from .constants import *
-from .view_constants import *
+from .constants import (DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DEV_CARD_DECK,
+                        DICE_SPRITES, ROAD_CARD_SPRITE, ARMY_CARD_SPRITE,
+                        ROBBER_SPRITE, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y,
+                        USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR, BACKGROUND_IMAGE,
+                        RESOURCE_SPRITES, SPRITE_SCALE, DICE_AREA_WIDTH,
+                        DICE_AREA_HEIGHT, TEXT_LIGHT_GRAY, HUD_PANEL_HEIGHT,
+                        HUD_PANEL_WIDTH, BTN_ENDTURN, ICON_SIZE, HUD_PANEL_BG,
+                        ONE, SIX, USE_DICE_SPRITES, CARD_PAD, DEV_KEY_VP, DEV_KEY_K,
+                        DEV_KEY_YOP, DEV_KEY_M, DEV_KEY_RB, RESOURCE_ABBR, SCREEN_HEIGHT, SCREEN_WIDTH, TEXT_WHITE,
+                        TEXT_GOLD)
+from .view_constants import (CARD_SCALE, ARMY_ROAD_SPRITE_Y1, ARMY_ROAD_SPRITE_X,
+                             ARMY_ROAD_SPRITE_Y2, CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD,
+                             CATAN_END_BTN_W, CATAN_BTN_H, CATAN_TEXT_SIZE_BTN,
+                             CATAN_DICE_BOX_MARGIN, CATAN_LABEL_DICE_ROLL,
+                             CATAN_DICE_LABEL_TOP_PAD, CATAN_TEXT_SIZE_DICE_LABEL,
+                             CATAN_LABEL_DICE_HINT, CATAN_DICE_TOTAL_Y,
+                             CATAN_TEXT_SIZE_DICE_HINT, CATAN_DIE_SIZE, CATAN_DIE_GAP,
+                             CATAN_DICE_Y_OFFSET, CATAN_TEXT_SIZE_DICE_NUM,
+                             CATAN_PLAYER_PANEL_MARGIN, CATAN_SUMMARY_BOX_GAP,
+                             CATAN_SUMMARY_BOX_TOP_INSET, CATAN_SUMMARY_BOX_W,
+                             CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG,
+                             CATAN_COLOR_SUMMARY_TEXT, CATAN_SUMMARY_BOX_COUNT_Y_OFFSET,
+                             CATAN_COLOR_SUMMARY_COUNT, CATAN_TEXT_SIZE_SUMMARY_COUNT,
+                             CATAN_PLAYER_NAME_Y, CATAN_TEXT_SIZE_PLAYER_NAME,
+                             CATAN_PLAYER_ROW_H, CATAN_TEXT_SIZE_PLAYER_VP,
+                             CATAN_RESOURCE_ROW_GAP, CATAN_RESOURCE_TEXT_X_OFFSET,
+                             CATAN_TEXT_SIZE_RESOURCE, CATAN_DEV_CARD_COUNT_Y_OFFSET,
+                             CATAN_DEV_CARD_COUNT_COLOR, CATAN_COLOR_DROP_SHADOW,
+                             CATAN_COLOR_BTN_OUTLINE, CATAN_PLAYER_MARKER_RADIUS,
+                             CATAN_RESOURCE_ICON_ROW_GAP, CATAN_RESOURCE_ICON_X_OFFSET,
+                             CATAN_RESOURCE_ICON_Y_OFFSET, CATAN_COLOR_DIE_BG,
+                             CATAN_COLOR_SHAKE_OUTLINE, CATAN_COLOR_DIE_FALLBACK,
+                             CATAN_TEXT_SIZE_TOTAL, CATAN_SETTLEMENT_DRAW_SIZE,
+                             CATAN_CITY_DRAW_SIZE, CATAN_BTN_W, LONGEST_ROAD_VP, ROADS_NEEDED)
 
 FAST_FORWARD = "Next Player"
 NEXT_MOVE = "Next Move"
