@@ -10,7 +10,6 @@ import random
 from .port_manager import PortManager
 
 from backend.catan_board import CatanBoard
-
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
 from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board, draw_city, draw_ocean_background
 from .constants import *
@@ -1355,3 +1354,20 @@ class ComputerTurnView(arcade.View):
                     start_of_turn=True,
             )
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")
+
+    def _execute_trade(self):
+        computer = self._trade_computer_player
+        human    = self.human
+        try:
+            computer.exchange_resources(self._trade_offer,   self._trade_receive)
+            human.exchange_resources(self._trade_receive, self._trade_offer)
+            self._add_log(f"{computer.name} traded with {human.name}.", computer.color)
+            self._build_player_texts()
+            print(f"Trade completed: {computer.name} with {human.name}")
+        except ValueError as e:
+            print(f"Trade failed: {e}")
+        finally:
+            self._trade_pending         = False
+            self._trade_offer           = {}
+            self._trade_receive         = {}
+            self._trade_computer_player = None
