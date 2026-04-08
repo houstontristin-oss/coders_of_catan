@@ -2,6 +2,7 @@
 
 import random
 from .player import Player
+from frontend.constants import PROB
 
 class ComputerPlayer(Player):
     """Represents a computer player for Catan
@@ -14,10 +15,11 @@ class ComputerPlayer(Player):
         computer: returns bool
     """
 
-    def __init__(self, color, name, board):
+    def __init__(self, color, name, board, player_index):
         super().__init__(color, name)
         self.computer = True
         self.board = board
+        self.player_index = player_index
 
     def can_afford_road(self):
         return bool(self.resource_cards['BRICK'] > 0 and self.resource_cards['WOOD'] > 0)
@@ -91,13 +93,20 @@ class ComputerPlayer(Player):
 
     # returns node to place city at or None
     def best_city_location(self):
-        possible_cities = []
+        best_node = None
+        best_node_val = -1
 
         for node in self.board.nodes.values():
-            if node.player == self.player_index and node.building == "settlement":
-                possible_cities.append(node)
+            if node.player != self.player_index or node.building != "settlement":
+                continue
 
-        return random.choice(possible_cities) if possible_cities else None
+            node_val = sum(PROB.get(tile.number, 0) for tile in node.tiles)
+
+            if node_val > best_node_val:
+                best_node = node
+                best_node_val = node_val
+
+        return best_node
 
     # returns string of what dev card was played for log
     def play_dev_card(self):

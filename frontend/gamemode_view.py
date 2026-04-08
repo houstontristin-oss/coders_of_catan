@@ -144,13 +144,9 @@ class GamemodeView(arcade.View):
 
         players.append(Player(P1_COLOR, "Player 1"))
         if mode_name == "ai":
-            ai2 = ComputerPlayer(P2_COLOR, "AI 2", self.board)
-            ai3 = ComputerPlayer(P3_COLOR, "AI 3", self.board)
-            ai4 = ComputerPlayer(P4_COLOR, "AI 4", self.board)
-
-            ai2.player_index = 1
-            ai3.player_index = 2
-            ai4.player_index = 3
+            ai2 = ComputerPlayer(P2_COLOR, "AI 2", self.board, 1)
+            ai3 = ComputerPlayer(P3_COLOR, "AI 3", self.board, 2)
+            ai4 = ComputerPlayer(P4_COLOR, "AI 4", self.board, 3)
 
             players.append(ai2)
             players.append(ai3)
