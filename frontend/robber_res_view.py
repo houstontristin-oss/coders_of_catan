@@ -108,7 +108,8 @@ class RobberResView(arcade.View):
                     for resource, amount in self.players[i].resource_cards.items():
                         if amt_to_discard > 0:
                             get_rid_of = random.randint(0, amount - giving_resources[resource]
-                            if amount - giving_resources[resource] < amt_to_discard else amt_to_discard)
+                            if (amount - giving_resources[resource] < amt_to_discard)
+                            else amt_to_discard)
                             amt_to_discard -= get_rid_of
                             giving_resources[resource] += get_rid_of
 
@@ -120,14 +121,14 @@ class RobberResView(arcade.View):
     # ------------------------------------------------------------------
     def on_show_view(self):
         self._comp_robber_discard()
-        if self._discard_queue == []: 
+        if self._discard_queue == []:
             # checks to make sure than there are players who need to discard
             self.vm.go_to("robber_place",
                 board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager
             )
             return
-        
+
         self._build_static_texts()
 
     def on_draw(self):

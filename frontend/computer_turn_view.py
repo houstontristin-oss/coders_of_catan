@@ -22,8 +22,8 @@ from .constants import (DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DEV_CARD_DECK,
                         DICE_AREA_HEIGHT, TEXT_LIGHT_GRAY, HUD_PANEL_HEIGHT,
                         HUD_PANEL_WIDTH, BTN_ENDTURN, ICON_SIZE, HUD_PANEL_BG,
                         ONE, SIX, USE_DICE_SPRITES, CARD_PAD, DEV_KEY_VP, DEV_KEY_K,
-                        DEV_KEY_YOP, DEV_KEY_M, DEV_KEY_RB, RESOURCE_ABBR, SCREEN_HEIGHT, SCREEN_WIDTH, TEXT_WHITE,
-                        TEXT_GOLD)
+                        DEV_KEY_YOP, DEV_KEY_M, DEV_KEY_RB, RESOURCE_ABBR, SCREEN_HEIGHT,
+                        SCREEN_WIDTH, TEXT_WHITE, TEXT_GOLD)
 from .view_constants import (CARD_SCALE, ARMY_ROAD_SPRITE_Y1, ARMY_ROAD_SPRITE_X,
                              ARMY_ROAD_SPRITE_Y2, CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD,
                              CATAN_END_BTN_W, CATAN_BTN_H, CATAN_TEXT_SIZE_BTN,
@@ -883,7 +883,8 @@ class ComputerTurnView(arcade.View):
                             trade_amt = NONE_PORT
                             give_to_port = player.max_resource()
                         player.exchange_resources({give_to_port: trade_amt}, {get_from_port: 1})
-                        self._add_log(f"{player.name} used {port} to trade for 1 {get_from_port}.", player.color)
+                        self._add_log(f"{player.name} used "
+                                      f"{port} to trade for 1 {get_from_port}.", player.color)
                         move_success = True
 
                     elif len(needed_resources) != 0:
@@ -918,14 +919,16 @@ class ComputerTurnView(arcade.View):
                                     player.exchange_resources(to_trade, to_get)
                                     player_to_trade_with.exchange_resources(to_get, to_trade)
                                     self._add_log(
-                                        f"{player.name} traded {amt_to_offer} {res_to_trade} for {amt_to_get} {res_to_get}.", player.color)
+                                        f"{player.name} traded {amt_to_offer} {res_to_trade} "
+                                        f"for {amt_to_get} {res_to_get}.", player.color)
                                     move_success = True
                     else:
                         to_trade = player.max_resource()
                         if player.resource_cards[to_trade] >= MARITIME_TRADE:
                             get_trade = player.min_resource()
                             player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
-                            self._add_log(f"{player.name} maritime traded, giving 4 {to_trade} for 1 {get_trade}.", player.color)
+                            self._add_log(f"{player.name} maritime traded, giving 4 {to_trade} "
+                                          f"for 1 {get_trade}.", player.color)
                             move_success = True
 
             if move == "Build":
@@ -989,7 +992,8 @@ class ComputerTurnView(arcade.View):
                     player.development_cards.remove(card)
                     res2 = player.min_resource()          # re-check after first grant
                     player.resource_cards[res2] += 1
-                    self._add_log(f"{player.name} played Year of Plenty and gained 1 {res1} and 1 {res2}.", player.color)
+                    self._add_log(f"{player.name} played Year of Plenty and "
+                                  f"gained 1 {res1} and 1 {res2}.", player.color)
                     move_success = True
                 elif card["type"] == DEV_KEY_M:
                     # Steal whatever resource the computer has least of from all opponents
@@ -1000,13 +1004,16 @@ class ComputerTurnView(arcade.View):
                             opponent.resource_cards[target_res] = 0
                             player.resource_cards[target_res] += stolen
                     player.development_cards.remove(card)
-                    self._add_log(f"{player.name} played Monopoly on {target_res} and collected all available {target_res} cards from opponents.", player.color)
+                    self._add_log(f"{player.name} played Monopoly on {target_res} and "
+                                  f"collected all available {target_res} "
+                                  f"cards from opponents.", player.color)
                     move_success = True
                 elif card["type"] == DEV_KEY_RB:
                     # gives comp two roads to build for free, handled by build logic
                     player.development_cards.remove(card)
                     self.moves.apend("Build") # add ability to build again
-                    self._add_log(f"{player.name} played Road Building and gained 2 free roads.", player.color)
+                    self._add_log(f"{player.name} played Road Building and "
+                                  f"gained 2 free roads.", player.color)
                     move_success = True
                 else:
                     print("computer_turn_view.py: Unrecognised dev card type:", card["type"])
@@ -1019,7 +1026,8 @@ class ComputerTurnView(arcade.View):
                     move = self.moves.pop(0)
                 except IndexError:
                     move = None
-                    self._add_log(f"{player.name} cannot make any more moves this turn.", player.color)
+                    self._add_log(f"{player.name} cannot make any more moves this turn.",
+                                  player.color)
 
     # Fast Forward Function for computer to make many moves
     # until either done or need human player input
@@ -1159,7 +1167,8 @@ class ComputerTurnView(arcade.View):
     # Dev Card
     def _buy_dev_card(self):
         card_type = self._deck.pop()
-        self.players[self.current_player].development_cards.append({"type": card_type, "just_bought": True})
+        self.players[self.current_player].development_cards.append({"type": card_type,
+                                                                    "just_bought": True})
 
         if card_type == DEV_KEY_VP:
             self.players[self.current_player].victory_points += 1
@@ -1229,7 +1238,8 @@ class ComputerTurnView(arcade.View):
                 if victim.resource_cards[stolen_res] > 0:
                     victim.resource_cards[stolen_res] -= 1
                     player.resource_cards[stolen_res] += 1
-                    self._add_log(f"{player.name} played Knight and stole {stolen_res} from {victim.name}.", player.color)
+                    self._add_log(f"{player.name} played Knight and stole {stolen_res} from "
+                                  f"{victim.name}.", player.color)
             else:
                 self._add_log(f"{player.name} played Knight and moved the robber.", player.color)
             # Check for largest army and update
