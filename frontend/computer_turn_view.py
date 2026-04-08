@@ -333,7 +333,13 @@ class ComputerTurnView(arcade.View):
             bottom = top_y - CATAN_SUMMARY_BOX_H
 
             fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG)
-            outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, player.color, 2)
+
+            is_current_ai = (player_idx == self.current_player)
+
+            if is_current_ai:
+                outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, TEXT_GOLD, 4)
+            else:
+                outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, player.color, 2)
 
             arcade.Text(
                 player.name,
