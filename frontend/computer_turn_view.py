@@ -838,7 +838,7 @@ class ComputerTurnView(arcade.View):
                                 self._trade_pending         = True
                                 return   # modal click resumes move processing
                             else:
-                                accept = random.randint(0,1)
+                                accept = random.randint(0,1) # 50% chance other comp will accept
                                 if accept:
                                     player.exchange_resources(to_trade, to_get)
                                     player_to_trade_with.exchange_resources(to_get, to_trade)
