@@ -3,15 +3,6 @@ Contains ComputerTurnView class
 
 Allows player when its 1 person versus 3 computer players so that the player can see the computer moves
 
-Need to add AI player move log
-play settlement, place road, place city all have examples of what I should do for the log implementation
-Make a highlight of which computer AI is having their turn
-I believe that to do down there states "Grey out these buttons once there are no more moves for computer player to make"
-So I must have the "next move" button grey out when there are no more available moves for the AI to make on their turn
-Indicating that the player must press skip turn.  Or even make a flag that changes the botton right button to next turn
-when all moves are used up by the AI instead of having the "skip turn" button.  Since skip turn makes no sense
-when you're at the end of the turn.
-Ill look into the wrapping of the text in the log
 """
 import arcade
 import random
