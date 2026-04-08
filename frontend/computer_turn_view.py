@@ -10,7 +10,6 @@ import random
 from .port_manager import PortManager
 
 from backend.catan_board import CatanBoard
-
 from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
 from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board, draw_city, draw_ocean_background
 from .constants import *
@@ -875,19 +874,19 @@ class ComputerTurnView(arcade.View):
                                     player.exchange_resources(to_trade, to_get)
                                     player_to_trade_with.exchange_resources(to_get, to_trade)
                                     self._add_log(
-                                        f"{player.name} traded with {player_to_trade_with.name}: gave {to_trade} and received {to_get}.", player.color)
+                                        f"{player.name} traded {amt_to_offer} {res_to_trade} for {amt_to_get} {res_to_get}.", player.color)
                                     move_success = True
                     else:
                         to_trade = player.max_resource()
                         if player.resource_cards[to_trade] >= MARITIME_TRADE:
                             get_trade = player.min_resource()
                             player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
-                            self._add_log(f"{player.name} completed a 4:1 maritime trade, giving 4 {to_trade} for 1 {get_trade}.", player.color)
+                            self._add_log(f"{player.name} maritime traded, giving 4 {to_trade} for 1 {get_trade}.", player.color)
                             move_success = True
 
             if move == "Build":
                 # place free road
-                if self._free_roads > 0:
+                while (self._free_roads > 0): 
                     road_edge = player.best_road_location()
                     if road_edge is not None:
                         self._place_road_free(road_edge)
@@ -962,6 +961,7 @@ class ComputerTurnView(arcade.View):
                 elif card["type"] == DEV_KEY_RB:
                     # gives comp two roads to build for free, handled by build logic
                     player.development_cards.remove(card)
+                    self.moves.apend("Build") # add ability to build again
                     self._add_log(f"{player.name} played Road Building and gained 2 free roads.", player.color)
                     move_success = True
                 else:
@@ -1345,3 +1345,20 @@ class ComputerTurnView(arcade.View):
                     start_of_turn=True,
             )
         print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")
+
+    def _execute_trade(self):
+        computer = self._trade_computer_player
+        human    = self.human
+        try:
+            computer.exchange_resources(self._trade_offer,   self._trade_receive)
+            human.exchange_resources(self._trade_receive, self._trade_offer)
+            self._add_log(f"{computer.name} traded with {human.name}.", computer.color)
+            self._build_player_texts()
+            print(f"Trade completed: {computer.name} with {human.name}")
+        except ValueError as e:
+            print(f"Trade failed: {e}")
+        finally:
+            self._trade_pending         = False
+            self._trade_offer           = {}
+            self._trade_receive         = {}
+            self._trade_computer_player = None
