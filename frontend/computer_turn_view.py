@@ -56,6 +56,16 @@ class ComputerTurnView(arcade.View):
         self._bought_card_this_turn = False
         self._played_card_this_turn = False
 
+        # --- Trade modal state ---
+        self._trade_pending          = False
+        self._trade_offer            = {r: 0 for r in ["BRICK", "ORE", "WHEAT", "SHEEP", "WOOD"]}
+        self._trade_receive          = {r: 0 for r in ["BRICK", "ORE", "WHEAT", "SHEEP", "WOOD"]}
+        self._trade_computer_player  = None   # the computa player making the offer
+        self._modal_accept_rect      = None
+        self._modal_decline_rect     = None
+        self._modal_can_afford       = False
+        self._dynamic_texts          = []
+
         # --- Human Player ---
         self.human = self.players[0]
         for p in self.players:
@@ -356,6 +366,94 @@ class ComputerTurnView(arcade.View):
                 player.color,
             )
 
+    def _draw_pending_modal(self):
+        # modal for barter trade popup
+        _RES_DISPLAY = {"BRICK": "Brick", "ORE": "Ore", "WHEAT": "Wheat",
+                        "SHEEP": "Sheep", "WOOD": "Wood"}
+
+        fill_rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (0, 0, 0, 130))
+
+        modal_w, modal_h = 500, 270
+        mx = (SCREEN_WIDTH  - modal_w) / 2
+        my = (SCREEN_HEIGHT - modal_h) / 2
+
+        fill_rect(mx, my, modal_w, modal_h, (20, 20, 55, 250))
+        outline_rect(mx, my, modal_w, modal_h, TEXT_GOLD, 2)
+
+        sender   = self._trade_computer_player
+        receiver = self.human
+
+        offer_str   = ", ".join(f"{v}× {_RES_DISPLAY[r]}"
+                                for r, v in self._trade_offer.items()   if v > 0) or "nothing"
+        receive_str = ", ".join(f"{v}× {_RES_DISPLAY[r]}"
+                                for r, v in self._trade_receive.items() if v > 0) or "nothing"
+
+        can_afford = receiver.can_afford_trade(self._trade_receive)
+        self._modal_can_afford = can_afford
+
+        self._dynamic_texts = []
+
+        self._dynamic_texts.append(arcade.Text(
+            f"{receiver.name} — Trade Offer!",
+            SCREEN_WIDTH / 2, my + modal_h - 30,
+            TEXT_GOLD, 15, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+        self._dynamic_texts.append(arcade.Text(
+            f"{sender.name} gives:   {offer_str}",
+            SCREEN_WIDTH / 2, my + modal_h - 72,
+            TEXT_WHITE, 11,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+        self._dynamic_texts.append(arcade.Text(
+            f"{sender.name} wants:   {receive_str}",
+            SCREEN_WIDTH / 2, my + modal_h - 100,
+            TEXT_WHITE, 11,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+
+        if not can_afford:
+            self._dynamic_texts.append(arcade.Text(
+                "(You don't have enough resources to accept)",
+                SCREEN_WIDTH / 2, my + modal_h - 130,
+                (255, 120, 80), 9,
+                anchor_x="center", anchor_y="center",
+                font_name="MedievalSharp",
+            ))
+
+        _PAD_BTN, _MBTN_W, _MBTN_H = 40, 180, 50
+        accept_x, accept_y = mx + _PAD_BTN, my + 28
+        fill_rect(accept_x, accept_y, _MBTN_W, _MBTN_H,
+                (39, 174, 96) if can_afford else (45, 45, 55))
+        outline_rect(accept_x, accept_y, _MBTN_W, _MBTN_H, (255, 255, 255, 60), 1)
+        self._dynamic_texts.append(arcade.Text(
+            "Accept" if can_afford else "Can't Afford",
+            accept_x + _MBTN_W / 2, accept_y + _MBTN_H / 2,
+            TEXT_WHITE, 13, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+
+        decline_x, decline_y = mx + modal_w - _PAD_BTN - _MBTN_W, my + 28
+        fill_rect(decline_x, decline_y, _MBTN_W, _MBTN_H, BTN_ENDTURN)
+        outline_rect(decline_x, decline_y, _MBTN_W, _MBTN_H, (255, 255, 255, 60), 1)
+        self._dynamic_texts.append(arcade.Text(
+            "Decline",
+            decline_x + _MBTN_W / 2, decline_y + _MBTN_H / 2,
+            TEXT_WHITE, 13, bold=True,
+            anchor_x="center", anchor_y="center",
+            font_name="MedievalSharp",
+        ))
+
+        self._modal_accept_rect  = (accept_x,  accept_y,  _MBTN_W, _MBTN_H)
+        self._modal_decline_rect = (decline_x, decline_y, _MBTN_W, _MBTN_H)
+
+        for txt in self._dynamic_texts:
+            txt.draw()
+
 
     def _build_player_texts(self):
         panel_x   = CATAN_PLAYER_PANEL_MARGIN
@@ -633,10 +731,16 @@ class ComputerTurnView(arcade.View):
         self._draw_log_reactangle()
         self._draw_cards()
         self.txt_log.draw()
+        if self._trade_pending:
+            self._draw_pending_modal()
 
     # -----------------------------------------------------------------------
     # Mouse press
     def on_mouse_press(self, x, y, button, modifiers):
+        # barter trade
+        if self._trade_pending:
+            self._handle_modal_click(x, y)
+            return
         # End Turn
         end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
         if len(self.moves) != 0:
@@ -692,8 +796,11 @@ class ComputerTurnView(arcade.View):
                         to_get = {res_to_get: amt_to_get}
                         if player_to_trade_with and player_to_trade_with.can_afford_trade(to_get):
                             if player_to_trade_with == self.human:
-                                # TODO (Nick): Show computer player pop up to confirm or deny
-                                pass
+                                self._trade_offer           = to_trade
+                                self._trade_receive         = to_get
+                                self._trade_computer_player = player
+                                self._trade_pending         = True
+                                return   # modal click resumes move processing
                             else:
                                 accept = random.randint(0,1)
                                 if accept:
@@ -751,7 +858,7 @@ class ComputerTurnView(arcade.View):
                 if not playable_cards or self._played_card_this_turn:
                     return
 
-                card = random.choice(player.development_cards)
+                card = random.choice(playable_cards)
 
                 if card["type"] == DEV_KEY_VP:
                     # vp already added to total, dont need to keep around the card since it cant be
@@ -805,6 +912,22 @@ class ComputerTurnView(arcade.View):
         while len(self.moves) > 0:
             self._make_move()
 
+    def _handle_modal_click(self, x, y):
+        # barter trade modal handler
+        if self._modal_accept_rect is None or self._modal_decline_rect is None:
+            return
+
+        ax, ay, aw, ah = self._modal_accept_rect
+        dx, dy, dw, dh = self._modal_decline_rect
+
+        if ax <= x <= ax + aw and ay <= y <= ay + ah: # accept button location
+            if self._modal_can_afford:
+                self._execute_trade()
+            return
+
+        if dx <= x <= dx + dw and dy <= y <= dy + dh: # decline button location
+            self._result_msg = f"{self.players[self._pending].name} declined the trade."
+            self._pending    = None
 
     # -----------------------------------------------------------------------
     # Placement
