@@ -34,12 +34,12 @@ class Player:
         self.computer = False
 
 
-    def exchange_resources(self, giving_resources:dict, receiving_resources:dict):
+    def exchange_resources(self, sending_resources:dict, receiving_resources:dict):
         """
         subtracts giving_resources and adds receiving_resources to current player
         dictionary organized {"BRICK": 0, "ORE": 0, "WHEAT": 0, "SHEEP": 0, "WOOD": 0}
         """
-        for resource, amount in giving_resources.items():
+        for resource, amount in sending_resources.items():
             if self.resource_cards.get(resource, 0) >= amount:
                 self.resource_cards[resource] -= amount
             else:
