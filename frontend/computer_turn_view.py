@@ -33,7 +33,7 @@ class ComputerTurnView(arcade.View):
         die2,
         port_manager,
         shared_deck=None,
-        shared_log=None, ):
+        ):
 
         # --- Computer Move Options ---
         self.moves = ['Trade', 'Build', 'DevCard']
@@ -42,14 +42,8 @@ class ComputerTurnView(arcade.View):
         self._log_messages = []
         self._log_line_texts = []
         self._log_max_lines = 18
+        self._turn_fully_revealed = False
 
-        # --- Turn log pass ---
-        if shared_log is None:
-            self._log_messages = []
-        else:
-            self._log_messages = shared_log
-
-        self._log_max_lines = 20
 
         super().__init__()
         self.vm = vm
@@ -817,12 +811,16 @@ class ComputerTurnView(arcade.View):
                 self._make_move()
 
         if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
-            self._fast_forward()
-            self._end_turn()
+            if not self._turn_fully_revealed:
+                self._fast_forward()
+            else:
+                self._end_turn()
             return
 
     # Make Move Function for computer to make a singular move
     def _make_move(self):
+        if not self.moves:
+            return
         move = self.moves.pop(0)
         player = self.players[self.current_player]
         move_success = False
@@ -883,6 +881,8 @@ class ComputerTurnView(arcade.View):
                             player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
                             self._add_log(f"{player.name} maritime traded, giving 4 {to_trade} for 1 {get_trade}.", player.color)
                             move_success = True
+                            if len(self.moves) == 0:
+                                self._turn_fully_revealed = True
 
             if move == "Build":
                 # place free road
@@ -979,8 +979,11 @@ class ComputerTurnView(arcade.View):
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
-        while len(self.moves) > 0:
+        while len(self.moves) > 0 and not self._trade_pending:
             self._make_move()
+
+        if len(self.moves) == 0:
+            self._turn_fully_revealed = True
 
     def _handle_modal_click(self, x, y):
         # barter trade modal handler
@@ -1318,7 +1321,6 @@ class ComputerTurnView(arcade.View):
         else:
             self._add_log(f"{roller.name} collected no resources from the roll.", roller.color)
 
-
         if self.players[self.current_player].computer:
             self.vm.go_to(
                 "computer_turn",
@@ -1329,21 +1331,20 @@ class ComputerTurnView(arcade.View):
                 die2=self.die2,
                 port_manager=self.port_manager,
                 shared_deck=self._deck,
-                shared_log=self._log_messages,
             )
             return
         else:
             self.vm.go_to(
-                    "catan",
-                    board=self.board,
-                    players=self.players,
-                    current_player=self.current_player,
-                    die1=self.die1,
-                    die2=self.die2,
-                    port_manager=self.port_manager,
-                    start_of_turn=True,
+                "catan",
+                board=self.board,
+                players=self.players,
+                current_player=self.current_player,
+                die1=self.die1,
+                die2=self.die2,
+                port_manager=self.port_manager,
+                start_of_turn=True,
             )
-        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")
+            return
 
     def _execute_trade(self):
         computer = self._trade_computer_player
