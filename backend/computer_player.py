@@ -1,8 +1,9 @@
 # pylint: disable = R0902
 
 import random
-from .player import Player
 from frontend.constants import PROB
+from .player import Player
+
 
 class ComputerPlayer(Player):
     """Represents a computer player for Catan
