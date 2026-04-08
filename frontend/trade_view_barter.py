@@ -487,7 +487,10 @@ class TradeViewBarter(arcade.View):
             bx = start_x + j * (btn_w + gap)
             if bx <= x <= bx + btn_w and _SEND_Y <= y <= _SEND_Y + _SEND_BTN_H:
                 self._result_msg = ""
-                self._pending    = pidx
+                if self.players[pidx].computer:
+                    self._computer_trade_decision(pidx)
+                else:
+                    self._pending = pidx
                 return
 
     def _handle_modal_click(self, x, y):
@@ -529,3 +532,27 @@ class TradeViewBarter(arcade.View):
             board=self.board, players=self.players, current_player=self.current_player, 
             die1=self.die1, die2=self.die2, port_manager=self.port_manager
         )
+
+    def _computer_trade_decision(self, pidx):
+        # called when the human sends a trade offer to a computer player
+        computer  = self.players[pidx]
+        sender    = self.players[self.current_player]
+
+        # --- decide whether the computer accepts ---
+        accepts = False   # TODO: replace with real logic
+
+        if accepts:
+            try:
+                sender.exchange_resources(self._offer, self._receive)
+                computer.exchange_resources(self._receive, self._offer)
+                print(f"Trade completed: {sender.name} with {computer.name}")
+            except ValueError as e:
+                print(f"Trade failed: {e}")
+                self._result_msg = "Trade failed — insufficient resources."
+                return
+            self.vm.go_to("catan",
+                board=self.board, players=self.players, current_player=self.current_player,
+                die1=self.die1, die2=self.die2, port_manager=self.port_manager
+            )
+        else:
+            self._result_msg = f"{computer.name} declined the trade."
