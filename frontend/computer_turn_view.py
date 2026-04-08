@@ -829,7 +829,6 @@ class ComputerTurnView(arcade.View):
         while not move_success and move is not None:
             if move == "Trade":
                 needed_resources = self._no_resource_access()
-                # NOTE: should be turned to a while once confirmed that trading works
                 if player.get_total_resources() > GET_ROBBED:
                     if len(player.ports) != 0:
                         port = random.choice(player.ports)
@@ -857,8 +856,8 @@ class ComputerTurnView(arcade.View):
                             if p != player and p.get_total_resources() > max_res:
                                 player_to_trade_with = p
                                 max_res = p.get_total_resources()
-                        # ask for 1, 2, or 3 of a resource in return
-                        amt_to_get = random.randint(1, 3)
+                        # ask for 1, or 2 of a resource in return
+                        amt_to_get = random.randint(1, 2)
 
                         to_trade = {res_to_trade: amt_to_offer}
                         to_get = {res_to_get: amt_to_get}
@@ -887,7 +886,7 @@ class ComputerTurnView(arcade.View):
 
             if move == "Build":
                 # place free road
-                if self._free_roads > 0:
+                while (self._free_roads > 0): 
                     road_edge = player.best_road_location()
                     if road_edge is not None:
                         self._place_road_free(road_edge)
@@ -905,17 +904,18 @@ class ComputerTurnView(arcade.View):
                     if player.can_afford_settlement():
                         self._place_settlement(settle_node)
                         move_success = True
-                # place a road
-                if player.can_afford_road():
-                    road_edge = player.best_road_location()
-                    if road_edge is not None:
-                        self._place_road(road_edge)
+                else:
+                    # place a road
+                    if player.can_afford_road():
+                        road_edge = player.best_road_location()
+                        if road_edge is not None:
+                            self._place_road(road_edge)
+                            move_success = True
+                    # buy a dev card because 
+                    if player.can_afford_dev_card():
+                        self._buy_dev_card()
+                        self._add_log(f"{player.name} bought a development card.", player.color)
                         move_success = True
-                # buy a dev card because 
-                if player.can_afford_dev_card():
-                    self._buy_dev_card()
-                    self._add_log(f"{player.name} bought a development card.", player.color)
-                    move_success = True
 
             elif move == "DevCard":
                 # Filter to cards that are playable this turn (not just bought, not VP cards)
@@ -961,6 +961,7 @@ class ComputerTurnView(arcade.View):
                 elif card["type"] == DEV_KEY_RB:
                     # gives comp two roads to build for free, handled by build logic
                     player.development_cards.remove(card)
+                    self.moves.apend("Build") # add ability to build again
                     self._add_log(f"{player.name} played Road Building and gained 2 free roads.", player.color)
                     move_success = True
                 else:
@@ -1134,9 +1135,8 @@ class ComputerTurnView(arcade.View):
                 continue
 
             # Prefer high-probability numbers, value is number of pips on each number tile
-            prob = {2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5,
-                    9: 4, 10: 3, 11: 2, 12: 1}.get(tile.number, 0)
-             # Count distinct opponents with a settlement/city on this tile
+            prob = PROB.get(tile.number, 0)
+            # Count distinct opponents with a settlement/city on this tile
             opponent_nodes = [
                 node for node in tile.nodes
                 if node.player is not None and node.player != self.current_player
