@@ -515,7 +515,7 @@ class ComputerTurnView(arcade.View):
     def _build_log_texts(self):
         player = self.players[self.current_player]
         self.txt_log_title = arcade.Text(
-            "AI Move Log",
+            "AI Move Log:",
             CATAN_PLAYER_PANEL_MARGIN + 8,
             400,
             HUD_PANEL_BG,
@@ -524,7 +524,7 @@ class ComputerTurnView(arcade.View):
         )
         self.txt_log = arcade.Text(
             "",
-            CATAN_PLAYER_PANEL_MARGIN + 8,
+            CATAN_PLAYER_PANEL_MARGIN + 6,
             380,
             HUD_PANEL_BG,
             CATAN_TEXT_SIZE_RESOURCE,
@@ -1201,15 +1201,19 @@ class ComputerTurnView(arcade.View):
     # Resource distribution
     def _give_resources(self):
         roll = self.die1 + self.die2
+        any_resources_given = False
+
         for tile in self.board.tiles.values():
             if tile.number == roll and not tile.robber:
                 resource = RESOURCE_ABBR[tile.resource]
                 for node in tile.nodes:
                     if node.player is not None:
                         player = self.players[node.player]
-                        player.resource_cards[resource] += (
-                            1 if node.building == "settlement" else 2
-                        )
+                        gain = 1 if node.building == "settlement" else 2
+                        player.resource_cards[resource] += gain
+                        any_resources_given = True
+
+        return any_resources_given
 
 
     # -----------------------------------------------------------------------
@@ -1283,7 +1287,14 @@ class ComputerTurnView(arcade.View):
                     port_manager=self.port_manager)
             return
 
-        self._give_resources()
+        resources_given = self._give_resources()
+        roller = self.players[self.current_player]
+
+        if resources_given:
+            self._add_log(f"{roller.name} collected resources from the roll.")
+        else:
+            self._add_log(f"{roller.name} collected no resources from the roll.")
+
 
         if self.players[self.current_player].computer:
             self.vm.go_to(
