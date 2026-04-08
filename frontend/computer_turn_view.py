@@ -887,7 +887,7 @@ class ComputerTurnView(arcade.View):
 
             if move == "Build":
                 # place free road
-                if self._free_roads > 0:
+                while (self._free_roads > 0): 
                     road_edge = player.best_road_location()
                     if road_edge is not None:
                         self._place_road_free(road_edge)
@@ -961,6 +961,7 @@ class ComputerTurnView(arcade.View):
                 elif card["type"] == DEV_KEY_RB:
                     # gives comp two roads to build for free, handled by build logic
                     player.development_cards.remove(card)
+                    self.moves.apend("Build") # add ability to build again
                     self._add_log(f"{player.name} played Road Building and gained 2 free roads.", player.color)
                     move_success = True
                 else:
