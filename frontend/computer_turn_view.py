@@ -875,14 +875,14 @@ class ComputerTurnView(arcade.View):
                                     player.exchange_resources(to_trade, to_get)
                                     player_to_trade_with.exchange_resources(to_get, to_trade)
                                     self._add_log(
-                                        f"{player.name} traded with {player_to_trade_with.name}: gave {to_trade} and received {to_get}.", player.color)
+                                        f"{player.name} traded {amt_to_offer} {res_to_trade} for {amt_to_get} {res_to_get}.", player.color)
                                     move_success = True
                     else:
                         to_trade = player.max_resource()
                         if player.resource_cards[to_trade] >= MARITIME_TRADE:
                             get_trade = player.min_resource()
                             player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
-                            self._add_log(f"{player.name} completed a 4:1 maritime trade, giving 4 {to_trade} for 1 {get_trade}.", player.color)
+                            self._add_log(f"{player.name} maritime traded, giving 4 {to_trade} for 1 {get_trade}.", player.color)
                             move_success = True
 
             if move == "Build":
