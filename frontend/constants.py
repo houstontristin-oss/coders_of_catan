@@ -291,7 +291,7 @@ RESOURCE_ABBR = {
 # 18 tokens for 18 non-desert tiles:
 #   2×1, 3×2, 4×2, 5×2, 6×2, 8×2, 9×2, 10×2, 11×2, 12×1
 NUMBER_POOL = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
-
+PROB = {2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1} # pips 
 
 # Port types assigned clockwise from the top around the board perimeter.
 # None = 3:1 generic port, string = 2:1 specific resource port.
