@@ -564,7 +564,7 @@ class TradeViewBarter(arcade.View):
         # 2. computer has more than 4 of any of the resources it would send
         # 3. computer has too many resources in hand and might want to get rid of some
         accepts = (
-            computer.can_afford_trade(self.receive)
+            computer.can_afford_trade(self._receive)
             and (
                 any(res in self._no_resource_access() for res in self._offer())
                 or any(computer.resource_cards[res] > EXCESS_RES_ONE for res in self._receive)
