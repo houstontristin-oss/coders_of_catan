@@ -2,11 +2,10 @@
 Contains TradeView Class
 """
 import arcade
-from .computer_turn_view import _no_resource_access
 from .drawing import fill_rect, outline_rect
 from .constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, TEXT_WHITE, BTN_TRADE, RESOURCE_COLORS, TEXT_LIGHT_GRAY,
-    HUD_PANEL_BG, BTN_ENDTURN, LARGE_TEXT_SIZE
+    HUD_PANEL_BG, BTN_ENDTURN, LARGE_TEXT_SIZE, RESOURCE_ABBR
                         )
 
 #TODO add a view board feature
@@ -538,6 +537,21 @@ class TradeViewBarter(arcade.View):
             board=self.board, players=self.players, current_player=self.current_player, 
             die1=self.die1, die2=self.die2, port_manager=self.port_manager
         )
+    
+    def _no_resource_access(self):
+        # find all res they have access to
+        accessible_res = []
+        for tile in self.board.tiles.values():
+            for node in tile.nodes:
+                if node.player == self.current_player:
+                    accessible_res.append(tile.resource)
+        # make list of uppercase res they cant access
+        no_access_res = []
+        for lower_res, upper_res in RESOURCE_ABBR.items():
+            if lower_res not in accessible_res:
+                no_access_res.append(upper_res)
+
+        return no_access_res
 
     def _computer_trade_decision(self, pidx):
         # called when the human sends a trade offer to a computer player
