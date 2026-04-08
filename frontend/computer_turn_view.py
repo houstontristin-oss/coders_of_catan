@@ -522,7 +522,7 @@ class ComputerTurnView(arcade.View):
     def _build_log_texts(self):
         player = self.players[self.current_player]
         self.txt_log_title = arcade.Text(
-            "AI Move Log",
+            "AI Move Log:",
             CATAN_PLAYER_PANEL_MARGIN + 8,
             400,
             HUD_PANEL_BG,
@@ -531,7 +531,7 @@ class ComputerTurnView(arcade.View):
         )
         self.txt_log = arcade.Text(
             "",
-            CATAN_PLAYER_PANEL_MARGIN + 8,
+            CATAN_PLAYER_PANEL_MARGIN + 6,
             380,
             HUD_PANEL_BG,
             CATAN_TEXT_SIZE_RESOURCE,
@@ -958,7 +958,7 @@ class ComputerTurnView(arcade.View):
                     move = self.moves.pop(0)
                 except IndexError:
                     move = None
-                    self._add_log(f"{player.name} cannot make any more moves this turn\n")
+                    self._add_log(f"{player.name} cannot make any more moves this turn.")
 
     # Fast Forward Function for computer to make many moves until either done or need human player input
     def _fast_forward(self):
@@ -979,8 +979,8 @@ class ComputerTurnView(arcade.View):
             return
 
         if dx <= x <= dx + dw and dy <= y <= dy + dh: # decline button location
-            self._result_msg = f"{self.players[self._pending].name} declined the trade."
-            self._pending    = None
+            self._result_msg = f"{self.players[self._trade_pending].name} declined the trade."
+            self._trade_pending    = None
 
     # -----------------------------------------------------------------------
     # Placement
@@ -994,7 +994,7 @@ class ComputerTurnView(arcade.View):
             if node.node_id in node_ids:
                 player.ports.append(port["port"])
         player.victory_points += 1
-        self._add_log(f"{player.name} built a settlement\n")
+        self._add_log(f"{player.name} built a settlement.")
         self._build_player_texts()
         print(f"{player.name} built a settlement! VP: {player.victory_points}")
 
@@ -1003,7 +1003,7 @@ class ComputerTurnView(arcade.View):
         player.build_city(CatanBoard, node)
         node.building = "city"
         player.victory_points += 1
-        self._add_log(f"{player.name} upgraded to a city\n")
+        self._add_log(f"{player.name} upgraded to a city!")
         self._build_player_texts()
         print(f"{player.name} upgraded to a city! VP: {player.victory_points}")
 
@@ -1024,7 +1024,7 @@ class ComputerTurnView(arcade.View):
                 break
         player.build_road(CatanBoard, edge)
         edge.player = self.current_player
-        self._add_log(f"{player.name} built a road\n")
+        self._add_log(f"{player.name} built a road!")
         self._build_player_texts()
         print(f"{player.name} built a road!")
         self._check_longest_road(edge)
@@ -1090,7 +1090,7 @@ class ComputerTurnView(arcade.View):
                 player.victory_points += LONGEST_ROAD_VP
 
         if player.longest_road:
-            self._add_log(f"{player.name} built the Longest Road\n")
+            self._add_log(f"{player.name} built the Longest Road.")
 
 
     def _place_road_free(self, edge):
@@ -1220,15 +1220,19 @@ class ComputerTurnView(arcade.View):
     # Resource distribution
     def _give_resources(self):
         roll = self.die1 + self.die2
+        any_resources_given = False
+
         for tile in self.board.tiles.values():
             if tile.number == roll and not tile.robber:
                 resource = RESOURCE_ABBR[tile.resource]
                 for node in tile.nodes:
                     if node.player is not None:
                         player = self.players[node.player]
-                        player.resource_cards[resource] += (
-                            1 if node.building == "settlement" else 2
-                        )
+                        gain = 1 if node.building == "settlement" else 2
+                        player.resource_cards[resource] += gain
+                        any_resources_given = True
+
+        return any_resources_given
 
 
     # -----------------------------------------------------------------------
@@ -1261,7 +1265,7 @@ class ComputerTurnView(arcade.View):
     # End turn
     def _end_turn(self):
         player = self.players[self.current_player]
-        self._add_log(f"{player.name}'s turn ends.")
+        self._add_log(f"{player.name}'s turn ends.\n")
         if self.players[self.current_player].victory_points >= 10:
             self.vm.go_to("end", self.players, self.current_player)
             return
@@ -1302,7 +1306,14 @@ class ComputerTurnView(arcade.View):
                     port_manager=self.port_manager)
             return
 
-        self._give_resources()
+        resources_given = self._give_resources()
+        roller = self.players[self.current_player]
+
+        if resources_given:
+            self._add_log(f"{roller.name} collected resources from the roll.")
+        else:
+            self._add_log(f"{roller.name} collected no resources from the roll.")
+
 
         if self.players[self.current_player].computer:
             self.vm.go_to(
