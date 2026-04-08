@@ -821,11 +821,11 @@ class ComputerTurnView(arcade.View):
                         player.exchange_resources({give_to_port: trade_amt}, {get_from_port: 1})
                         self._add_log(f"{player.name} used {port} to trade for 1 {get_from_port}.")
                         move_success = True
-                        
+
                     elif len(needed_resources) != 0:
                         # find resource of the most amount
                         res_to_trade = player.max_resource()
-                        # pick a random number between 
+                        # pick a random number between
                         amt_to_offer = random.randint(1, player.resource_cards[res_to_trade])
                         res_to_get = random.choice(needed_resources)
 
@@ -863,7 +863,8 @@ class ComputerTurnView(arcade.View):
                         if player.resource_cards[to_trade] >= MARITIME_TRADE:
                             get_trade = player.min_resource()
                             player.exchange_resources({to_trade: MARITIME_TRADE}, {get_trade: 1})
-                            self._add_log(f"{player.name} completed a 4:1 maritime trade, giving 4 {to_trade} for 1 {get_trade}.")
+                            self._add_log(f"{player.name} completed a 4:1 maritime trade, "
+                                          f"giving 4 {to_trade} for 1 {get_trade}.")
                             move_success = True
 
             if move == "Build":
@@ -960,7 +961,8 @@ class ComputerTurnView(arcade.View):
                     move = None
                     self._add_log(f"{player.name} cannot make any more moves this turn.")
 
-    # Fast Forward Function for computer to make many moves until either done or need human player input
+    # Fast Forward Function for computer to make many moves
+    # until either done or need human player input
     def _fast_forward(self):
         while len(self.moves) > 0:
             self._make_move()
@@ -1056,13 +1058,18 @@ class ComputerTurnView(arcade.View):
                             if (node.edges[1] not in edge_lists[node] and
                                     node.edges[1].player == self.current_player):
                                 edge_lists[node].append(node.edges[1])
-                            if (node.edges[2] not in edge_lists[edge.nodes[len(edge_lists.keys()) - 1]]
+                            if (node.edges[2] not in
+                                    edge_lists[edge.nodes[len(edge_lists.keys()) - 1]]
                                     and node.edges[2].player == self.current_player):
                                 edge_lists[edge.nodes[len(edge_lists.keys()) - 1]].append(node.edges[2])
                         else:
                             for neighbor_edge in node.edges:
-                                # check if the edge has been explored before and if the player owns another edge
-                                if neighbor_edge not in edge_lists[edge.nodes[len(edge_lists.keys()) - 1]] and neighbor_edge is not e and neighbor_edge.player == self.current_player:
+                                # check if the edge has been explored before
+                                # and if the player owns another edge
+                                if (neighbor_edge not in
+                                        edge_lists[edge.nodes[len(edge_lists.keys()) - 1]]
+                                        and neighbor_edge is not e and
+                                        neighbor_edge.player == self.current_player):
                                     edge_lists[edge.nodes[len(edge_lists.keys()) - 1]].append(neighbor_edge)
                 print(edge_lists)
 
@@ -1099,7 +1106,8 @@ class ComputerTurnView(arcade.View):
         self._free_roads -= 1
         self.players[self.current_player].total_roads -= 1
         self._build_player_texts()
-        print(f"{self.players[self.current_player].name} placed a free road! ({self._free_roads} remaining)")
+        print(f"{self.players[self.current_player].name} placed a free road! "
+              f"({self._free_roads} remaining)")
         self._check_longest_road(edge)
         player = self.players[self.current_player]
         self._add_log(f"{player.name} built a free road.")

@@ -17,7 +17,15 @@ from backend.catan_board import CatanBoard
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
                       draw_board, draw_city, draw_ocean_background)
-from .constants import *
+from .constants import (BUILD_NONE, DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DICE_SPRITES,
+                        ROAD_CARD_SPRITE, ARMY_CARD_SPRITE, ROBBER_SPRITE, HEX_SIZE,
+                        BOARD_CENTER_X, BOARD_CENTER_Y, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR,
+                        BACKGROUND_IMAGE, RESOURCE_SPRITES, SPRITE_SCALE, DICE_AREA_WIDTH,
+                        DICE_AREA_HEIGHT, TEXT_LIGHT_GRAY, HUD_PANEL_HEIGHT, HUD_PANEL_WIDTH,
+                        ICON_SIZE, ONE, SIX, BTN_BUILD_ACTIVE, BTN_BUILD, BTN_TRADE, BTN_CARD,
+                        BTN_ENDTURN, HUD_PANEL_BG, CITY_COST, SETTLEMENT_COST, ROAD_COST,
+                        TRADE_NONE, USE_DICE_SPRITES, BUILD_SETTLEMENT, BUILD_CITY, BUILD_ROAD,
+                        NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS, GET_ROBBED, RESOURCE_ABBR)
 from .view_constants import *  # noqa: F401,F403
 from .computer_turn_view import ComputerTurnView
 
@@ -1060,7 +1068,7 @@ class CatanView(arcade.View):
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 self._cancel_trade()
                 self.vm.go_to("maritime_trade",
-                    board=self.board, players=self.players, current_player=self.current_player, 
+                    board=self.board, players=self.players, current_player=self.current_player,
                     die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
                 return
@@ -1068,7 +1076,7 @@ class CatanView(arcade.View):
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
                 self._cancel_trade()
                 self.vm.go_to("barter_trade",
-                    board=self.board, players=self.players, current_player=self.current_player, 
+                    board=self.board, players=self.players, current_player=self.current_player,
                     die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
                 return
@@ -1340,8 +1348,8 @@ class CatanView(arcade.View):
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == GET_ROBBED:
-            self.vm.go_to("robber_res", 
-                board=self.board, players=self.players, current_player=self.current_player, 
+            self.vm.go_to("robber_res",
+                board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager,
             )
             return

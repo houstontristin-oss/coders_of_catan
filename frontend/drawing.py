@@ -6,7 +6,18 @@
 """
 import math
 import arcade
-from .constants import *
+from .constants import (TOKEN_RED, TEXT_GOLD, SCREEN_WIDTH, SCREEN_HEIGHT,
+                        OCEAN_BASE_COLOR, OCEAN_DEEP_COLOR, OCEAN_MID_COLOR,
+                        OCEAN_BAND_COUNT, OCEAN_BAND_SPACING, OCEAN_BAND_AMPLITUDE,
+                        OCEAN_BAND_WAVELENGTH, OCEAN_BAND_THICKNESS, OCEAN_BAND_COLOR,
+                        OCEAN_BAND_PHASE_SPEED, OCEAN_RIPPLE_COUNT, OCEAN_RIPPLE_SPACING,
+                        OCEAN_RIPPLE_AMPLITUDE, OCEAN_RIPPLE_THICKNESS,
+                        OCEAN_RIPPLE_WAVELENGTH, OCEAN_RIPPLE_COLOR, HEX_SIZE,
+                        BOARD_CENTER_X, BOARD_CENTER_Y, SHORE_OUTER_RING_ONLY,
+                        SHORE_FOAM_OFFSET, SHORE_FOAM_PULSE_SPEED, SHORE_FOAM_COLOR,
+                        SHORE_FOAM_HIGHLIGHT_COLOR, SHORE_FOAM_HIGHLIGHT_WIDTH,
+                        SHORE_FOAM_WIDTH, HEX_TILE_SPRITES, HEX_TILE_SCALE, HEX_TILE_Y_OFFSET,
+                        RESOURCE_COLORS, HEX_TILE_OUTLINE_WIDTH)
 from .board_utils import cubic_to_pixel, get_hex_corners
 
 def draw_settlement(cx, cy, size, color):

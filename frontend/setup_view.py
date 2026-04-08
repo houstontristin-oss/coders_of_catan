@@ -75,13 +75,13 @@ class SetupView(arcade.View):
                 if tile.resource != "desert":
                     res = RESOURCE_ABBR[tile.resource]
                     self.players[self.current_player].resource_cards[res] += 1
-        
+
         best_edge = None
         while best_node is not None and best_edge is None:
             edge = random.choice(best_node.edges)
             if edge.player is None and edge.is_valid_setup_road_placement(best_node):
                 best_edge = edge
-       
+
         self._place_road(best_edge)
         self._advance_player()
 
@@ -378,7 +378,7 @@ class SetupView(arcade.View):
                 start_player=self.start_player, cycle=self.cycle, port_manager=self.port_manager,
                       )
         return
-        
+
     # Resource distribution
     def _give_resources(self, roll):
         for tile in self.board.tiles.values():

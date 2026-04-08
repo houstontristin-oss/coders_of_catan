@@ -3,7 +3,7 @@ Catan view and other view constants subtracting dev card view
 All magic numbers, colors, paths, costs, and configuration.
 Every other file imports from here.
 """
-from .constants import *
+from .constants import TEXT_WHITE, TEXT_GOLD, SCREEN_WIDTH, SCREEN_HEIGHT
 
 # CatanView layout / HUD
 CATAN_BTN_W = 120
