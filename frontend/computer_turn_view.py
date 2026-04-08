@@ -23,7 +23,7 @@ from .constants import (DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DEV_CARD_DECK,
                         HUD_PANEL_WIDTH, BTN_ENDTURN, ICON_SIZE, HUD_PANEL_BG,
                         ONE, SIX, USE_DICE_SPRITES, CARD_PAD, DEV_KEY_VP, DEV_KEY_K,
                         DEV_KEY_YOP, DEV_KEY_M, DEV_KEY_RB, RESOURCE_ABBR, SCREEN_HEIGHT,
-                        SCREEN_WIDTH, TEXT_WHITE, TEXT_GOLD)
+                        SCREEN_WIDTH, TEXT_WHITE, TEXT_GOLD, PROB)
 from .view_constants import (CARD_SCALE, ARMY_ROAD_SPRITE_Y1, ARMY_ROAD_SPRITE_X,
                              ARMY_ROAD_SPRITE_Y2, CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD,
                              CATAN_END_BTN_W, CATAN_BTN_H, CATAN_TEXT_SIZE_BTN,
