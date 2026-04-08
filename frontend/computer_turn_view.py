@@ -1018,40 +1018,30 @@ class ComputerTurnView(arcade.View):
     def _check_longest_road(self, edge):
         player = self.players[self.current_player]
         #check if player has longest road
-        edge_lists = {edge.nodes[0]: [edge]}
-        for node, edge_list in edge_lists.items():
+        edge_lists = [[edge]]
+        for edge_list in edge_lists:
             for e in edge_list:
                 for node in e.nodes:
                     # do not keep searching if another player has a settlement on the node
                     if node.player == self.current_player or node.player is None:
-                        paths = 0
+                        branches = 0
                         for neighbor_edge in node.edges:
-                            if neighbor_edge.player == self.current_player:
-                                paths += 1
-                        if paths == 3:
-                            edge_lists[node] = edge_list.copy()
-                            print(edge_lists)
-
-                for node in e.nodes:
-                    if node.player == self.current_player or node.player is None:
-                        if node in edge_lists.keys():
-                            if node.edges[0] not in edge_lists[node] and node.edges[0].player == self.current_player:
-                                edge_lists[node].append(node.edges[0])
-                            if node.edges[1] not in edge_lists[node] and node.edges[1].player == self.current_player:
-                                edge_lists[node].append(node.edges[1])
-                            if node.edges[2] not in edge_lists[edge.nodes[len(edge_lists.keys()) - 1]] and node.edges[2].player == self.current_player:
-                                edge_lists[edge.nodes[len(edge_lists.keys()) - 1]].append(node.edges[2])
-                        else:
-                            for neighbor_edge in node.edges:
-                                # check if the edge has been explored before and if the player owns another edge
-                                if neighbor_edge not in edge_lists[edge.nodes[len(edge_lists.keys()) - 1]] and neighbor_edge is not e and neighbor_edge.player == self.current_player:
-                                    edge_lists[edge.nodes[len(edge_lists.keys()) - 1]].append(neighbor_edge)
-                print(edge_lists)
-
-        for edge_list in edge_lists.values():
-            if player.road_length < len(edge_list):
-                player.road_length = len(edge_list)
-
+                            #check if edge has been explored before & if player owns another edge
+                            if (neighbor_edge not in edge_list and
+                                    neighbor_edge is not e and
+                                    neighbor_edge.player == self.current_player):
+                                branches += 1
+                                edge_list.append(neighbor_edge)
+                        if branches == 2:
+                            split_edge = edge_list.pop(-1) # remove edge from previous branch
+                            edge_lists.append(edge_list[:-1] + [split_edge]) # create new edge list
+        max_length = 0
+        for edge_list in edge_lists:
+            length = len(edge_list) - (len(edge_lists) - 1)
+            if max_length < length:
+                max_length = length
+        player.road_length = max_length
+        
         #if player has played more than 5 connected roads
         if player.road_length >= ROADS_NEEDED:
             # loop through opponents to see if any have the largest army card
