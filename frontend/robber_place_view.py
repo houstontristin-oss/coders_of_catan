@@ -223,7 +223,7 @@ class RobberPlaceView(arcade.View):
             new_robber_tile = random.choice(list(best_tiles.keys()))
         else:
             new_robber_tile = random.choice(new_robber_tiles)
-        
+
         # Move the robber to new_robber_tile
         if robber_tile is not None:
             robber_tile.robber = False
@@ -243,7 +243,7 @@ class RobberPlaceView(arcade.View):
             for res, amount in self.players[to_steal_from].resource_cards.items():
                 if choice > amount:
                     choice -= amount
-                else: 
+                else:
                     res_choice = res
 
             if res_choice is not None:
@@ -354,10 +354,12 @@ class RobberPlaceView(arcade.View):
     def on_show_view(self):
         self._build_text_objects()
         if self.players[self.current_player].computer:
-                # computer moves the robber 
-                self._computer_move_robber()
-                self.vm.go_to("computer_turn", board=self.board, players=self.players, current_player=self.current_player, die1=self.die1, die2=self.die2, port_manager=self.port_manager)
-                return
+            # computer moves the robber
+            self._computer_move_robber()
+            self.vm.go_to("computer_turn", board=self.board, players=self.players,
+                          current_player=self.current_player, die1=self.die1,
+                          die2=self.die2, port_manager=self.port_manager)
+            return
 
     def on_draw(self):
         self.clear()

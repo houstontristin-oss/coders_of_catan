@@ -20,13 +20,14 @@ class SetupView(arcade.View):
     """
     SetupView Class
     """
-    def __init__(self, vm, board, players, current_player, start_player, cycle, port_manager: PortManager | None):
+    def __init__(self, vm, board, players, current_player, start_player,
+                 cycle, port_manager: PortManager | None):
         super().__init__()
         self.vm = vm
         self.board = board # CatanBoard instance
         self.players = players # list of Player instances
         self.current_player = current_player # index of current player in players list
-        self.start_player = start_player # indec of the player that is going to go first and last for setup
+        self.start_player = start_player #index of player that's going to go first & last for setup
         self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
         self.last_placed_settlement = None # track last placed settlement for edge verification
 
@@ -325,7 +326,8 @@ class SetupView(arcade.View):
                         for tile in self.selected_node.tiles:
                             if tile.resource != 'desert':
                                 resource = RESOURCE_ABBR[tile.resource]
-                                self.players[self.current_player].resource_cards[resource.upper()] += 1
+                                player = self.players[self.current_player]
+                                player.resource_cards[resource.upper()] += 1
                     self._place_settlement(self.selected_node)
                     self.build_choice = BUILD_ROAD
                     self.txt_title.text = (f"{self.players[self.current_player].name}: " +
@@ -374,7 +376,7 @@ class SetupView(arcade.View):
         self.vm.go_to("setup",
                 board=self.board, players=self.players, current_player=self.current_player,
                 start_player=self.start_player, cycle=self.cycle, port_manager=self.port_manager,
-            )
+                      )
         return
         
     # Resource distribution

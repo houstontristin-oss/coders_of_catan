@@ -20,7 +20,7 @@ All dev-card game logic lives in dev_base.py.
 
 import random
 import arcade
-
+from backend.dev_base import DevCard, YearOfPlentyCard, MonopolyCard, KnightCard, RoadBuildingCard
 from .drawing import fill_rect, outline_rect
 from .constants import (
     SCREEN_WIDTH, CARD_HEADER_Y, TEXT_GOLD, TEXT_LIGHT_GRAY, CARD_BACK_LABEL, CARD_PAD, CARD_DECK_Y,
@@ -30,10 +30,10 @@ from .constants import (
     CARD_LIFT_HOVERED, CARD_SPRITE_Y_FRAC, CARD_BORDER_SEL, CARD_BORDER_HOV, CARD_BORDER_IDLE,
     CARD_DESC_TEXT_Y_OFFSET, CARD_DESC_TEXT_COLOR, CARD_DESC_TEXT_SIZE, CARD_BADGE_W, CARD_BADGE_H,
     BTN_TRADE, BTN_BUILD, BTN_DISABLED, CARD_BUY_BTN_W, BTN_CARD, CARD_POPUP_W, CARD_POPUP_H,
-    CARD_POPUP_BTN_W, CARD_POPUP_BTN_H, CARD_POPUP_BTN_GAP, DEV_CARD_DECK, DEV_CARD_SPRITES, 
+    CARD_POPUP_BTN_W, CARD_POPUP_BTN_H, CARD_POPUP_BTN_GAP, DEV_CARD_DECK, DEV_CARD_SPRITES,
     DEV_CARD_COST, CARD_RES_NAMES, ACTION_BACK_TO_BOARD, ACTION_POPUP_YOP, ACTION_POPUP_MONOPOLY
 )
-from backend.dev_base import DevCard, YearOfPlentyCard, MonopolyCard, KnightCard, RoadBuildingCard
+
 
 LARGEST_ARMY_VP = 2
 
@@ -593,16 +593,15 @@ class PlayCardView(arcade.View):
         if card_type == "knight":
             self.vm.go_to("robber_place",
                 board=self.board, players=self.players, current_player=self.current_player,
-                die1=self.die1, die2=self.die2, port_manager=self.port_manager   
+                die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
             return
         print(card_type)
         self.vm.go_to("catan",
             board=self.board, players=self.players, current_player=self.current_player,
             die1=self.die1, die2=self.die2, port_manager=self.port_manager, shared_deck=self._deck,
-            bought_card_this_turn=self.bought_this_turn, 
+            bought_card_this_turn=self.bought_this_turn,
             played_card_this_turn=self._played_this_turn,
             free_roads=self.free_roads
         )
-        """ Need
-        an option to scroll through dev cards if the amount exceeds what the screen can fit"""
+        #Need an option to scroll through dev cards if the amount exceeds what the screen can fit

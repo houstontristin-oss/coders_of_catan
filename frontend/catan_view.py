@@ -14,7 +14,7 @@ import arcade
 
 from .port_manager import PortManager
 from backend.catan_board import CatanBoard
-from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
+from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
                       draw_board, draw_city, draw_ocean_background)
 from .constants import *
@@ -120,7 +120,7 @@ class CatanView(arcade.View):
         self._build_edge_pixel_cache()
         self._build_tile_pixel_cache()
 
-        if self.port_manager == None:
+        if self.port_manager is None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
 
         self._build_text_objects()   # rebuild after caches ready
@@ -359,8 +359,10 @@ class CatanView(arcade.View):
             left = start_x + i * (CATAN_SUMMARY_BOX_W + CATAN_SUMMARY_BOX_GAP)
             bottom = top_y - CATAN_SUMMARY_BOX_H
 
-            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG)
-            outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, player.color, 2)
+            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H,
+                      CATAN_COLOR_SUMMARY_BG)
+            outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H,
+                         player.color, 2)
 
             arcade.Text(
                 player.name,
@@ -1160,7 +1162,8 @@ class CatanView(arcade.View):
 
 
         # Dev Cards button
-        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (card_bottom <= y <= card_bottom + CATAN_BTN_H):
+        if ((CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and
+                (card_bottom <= y <= card_bottom + CATAN_BTN_H)):
             self.vm.go_to("play_card",
                 board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager,

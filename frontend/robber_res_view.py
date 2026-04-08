@@ -7,7 +7,8 @@ import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import (
     SCREEN_WIDTH, TEXT_WHITE, BTN_ENDTURN, SCREEN_HEIGHT, BTN_TRADE,
-    TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG, TOP_BAR_HEIGHT, LARGE_TEXT_SIZE, GET_ROBBED
+    TEXT_GOLD, RESOURCE_COLORS, TEXT_LIGHT_GRAY, HUD_PANEL_BG, TOP_BAR_HEIGHT,
+    LARGE_TEXT_SIZE, GET_ROBBED
 )
 
 # ---------------------------------------------------------------------------
@@ -67,8 +68,10 @@ class RobberResView(arcade.View):
         self._pending = None          # int index of discarding player, or None
 
         # Build ordered queue: roller first, then wrap around, skip anyone under 8 cards
-        turn_order = [current_player] + [(current_player + j) % len(players) for j in range(1, len(players))]
-        self._discard_queue = [i for i in turn_order if players[i].get_total_resources() >= 8 and not players[i].computer]
+        turn_order = [current_player] + [(current_player + j) % len(players)
+                                         for j in range(1, len(players))]
+        self._discard_queue = [i for i in turn_order if players[i].get_total_resources() >= 8 and
+                               not players[i].computer]
 
         self._queue_index = 0   # which position in the queue we're currently on
         self._active_discarder = self._discard_queue[0] if self._discard_queue else None
@@ -88,7 +91,8 @@ class RobberResView(arcade.View):
     # -----------------------------------------------------------------------
     def _comp_robber_discard(self):
         for i in range(len(self.players)):
-            # print(f"{self.players[i].name}: {self.players[i].computer} : {self.players[i].get_total_resources()}: {self.players[i].development_cards}")
+            # print(f"{self.players[i].name}: {self.players[i].computer} :
+            # {self.players[i].get_total_resources()}: {self.players[i].development_cards}")
             if self.players[i].computer and self.players[i].get_total_resources() > GET_ROBBED:
                 # discard half of the comp players resources
                 giving_resources = {}
@@ -96,13 +100,15 @@ class RobberResView(arcade.View):
                 for resource, amount in self.players[i].resource_cards.items():
                     giving_resources[resource] = 0
                     if amt_to_discard > 0:
-                        get_rid_of = random.randint(0, amount if amount < amt_to_discard else amt_to_discard)
+                        get_rid_of = random.randint(0, amount if amount < amt_to_discard
+                        else amt_to_discard)
                         amt_to_discard -= get_rid_of
                         giving_resources[resource] += get_rid_of
                 while amt_to_discard > 0:
                     for resource, amount in self.players[i].resource_cards.items():
                         if amt_to_discard > 0:
-                            get_rid_of = random.randint(0, amount - giving_resources[resource] if amount - giving_resources[resource] < amt_to_discard else amt_to_discard)
+                            get_rid_of = random.randint(0, amount - giving_resources[resource]
+                            if amount - giving_resources[resource] < amt_to_discard else amt_to_discard)
                             amt_to_discard -= get_rid_of
                             giving_resources[resource] += get_rid_of
 

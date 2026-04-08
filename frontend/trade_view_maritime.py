@@ -73,11 +73,26 @@ class TradeViewMaritime(arcade.View):
     def _build_dynamic_text_objects(self):
         # To update resources for each player in between every accepted trade
         # Texts for resource counts
-        self.txt_sheep = arcade.Text(f"Sheep: "f"{self.players[self.current_player].resource_cards["SHEEP"]}", SHEEP_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
-        self.txt_brick = arcade.Text(f"Brick: {self.players[self.current_player].resource_cards["BRICK"]}", BRICK_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
-        self.txt_ore = arcade.Text(f"Ore: {self.players[self.current_player].resource_cards["ORE"]}", ORE_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
-        self.txt_wheat = arcade.Text(f"Wheat: {self.players[self.current_player].resource_cards["WHEAT"]}", WHEAT_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
-        self.txt_wood = arcade.Text(f"Wood: {self.players[self.current_player].resource_cards["WOOD"]}", WOOD_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center", anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
+        self.txt_sheep = arcade.Text(
+            f"Sheep: {self.players[self.current_player].resource_cards["SHEEP"]}",
+            SHEEP_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center",
+            anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
+        self.txt_brick = arcade.Text(
+            f"Brick: {self.players[self.current_player].resource_cards["BRICK"]}",
+            BRICK_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center",
+            anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
+        self.txt_ore = arcade.Text(
+            f"Ore: {self.players[self.current_player].resource_cards["ORE"]}",
+            ORE_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center",
+            anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
+        self.txt_wheat = arcade.Text(
+            f"Wheat: {self.players[self.current_player].resource_cards["WHEAT"]}",
+            WHEAT_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center",
+            anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
+        self.txt_wood = arcade.Text(
+            f"Wood: {self.players[self.current_player].resource_cards["WOOD"]}",
+            WOOD_TRADE_NUM_X, TRADE_NUM_Y, TEXT_GOLD, bold=True, anchor_x="center",
+            anchor_y="center", font_name="MedievalSharp", font_size=FONT_SIZE_TRADE_NUM)
 
         # Need to be able to reset Trade confirmation Text
         self.txt_confirm = arcade.Text("Not a Valid Trade", CONFIRM_TXT_X, BAR_CENTER_Y,

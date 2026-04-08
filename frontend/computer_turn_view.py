@@ -1,18 +1,19 @@
 """
 Contains ComputerTurnView class 
 
-Allows player when its 1 person versus 3 computer players so that the player can see the computer moves
+Allows player when its 1 person versus 3 computer players so that the
+player can see the computer moves
 
 """
-import arcade
 import random
-
-from .port_manager import PortManager
+import arcade
 
 from backend.catan_board import CatanBoard
+from .port_manager import PortManager
 
-from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
-from .drawing import fill_rect, outline_rect, draw_settlement, draw_road, draw_board, draw_city, draw_ocean_background
+from .board_utils import cubic_to_pixel, node_to_pixel
+from .drawing import (fill_rect, outline_rect, draw_settlement,
+                      draw_road, draw_board, draw_city, draw_ocean_background)
 from .constants import *
 from .view_constants import *
 
@@ -119,7 +120,7 @@ class ComputerTurnView(arcade.View):
         self._build_edge_pixel_cache()
         self._build_tile_pixel_cache()
 
-        if self.port_manager == None:
+        if self.port_manager is None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
 
         self._build_text_objects()  # rebuild after caches ready
@@ -146,8 +147,12 @@ class ComputerTurnView(arcade.View):
     # -----------------------------------------------------------------------
     # Longest Road and Largest Army sprite
     def _load_card_sprites(self):
-        self._road_card_sprite = arcade.Sprite(ROAD_CARD_SPRITE, scale=CARD_SCALE, center_y=ARMY_ROAD_SPRITE_Y1, center_x=ARMY_ROAD_SPRITE_X)
-        self._army_card_sprite = arcade.Sprite(ARMY_CARD_SPRITE, scale=CARD_SCALE, center_y=ARMY_ROAD_SPRITE_Y2, center_x=ARMY_ROAD_SPRITE_X)
+        self._road_card_sprite = arcade.Sprite(ROAD_CARD_SPRITE, scale=CARD_SCALE,
+                                               center_y=ARMY_ROAD_SPRITE_Y1,
+                                               center_x=ARMY_ROAD_SPRITE_X)
+        self._army_card_sprite = arcade.Sprite(ARMY_CARD_SPRITE, scale=CARD_SCALE,
+                                               center_y=ARMY_ROAD_SPRITE_Y2,
+                                               center_x=ARMY_ROAD_SPRITE_X)
         self._card_list   = arcade.SpriteList()
 
     # -----------------------------------------------------------------------
@@ -334,14 +339,16 @@ class ComputerTurnView(arcade.View):
             left = start_x + i * (CATAN_SUMMARY_BOX_W + CATAN_SUMMARY_BOX_GAP)
             bottom = top_y - CATAN_SUMMARY_BOX_H
 
-            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG)
+            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H,
+                      CATAN_COLOR_SUMMARY_BG)
 
             is_current_ai = (player_idx == self.current_player)
 
             if is_current_ai:
                 outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, TEXT_GOLD, 4)
             else:
-                outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, player.color, 2)
+                outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H,
+                             player.color, 2)
 
             arcade.Text(
                 player.name,
@@ -585,7 +592,8 @@ class ComputerTurnView(arcade.View):
                      CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H,
                      CATAN_COLOR_BTN_OUTLINE, 1)
         fill_rect(SCREEN_WIDTH - CATAN_BTN_PAD * 2 - CATAN_END_BTN_W * 2,
-                  CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H, BTN_ENDTURN if len(self.moves) != 0 else TEXT_LIGHT_GRAY)
+                  CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H,
+                  BTN_ENDTURN if len(self.moves) != 0 else TEXT_LIGHT_GRAY)
         outline_rect(SCREEN_WIDTH - CATAN_BTN_PAD * 2 - CATAN_END_BTN_W * 2,
                      CATAN_BTN_PAD, CATAN_END_BTN_W, CATAN_BTN_H,
                      CATAN_COLOR_BTN_OUTLINE, 1)
@@ -706,7 +714,8 @@ class ComputerTurnView(arcade.View):
     def _draw_cards(self):
         player = self.players[self.current_player]
         if self._army_card_sprite not in self._card_list and player.largest_army:
-            self._army_card_sprite.center_y = ARMY_ROAD_SPRITE_Y1 if not player.longest_road else ARMY_ROAD_SPRITE_Y2
+            self._army_card_sprite.center_y = (ARMY_ROAD_SPRITE_Y1 if not player.longest_road
+                                               else ARMY_ROAD_SPRITE_Y2)
             self._card_list.append(self._army_card_sprite)
         if self._road_card_sprite not in self._card_list and player.longest_road:
             self._card_list.append(self._road_card_sprite)
@@ -781,10 +790,12 @@ class ComputerTurnView(arcade.View):
         # End Turn
         end_left = SCREEN_WIDTH - CATAN_BTN_PAD - CATAN_END_BTN_W
         if len(self.moves) != 0:
-            if (end_left - CATAN_BTN_W <= x < end_left) and  (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
+            if ((end_left - CATAN_BTN_W <= x < end_left) and
+                    (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H)):
                 self._make_move()
 
-        if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
+        if ((end_left <= x <= end_left + CATAN_END_BTN_W) and
+                (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H)):
             self._fast_forward()
             self._end_turn()
             return
@@ -843,7 +854,8 @@ class ComputerTurnView(arcade.View):
                                     player.exchange_resources(to_trade, to_get)
                                     player_to_trade_with.exchange_resources(to_get, to_trade)
                                     self._add_log(
-                                        f"{player.name} traded with {player_to_trade_with.name}: gave {to_trade} and received {to_get}."
+                                        f"{player.name} traded with {player_to_trade_with.name}: "
+                                        f"gave {to_trade} and received {to_get}."
                                     )
                                     move_success = True
                     else:
@@ -899,7 +911,7 @@ class ComputerTurnView(arcade.View):
                 card = random.choice(playable_cards)
 
                 if card["type"] == DEV_KEY_VP:
-                    # vp already added to total, dont need to keep around the card since it cant be
+                    # vp already added to total, dont need to keep the card since it cant be
                     # played
                     player.development_cards.remove(card)
                     move_success = True
@@ -914,7 +926,8 @@ class ComputerTurnView(arcade.View):
                     player.development_cards.remove(card)
                     res2 = player.min_resource()          # re-check after first grant
                     player.resource_cards[res2] += 1
-                    self._add_log(f"{player.name} played Year of Plenty and gained 1 {res1} and 1 {res2}.")
+                    self._add_log(f"{player.name} played Year of Plenty and gained 1 {res1} "
+                                  f"and 1 {res2}.")
                     move_success = True
                 elif card["type"] == DEV_KEY_M:
                     # Steal whatever resource the computer has least of from all opponents
@@ -925,7 +938,9 @@ class ComputerTurnView(arcade.View):
                             opponent.resource_cards[target_res] = 0
                             player.resource_cards[target_res] += stolen
                     player.development_cards.remove(card)
-                    self._add_log(f"{player.name} played Monopoly on {target_res} and collected all available {target_res} cards from opponents.")
+                    self._add_log(f"{player.name} played Monopoly on {target_res} "
+                                  f"and collected all available {target_res} "
+                                  f"cards from opponents.")
                     move_success = True
                 elif card["type"] == DEV_KEY_RB:
                     # gives comp two roads to build for free, handled by build logic
@@ -1035,11 +1050,14 @@ class ComputerTurnView(arcade.View):
                 for node in e.nodes:
                     if node.player == self.current_player or node.player is None:
                         if node in edge_lists.keys():
-                            if node.edges[0] not in edge_lists[node] and node.edges[0].player == self.current_player:
+                            if (node.edges[0] not in edge_lists[node] and
+                                    node.edges[0].player == self.current_player):
                                 edge_lists[node].append(node.edges[0])
-                            if node.edges[1] not in edge_lists[node] and node.edges[1].player == self.current_player:
+                            if (node.edges[1] not in edge_lists[node] and
+                                    node.edges[1].player == self.current_player):
                                 edge_lists[node].append(node.edges[1])
-                            if node.edges[2] not in edge_lists[edge.nodes[len(edge_lists.keys()) - 1]] and node.edges[2].player == self.current_player:
+                            if (node.edges[2] not in edge_lists[edge.nodes[len(edge_lists.keys()) - 1]]
+                                    and node.edges[2].player == self.current_player):
                                 edge_lists[edge.nodes[len(edge_lists.keys()) - 1]].append(node.edges[2])
                         else:
                             for neighbor_edge in node.edges:
@@ -1160,7 +1178,8 @@ class ComputerTurnView(arcade.View):
                 if victim.resource_cards[stolen_res] > 0:
                     victim.resource_cards[stolen_res] -= 1
                     player.resource_cards[stolen_res] += 1
-                    self._add_log(f"{player.name} played Knight and stole {stolen_res} from {victim.name}.")
+                    self._add_log(f"{player.name} played Knight and stole "
+                                  f"{stolen_res} from {victim.name}.")
             else:
                 self._add_log(f"{player.name} played Knight and moved the robber.")
             # Check for largest army and update
@@ -1309,4 +1328,5 @@ class ComputerTurnView(arcade.View):
                     port_manager=self.port_manager,
                     start_of_turn=True,
             )
-        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. Rolled {self.die1 + self.die2}.")
+        print(f"Turn ended. Now it's {self.players[self.current_player].name}'s turn. "
+              f"Rolled {self.die1 + self.die2}.")
