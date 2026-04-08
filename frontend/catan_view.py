@@ -16,7 +16,7 @@ from backend.catan_board import CatanBoard
 from .port_manager import PortManager
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
-                      draw_board, draw_city, draw_ocean_background)
+                      draw_board, draw_city, draw_ocean_background, draw_die_face)
 from .constants import (BUILD_NONE, DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DICE_SPRITES,
                         ROAD_CARD_SPRITE, ARMY_CARD_SPRITE, ROBBER_SPRITE, HEX_SIZE,
                         BOARD_CENTER_X, BOARD_CENTER_Y, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR,
@@ -770,16 +770,15 @@ class CatanView(arcade.View):
             spr1 = self._dice_sprites[face1]
             spr2 = self._dice_sprites[face2]
 
-            spr1.scale    = CATAN_DIE_SIZE / max(spr1.width, spr1.height)
+            spr1.scale = CATAN_DIE_SIZE / max(spr1.width, spr1.height)
             spr1.center_x = die1_x + CATAN_DIE_SIZE / 2
-            spr1.center_y = die_y  + CATAN_DIE_SIZE / 2
+            spr1.center_y = die_y + CATAN_DIE_SIZE / 2
 
-            spr2.scale    = CATAN_DIE_SIZE / max(spr2.width, spr2.height)
+            spr2.scale = CATAN_DIE_SIZE / max(spr2.width, spr2.height)
             spr2.center_x = die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2
-            spr2.center_y = die_y  + CATAN_DIE_SIZE / 2
+            spr2.center_y = die_y + CATAN_DIE_SIZE / 2
 
-            fill_rect(die1_x,                              die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
+            fill_rect(die1_x, die_y, CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
             fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
                       CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
 
@@ -797,26 +796,25 @@ class CatanView(arcade.View):
                              CATAN_DIE_SIZE, CATAN_DIE_SIZE,
                              (*CATAN_COLOR_SHAKE_OUTLINE, alpha), 2)
         else:
-            fill_rect(die1_x, die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
-            fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
+            shake_alpha = int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION)) if self._dice_animating else 0
 
-            arcade.Text(
-                str(face1),
-                die1_x + CATAN_DIE_SIZE / 2, die_y + CATAN_DIE_SIZE / 2,
-                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
-            arcade.Text(
-                str(face2),
-                die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2,
-                die_y + CATAN_DIE_SIZE / 2,
-                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
+            draw_die_face(
+                die1_x,
+                die_y,
+                CATAN_DIE_SIZE,
+                face1,
+                shaking=self._dice_animating,
+                shake_alpha=shake_alpha,
+            )
+
+            draw_die_face(
+                die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP,
+                die_y,
+                CATAN_DIE_SIZE,
+                face2,
+                shaking=self._dice_animating,
+                shake_alpha=shake_alpha,
+            )
 
         if not self._dice_animating:
             arcade.Text(

@@ -323,6 +323,6 @@ SIX = 6
 
 
 # Set True to render dice-face sprites instead of plain colored squares
-USE_DICE_SPRITES = True
+USE_DICE_SPRITES = False
 
 GET_ROBBED = 7
