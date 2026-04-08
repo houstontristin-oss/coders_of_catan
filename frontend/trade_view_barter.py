@@ -5,7 +5,7 @@ import arcade
 from .drawing import fill_rect, outline_rect
 from .constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, TEXT_WHITE, BTN_TRADE, RESOURCE_COLORS, TEXT_LIGHT_GRAY,
-    HUD_PANEL_BG, BTN_ENDTURN, LARGE_TEXT_SIZE
+    HUD_PANEL_BG, BTN_ENDTURN, LARGE_TEXT_SIZE, RESOURCE_ABBR
                         )
 
 #TODO add a view board feature
@@ -48,6 +48,11 @@ _DIVIDER_Y   = _RECV_HEAD_Y + 22                      # separator line
 _OFFT_SPIN_Y = _DIVIDER_Y + 30                        # bottom of Offer spinners
 _OFFT_HEAD_Y = _OFFT_SPIN_Y + _BTN_H + _SWATCH_H - 2 # "YOUR OFFER" label y
 
+# ---------------------------------------------------------------------------
+# Local logic constants
+# ---------------------------------------------------------------------------
+EXCESS_RES_ONE  = 4         # amount of having one resource that is considered too many
+EXCESS_RES_ALL  = 10        # amount of total resources that is considered too many
 class TradeViewBarter(arcade.View):
     """
     Barter (player-to-player) trade screen.
@@ -532,6 +537,21 @@ class TradeViewBarter(arcade.View):
             board=self.board, players=self.players, current_player=self.current_player, 
             die1=self.die1, die2=self.die2, port_manager=self.port_manager
         )
+    
+    def _no_resource_access(self):
+        # find all res they have access to
+        accessible_res = []
+        for tile in self.board.tiles.values():
+            for node in tile.nodes:
+                if node.player == self.current_player:
+                    accessible_res.append(tile.resource)
+        # make list of uppercase res they cant access
+        no_access_res = []
+        for lower_res, upper_res in RESOURCE_ABBR.items():
+            if lower_res not in accessible_res:
+                no_access_res.append(upper_res)
+
+        return no_access_res
 
     def _computer_trade_decision(self, pidx):
         # called when the human sends a trade offer to a computer player
@@ -539,7 +559,18 @@ class TradeViewBarter(arcade.View):
         sender    = self.players[self.current_player]
 
         # --- decide whether the computer accepts ---
-        accepts = False   # TODO: replace with real logic
+        # computer will accept IF it can afford trade and if one or more of three conditions are met
+        # 1. computer doesnt have access to any of the resources offered
+        # 2. computer has more than 4 of any of the resources it would send
+        # 3. computer has too many resources in hand and might want to get rid of some
+        accepts = (
+            computer.can_afford_trade(self.receive)
+            and (
+                any(res in self._no_resource_access() for res in self._offer())
+                or any(computer.resource_cards[res] > EXCESS_RES_ONE for res in self._receive)
+                or computer.get_total_resources() >= EXCESS_RES_ALL
+            )
+        )
 
         if accepts:
             try:
