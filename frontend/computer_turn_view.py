@@ -851,7 +851,8 @@ class ComputerTurnView(arcade.View):
                     (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H)):
                 self._make_move()
 
-        if (end_left <= x <= end_left + CATAN_END_BTN_W) and (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H):
+        if ((end_left <= x <= end_left + CATAN_END_BTN_W) and
+                (CATAN_BTN_PAD <= y <= CATAN_BTN_PAD + CATAN_BTN_H)):
             if not self._turn_fully_revealed:
                 self._fast_forward()
             else:
@@ -1008,7 +1009,7 @@ class ComputerTurnView(arcade.View):
                 elif card["type"] == DEV_KEY_RB:
                     # gives comp two roads to build for free, handled by build logic
                     player.development_cards.remove(card)
-                    self.moves.apend("Build") # add ability to build again
+                    self.moves.append("Build") # add ability to build again
                     self._add_log(f"{player.name} played Road Building and "
                                   f"gained 2 free roads.", player.color)
                     move_success = True
@@ -1229,7 +1230,7 @@ class ComputerTurnView(arcade.View):
             victims = [
                 self.players[node.player]
                 for node in tile.nodes
-                if node.player is not None and node.player != self.current_player 
+                if node.player is not None and node.player != self.current_player
             ]
             if victims:
                 victim = max(victims, key=lambda p: p.get_total_resources())
@@ -1297,7 +1298,7 @@ class ComputerTurnView(arcade.View):
     # -----------------------------------------------------------------------
     # Computer Players Discarding half their hand when a 7 is rolled
     def _comp_robber_discard(self):
-        #From RobberResView, we need a way for the computer to pick a new spot for the robber 
+        #From RobberResView, we need a way for the computer to pick a new spot for the robber
         # do not show RobberResView if its only computer players that need to discard resources
         for player in self.players:
             if player.computer and player.get_total_resources() > GET_ROBBED:
@@ -1357,12 +1358,12 @@ class ComputerTurnView(arcade.View):
             for player in self.players:
                 print(f"{player.name}: {player.resource_cards}")
             self.vm.go_to(
-                    "robber_res", 
-                    board=self.board, 
+                    "robber_res",
+                    board=self.board,
                     players=self.players, 
                     current_player=self.current_player,
-                    die1=self.die1, 
-                    die2=self.die2, 
+                    die1=self.die1,
+                    die2=self.die2,
                     port_manager=self.port_manager)
             return
 

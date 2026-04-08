@@ -392,7 +392,7 @@ class SetupView(arcade.View):
                         )
 
     # After all players have completed setup
-    def _end_setup(self):    
+    def _end_setup(self):
         #setup dice for first player
         die1 = random.randint(ONE, SIX)
         die2 = random.randint(ONE, SIX)
@@ -400,8 +400,8 @@ class SetupView(arcade.View):
         roll = die1 + die2
         #checks if roll is 7 and initiates robber placement phase
         if die1 + die2 == GET_ROBBED:
-            self.vm.go_to("robber_res", 
-                board=self.board, players=self.players, current_player=self.current_player, 
+            self.vm.go_to("robber_res",
+                board=self.board, players=self.players, current_player=self.current_player,
                 die1=die1, die2=die2, port_manager=self.port_manager,
             )
             return

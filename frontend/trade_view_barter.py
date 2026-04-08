@@ -566,7 +566,7 @@ class TradeViewBarter(arcade.View):
         accepts = (
             computer.can_afford_trade(self._receive)
             and (
-                any(res in self._no_resource_access() for res in self._offer())
+                any(res in self._no_resource_access() for res in self._offer)
                 or any(computer.resource_cards[res] > EXCESS_RES_ONE for res in self._receive)
                 or computer.get_total_resources() >= EXCESS_RES_ALL
             )
