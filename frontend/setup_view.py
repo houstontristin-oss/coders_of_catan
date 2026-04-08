@@ -14,7 +14,7 @@ from .drawing import (draw_board, draw_road, draw_settlement, fill_rect,
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
 DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD, EDGE_SNAP_RADIUS,
-NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR, GET_ROBBED)
+NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR, GET_ROBBED, PROB)
 
 class SetupView(arcade.View):
     """
@@ -63,7 +63,7 @@ class SetupView(arcade.View):
             if node.is_valid_setup_placement():
                 node_val = 0
                 for tile in node.tiles:
-                    node_val += tile.number
+                    node_val += PROB.get(tile.number, 0)
                 if node_val > best_node_val:
                     best_node = node
                     best_node_val = node_val

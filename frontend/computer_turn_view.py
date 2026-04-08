@@ -1135,8 +1135,7 @@ class ComputerTurnView(arcade.View):
                 continue
 
             # Prefer high-probability numbers, value is number of pips on each number tile
-            prob = {2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5,
-                    9: 4, 10: 3, 11: 2, 12: 1}.get(tile.number, 0)
+            prob = PROB.get(tile.number, 0)
              # Count distinct opponents with a settlement/city on this tile
             opponent_nodes = [
                 node for node in tile.nodes
