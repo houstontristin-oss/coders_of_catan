@@ -18,9 +18,9 @@ Tristin:
               * Created gamemode_view.py view file for gamemode selection
               * Added constants for the new view within view_constants.py near the top
               * The “Next Move” button greys out when self.moves is empty, the fill color changes to TEXT_LIGHT_GRAY when len(self.moves) == 0
-* A way to see the computer players moves  (unknown) (nice-to-have)
+* A way to see the computer players moves  (hard) (nice-to-have) (done)
     * Active log of what computer players do on each of their turns written to a text box above the end turn button
-* Menu and Gameboard music royalty free
+* Menu and Gameboard music royalty free 
 
 
 Amanda:
