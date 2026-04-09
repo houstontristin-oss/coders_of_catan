@@ -28,7 +28,9 @@ from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_
                              START_FARM_CLOUD_COLOR, START_TITLE_Y, START_TITLE_FONT_SIZE,
                              START_SUBTITLE_Y, START_SUBTITLE_FONT_SIZE, START_SKIP_BTN_X,
                              START_SKIP_BTN_Y, START_SKIP_BTN_W, START_SKIP_BTN_H, START_MUTE_BTN_X,
-                             START_MUTE_BTN_Y, START_MUTE_BTN_W, START_MUTE_BTN_H)
+                             START_MUTE_BTN_Y, START_MUTE_BTN_W, START_MUTE_BTN_H,
+                             START_SHADOW_COLOR, START_SHADOW_X_OFFSET, START_SHADOW_Y_OFFSET, START_SHADOW_Y_SCALE,
+                             )
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +108,18 @@ def _draw_horizon_water(time_s: float):
                 )
             prev = (x, y)
 
+def _draw_ground_shadow(cx, cy, width, height,
+                        color=START_SHADOW_COLOR,
+                        x_offset=START_SHADOW_X_OFFSET,
+                        y_offset=START_SHADOW_Y_OFFSET):
+    arcade.draw_ellipse_filled(
+        cx + x_offset,
+        cy + y_offset,
+        width,
+        height * START_SHADOW_Y_SCALE,
+        color,
+    )
+
 
 def _draw_sheep():
     W = SCREEN_WIDTH
@@ -114,6 +128,8 @@ def _draw_sheep():
     cx = W * START_SHEEP_X_FRAC
     cy = H * START_SHEEP_Y_FRAC
 
+    # Shadow
+    _draw_ground_shadow(cx + 2, cy - 14, 58, 20)
     # Legs
     for lx in (-10, -4, 5, 11):
         arcade.draw_line(cx + lx, cy - 10, cx + lx, cy - 22, START_SHEEP_LEG_COLOR, 2)
@@ -192,6 +208,7 @@ def _draw_farmscape(time_s: float):
     roof_pts = [(bx - 8, by + bh),
                 (bx + bw / 2, by + bh + 44),
                 (bx + bw + 8, by + bh)]
+    _draw_ground_shadow(bx + bw * 0.5, by + 6, 135, 42)
     arcade.draw_polygon_filled(roof_pts, START_FARM_ROOF_COLOR)
     arcade.draw_polygon_outline(roof_pts, START_FARM_BARN_DARK_COLOR, 2)
     dw, dh = 22, 32
@@ -214,6 +231,7 @@ def _draw_farmscape(time_s: float):
     arcade.draw_lrbt_rectangle_outline(
         silo_cx - silo_w / 2, silo_cx + silo_w / 2,
         silo_base_y, silo_base_y + silo_h, START_FARM_SILO_DARK_COLOR, 2)
+    _draw_ground_shadow(silo_cx, silo_base_y + 5, 70, 30)
     arcade.draw_ellipse_filled(silo_cx, silo_base_y + silo_h,
                                 silo_w, silo_w * 0.4, START_FARM_SILO_DARK_COLOR)
 
@@ -237,6 +255,7 @@ def _draw_farmscape(time_s: float):
             tx - trunk_half_w, tx + trunk_half_w,
             trunk_bot, trunk_top,
             (90, 55, 25, 245))
+        _draw_ground_shadow(tx, ty + 4, tr * 2.2, tr * 0.9)
         arcade.draw_circle_filled(tx, ty + th * 0.72, tr * 1.0,
                                    (*START_FARM_TREE_DARK_COLOR[:3], 245))
         arcade.draw_circle_filled(tx - tr * 0.3, ty + th * 0.78, tr * 0.75,
