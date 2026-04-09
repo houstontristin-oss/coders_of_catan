@@ -13,7 +13,8 @@ from .port_manager import PortManager
 
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement,
-                      draw_road, draw_board, draw_city, draw_ocean_background, draw_die_face)
+                      draw_road, draw_board, draw_city, draw_ocean_background,
+                      draw_die_face, draw_speaker_button)
 from .constants import (DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DEV_CARD_DECK,
                         DICE_SPRITES, ROAD_CARD_SPRITE, ARMY_CARD_SPRITE,
                         ROBBER_SPRITE, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y,
@@ -47,7 +48,8 @@ from .view_constants import (CARD_SCALE, ARMY_ROAD_SPRITE_Y1, ARMY_ROAD_SPRITE_X
                              CATAN_RESOURCE_ICON_Y_OFFSET, CATAN_COLOR_DIE_BG,
                              CATAN_COLOR_SHAKE_OUTLINE, CATAN_COLOR_DIE_FALLBACK,
                              CATAN_TEXT_SIZE_TOTAL, CATAN_SETTLEMENT_DRAW_SIZE,
-                             CATAN_CITY_DRAW_SIZE, CATAN_BTN_W, LONGEST_ROAD_VP, ROADS_NEEDED)
+                             CATAN_CITY_DRAW_SIZE, CATAN_BTN_W, LONGEST_ROAD_VP, ROADS_NEEDED,
+                             CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H, CATAN_MUTE_BTN_PAD)
 
 FAST_FORWARD = "Next Player"
 NEXT_MOVE = "Next Move"
@@ -807,6 +809,15 @@ class ComputerTurnView(arcade.View):
                     draw_city(npx, npy, CATAN_CITY_DRAW_SIZE,
                               self.players[node_obj.player].color)
 
+    def _get_mute_button_rect(self):
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
+
+        left = dx - CATAN_MUTE_BTN_W - CATAN_MUTE_BTN_PAD
+        bottom = dy + DICE_AREA_HEIGHT - CATAN_MUTE_BTN_H
+
+        return left, bottom, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H
+
     # -----------------------------------------------------------------------
     # on_draw
     def on_draw(self):
@@ -829,6 +840,16 @@ class ComputerTurnView(arcade.View):
         self._draw_player_panel()
         self._draw_player_summary_boxes()
         self._draw_dice_area()
+
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        draw_speaker_button(
+            mute_left,
+            mute_bottom,
+            mute_w,
+            mute_h,
+            self.vm.music.muted,
+        )
+
         self._draw_bottom_bar()
         self._draw_log_reactangle()
         self._draw_cards()
@@ -840,6 +861,11 @@ class ComputerTurnView(arcade.View):
     # -----------------------------------------------------------------------
     # Mouse press
     def on_mouse_press(self, x, y, button, modifiers):
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        if (mute_left <= x <= mute_left + mute_w and
+                mute_bottom <= y <= mute_bottom + mute_h):
+            self.vm.music.toggle_mute()
+            return
         # barter trade
         if self._trade_pending:
             self._handle_modal_click(x, y)
