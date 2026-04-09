@@ -994,8 +994,8 @@ class CatanView(arcade.View):
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
         dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
 
-        left = dx - CATAN_MUTE_BTN_W - CATAN_MUTE_BTN_PAD
-        bottom = dy + DICE_AREA_HEIGHT - CATAN_MUTE_BTN_H
+        left = SCREEN_WIDTH - CATAN_MUTE_BTN_W - CATAN_DICE_BOX_MARGIN
+        bottom = dy - CATAN_MUTE_BTN_H - CATAN_MUTE_BTN_PAD
 
         return left, bottom, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H
 
