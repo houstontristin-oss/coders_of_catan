@@ -73,7 +73,6 @@ from .view_constants import (CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD, CATAN_BTN_H
                              CATAN_COLOR_POPUP_CANCEL, CATAN_PORT_HOVER_OUTER_RADIUS,
                              CATAN_COLOR_PORT_HOVER_OUTER, CATAN_PORT_HOVER_INNER_RADIUS,
                              CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS)
-from .computer_turn_view import ComputerTurnView
 
 CARD_SCALE = 0.25
 ARMY_ROAD_SPRITE_X = SCREEN_WIDTH - 70
