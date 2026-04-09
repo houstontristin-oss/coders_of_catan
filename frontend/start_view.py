@@ -7,8 +7,8 @@ import random
 import arcade
 from backend.catan_board import CatanBoard
 from backend.player import Player
-from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH,
-                        TEXT_GOLD, RESOURCE_ABBR, ONE, SIX)
+from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, TEXT_GOLD, RESOURCE_ABBR,
+                        ONE, SIX, SHEEP_BAA_SOUND, SHEEP_BAA_VOLUME)
 from .drawing import fill_rect, outline_rect, draw_speaker_button
 from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_X,
                              START_SUN_Y, START_SUN_GLOW_COLOR, START_SUN_RAY_COUNT,
@@ -419,6 +419,22 @@ class StartView(arcade.View):
         self.vm = vm
         self._time = 0.0
         self._build_text_objects()
+        self._sheep_click_count = 0
+        try:
+            self._sheep_baa = arcade.load_sound(SHEEP_BAA_SOUND)
+        except Exception:
+            self._sheep_baa = None
+
+    def _sheep_hit(self, x, y) -> bool:
+        cx = SCREEN_WIDTH * START_SHEEP_X_FRAC
+        cy = START_FARM_HORIZON_Y * START_SHEEP_Y_FRAC
+
+        left = cx - 28
+        right = cx + 32
+        bottom = cy - 26
+        top = cy + 18
+
+        return left <= x <= right and bottom <= y <= top
 
     def _build_text_objects(self):
         btn_cx = START_SKIP_BTN_X + START_SKIP_BTN_W / 2
@@ -468,6 +484,16 @@ class StartView(arcade.View):
         return board, players
 
     def on_mouse_press(self, x, y, button, modifiers):
+        if self._sheep_hit(x, y):
+            self._sheep_click_count += 1
+
+            if self._sheep_click_count >= 3:
+                if self._sheep_baa is not None:
+                    arcade.play_sound(self._sheep_baa, volume=SHEEP_BAA_VOLUME)
+                self._sheep_click_count = 0
+            return
+        else:
+            self._sheep_click_count = 0
         board, players = self._make_board_and_players()
 
         if (START_MUTE_BTN_X <= x <= START_MUTE_BTN_X + START_MUTE_BTN_W and

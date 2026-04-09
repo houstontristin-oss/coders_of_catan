@@ -343,8 +343,10 @@ EDGE_SNAP_RADIUS = 14
 ONE = 1
 SIX = 6
 
-
 # Set True to render dice-face sprites instead of plain colored squares
 USE_DICE_SPRITES = False
 
 GET_ROBBED = 7
+
+SHEEP_BAA_SOUND = os.path.join(_AUDIO, "sheep.mp3")
+SHEEP_BAA_VOLUME = 0.75
