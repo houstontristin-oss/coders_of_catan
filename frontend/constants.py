@@ -19,7 +19,7 @@ SCREEN_TITLE  = "Coders of Catan"
 BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "picture.png")
 
 # ---------------------------------------------------------------------------
-BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "ocean_background.png")
+# BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "ocean_background.png")
 BACKGROUND_IMAGE_SECRET = os.path.join(BASE_DIR, "sprites", "background", "background_secret.jpg")
 # Animated ocean background
 USE_OCEAN_BACKGROUND = True
@@ -310,6 +310,24 @@ TRADE_NONE       = None
 SETTLEMENT_COST = {"BRICK": 1, "WOOD": 1, "WHEAT": 1, "SHEEP": 1}
 ROAD_COST       = {"BRICK": 1, "WOOD": 1}
 CITY_COST       = {"ORE": 3, "WHEAT": 2}
+
+
+# ---------------------------------------------------------------------------
+# Music
+_AUDIO = os.path.join(BASE_DIR, "audio")
+
+MENU_WAVES_MUSIC = os.path.join(_AUDIO, "menu_waves.mp3")
+MENU_THEME_MUSIC = os.path.join(_AUDIO, "menu_theme.mp3")
+SETUP_THEME_MUSIC = os.path.join(_AUDIO, "setup_theme.mp3")
+BOARD_THEME_MUSIC = os.path.join(_AUDIO, "board_theme.mp3")
+END_THEME_MUSIC = os.path.join(_AUDIO, "end_theme.mp3")
+
+MENU_WAVES_VOLUME = 0.22
+MENU_THEME_VOLUME = 0.42
+SETUP_THEME_VOLUME = 0.35
+BOARD_THEME_VOLUME = 0.45
+END_THEME_VOLUME = 0.40
+MASTER_MUSIC_VOLUME = 1.0
 
 
 # Snap radii (pixels)

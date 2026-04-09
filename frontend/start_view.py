@@ -9,7 +9,7 @@ from backend.catan_board import CatanBoard
 from backend.player import Player
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH,
                         TEXT_GOLD, RESOURCE_ABBR, ONE, SIX)
-from .drawing import fill_rect, outline_rect
+from .drawing import fill_rect, outline_rect, draw_speaker_button
 from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_X,
                              START_SUN_Y, START_SUN_GLOW_COLOR, START_SUN_RAY_COUNT,
                              START_SUN_RADIUS, START_SUN_RAY_LEN, START_SUN_RAY_COLOR,
@@ -27,7 +27,8 @@ from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_
                              START_FARM_TREE_DARK_COLOR, START_FARM_TREE_COLOR,
                              START_FARM_CLOUD_COLOR, START_TITLE_Y, START_TITLE_FONT_SIZE,
                              START_SUBTITLE_Y, START_SUBTITLE_FONT_SIZE, START_SKIP_BTN_X,
-                             START_SKIP_BTN_Y, START_SKIP_BTN_W, START_SKIP_BTN_H)
+                             START_SKIP_BTN_Y, START_SKIP_BTN_W, START_SKIP_BTN_H, START_MUTE_BTN_X,
+                             START_MUTE_BTN_Y, START_MUTE_BTN_W, START_MUTE_BTN_H)
 
 
 # ---------------------------------------------------------------------------
@@ -424,6 +425,12 @@ class StartView(arcade.View):
         _draw_farmscape(self._time)            # 4. Farmscape (fades at horizon)
         _draw_title()                # 5. Title + subtitle
         _draw_skip_button(self.txt_skip)  # 6. Skip button
+        draw_speaker_button(
+            START_MUTE_BTN_X,
+            START_MUTE_BTN_Y,
+            START_MUTE_BTN_W,
+            START_MUTE_BTN_H,
+            self.vm.music.muted)
 
     # ------------------------------------------------------------------
     def _skip_button_hit(self, x, y) -> bool:
@@ -443,6 +450,11 @@ class StartView(arcade.View):
 
     def on_mouse_press(self, x, y, button, modifiers):
         board, players = self._make_board_and_players()
+
+        if (START_MUTE_BTN_X <= x <= START_MUTE_BTN_X + START_MUTE_BTN_W and
+                START_MUTE_BTN_Y <= y <= START_MUTE_BTN_Y + START_MUTE_BTN_H):
+            self.vm.music.toggle_mute()
+            return
 
         if self._skip_button_hit(x, y):
             _auto_place_setup(board, players)

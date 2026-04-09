@@ -6,18 +6,7 @@
 """
 import math
 import arcade
-from .constants import (TOKEN_RED, TEXT_GOLD, SCREEN_WIDTH, SCREEN_HEIGHT,
-                        OCEAN_BASE_COLOR, OCEAN_DEEP_COLOR, OCEAN_MID_COLOR,
-                        OCEAN_BAND_COUNT, OCEAN_BAND_SPACING, OCEAN_BAND_AMPLITUDE,
-                        OCEAN_BAND_WAVELENGTH, OCEAN_BAND_THICKNESS, OCEAN_BAND_COLOR,
-                        OCEAN_BAND_PHASE_SPEED, OCEAN_RIPPLE_COUNT, OCEAN_RIPPLE_SPACING,
-                        OCEAN_RIPPLE_AMPLITUDE, OCEAN_RIPPLE_THICKNESS,
-                        OCEAN_RIPPLE_WAVELENGTH, OCEAN_RIPPLE_COLOR, HEX_SIZE,
-                        BOARD_CENTER_X, BOARD_CENTER_Y, SHORE_OUTER_RING_ONLY,
-                        SHORE_FOAM_OFFSET, SHORE_FOAM_PULSE_SPEED, SHORE_FOAM_COLOR,
-                        SHORE_FOAM_HIGHLIGHT_COLOR, SHORE_FOAM_HIGHLIGHT_WIDTH,
-                        SHORE_FOAM_WIDTH, HEX_TILE_SPRITES, HEX_TILE_SCALE, HEX_TILE_Y_OFFSET,
-                        RESOURCE_COLORS, HEX_TILE_OUTLINE_WIDTH)
+from .constants import *
 from .board_utils import cubic_to_pixel, get_hex_corners
 
 def draw_settlement(cx, cy, size, color):
@@ -84,6 +73,29 @@ def draw_number_token(cx, cy, number):
 def fill_rect(left, bottom, width, height, color):
     arcade.draw_lrbt_rectangle_filled(left, left + width, bottom, bottom + height, color)
 
+def draw_speaker_button(left, bottom, width, height, muted):
+    fill_rect(left, bottom, width, height, (20, 20, 40, 220))
+    outline_rect(left, bottom, width, height, TEXT_GOLD, 2)
+
+    cx = left + width / 2
+    cy = bottom + height / 2
+
+    speaker = [
+        (cx - 10, cy - 6),
+        (cx - 4,  cy - 6),
+        (cx + 2,  cy - 12),
+        (cx + 2,  cy + 12),
+        (cx - 4,  cy + 6),
+        (cx - 10, cy + 6),
+    ]
+    arcade.draw_polygon_filled(speaker, TEXT_WHITE)
+
+    if muted:
+        arcade.draw_line(cx + 6, cy - 10, cx + 16, cy + 10, (220, 80, 80), 3)
+        arcade.draw_line(cx + 6, cy + 10, cx + 16, cy - 10, (220, 80, 80), 3)
+    else:
+        arcade.draw_arc_outline(cx + 6, cy, 10, 14, TEXT_WHITE, 1, -40, 40, 2)
+        arcade.draw_arc_outline(cx + 8, cy, 16, 20, TEXT_WHITE, 1, -40, 40, 2)
 
 def outline_rect(left, bottom, width, height, color, border=2):
     arcade.draw_lrbt_rectangle_outline(left, left + width, bottom, bottom + height, color, border)

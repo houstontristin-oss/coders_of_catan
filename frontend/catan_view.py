@@ -2,8 +2,6 @@
 Contains CatanView Class
     Parameters:
         All mighty viewing file
-
-
     Need to change Build and Trade button boolean to be false while other button is true to avoid
     having both menus open at the same time
 """
@@ -16,7 +14,7 @@ from backend.catan_board import CatanBoard
 from .port_manager import PortManager
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
-                      draw_board, draw_city, draw_ocean_background, draw_die_face)
+                      draw_board, draw_city, draw_ocean_background, draw_die_face, draw_speaker_button)
 from .constants import (BUILD_NONE, DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DICE_SPRITES,
                         ROAD_CARD_SPRITE, ARMY_CARD_SPRITE, ROBBER_SPRITE, HEX_SIZE,
                         BOARD_CENTER_X, BOARD_CENTER_Y, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR,
@@ -72,7 +70,8 @@ from .view_constants import (CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD, CATAN_BTN_H
                              CATAN_CONFIRM_BTN_W, CATAN_CONFIRM_BTN_H, CATAN_CONFIRM_BTN_CENTER_Y,
                              CATAN_COLOR_POPUP_CANCEL, CATAN_PORT_HOVER_OUTER_RADIUS,
                              CATAN_COLOR_PORT_HOVER_OUTER, CATAN_PORT_HOVER_INNER_RADIUS,
-                             CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS)
+                             CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS, CATAN_MUTE_BTN_W,
+                             CATAN_MUTE_BTN_H, CATAN_MUTE_BTN_PAD)
 from .computer_turn_view import ComputerTurnView
 
 CARD_SCALE = 0.25
@@ -991,9 +990,17 @@ class CatanView(arcade.View):
             arcade.draw_circle_outline(px, py, CATAN_PORT_HOVER_OUTLINE_RADIUS,
                                        TEXT_GOLD, 2)
 
+    def _get_mute_button_rect(self):
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
+
+        left = dx - CATAN_MUTE_BTN_W - CATAN_MUTE_BTN_PAD
+        bottom = dy + DICE_AREA_HEIGHT - CATAN_MUTE_BTN_H
+
+        return left, bottom, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H
+
     # -----------------------------------------------------------------------
     # on_draw
-
     def on_draw(self):
         self.clear()
 
@@ -1027,6 +1034,16 @@ class CatanView(arcade.View):
         self._draw_player_panel()
         self._draw_player_summary_boxes()
         self._draw_dice_area()
+
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        draw_speaker_button(
+            mute_left,
+            mute_bottom,
+            mute_w,
+            mute_h,
+            self.vm.music.muted,
+        )
+
         self._draw_bottom_bar()
         self._draw_build_submenu()
         self._draw_trade_submenu()
@@ -1079,8 +1096,13 @@ class CatanView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Mouse press
-    # -----------------------------------------------------------------------
     def on_mouse_press(self, x, y, button, modifiers):
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        if (mute_left <= x <= mute_left + mute_w and
+                mute_bottom <= y <= mute_bottom + mute_h):
+            self.vm.music.toggle_mute()
+            return
+
         trade_bottom = CATAN_BTN_PAD
         build_bottom = trade_bottom + CATAN_BTN_H + CATAN_BTN_GAP
         card_bottom  = build_bottom + CATAN_BTN_H + CATAN_BTN_GAP
