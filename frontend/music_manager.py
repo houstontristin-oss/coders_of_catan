@@ -176,11 +176,6 @@ class MusicManager:
     # ------------------------------------------------------------------
     # Scene presets
     def play_start_menu(self) -> None:
-        """
-        Start screen audio:
-        - waves ambience
-        - menu theme
-        """
         if self.current_scene == "start":
             return
 
@@ -189,37 +184,16 @@ class MusicManager:
         self.play_track("menu_theme")
         self.current_scene = "start"
 
-    def play_setup(self) -> None:
-        """
-        Setup phase audio:
-        - optional lighter setup theme
-        """
-        if self.current_scene == "setup":
+    def play_gameplay(self) -> None:
+        if self.current_scene == "gameplay":
             return
 
         self.stop_all()
-        self.play_track("menu_waves")
-        self.play_track("setup_theme")
-        self.current_scene = "setup"
-
-    def play_main_board(self) -> None:
-        """
-        Main gameplay audio:
-        - tavern / folk board theme
-        """
-        if self.current_scene == "main_board":
-            return
-
-        self.stop_all()
-        self.play_track("menu_waves")
-        self.play_track("board_theme")
-        self.current_scene = "main_board"
+        self.play_track("board_waves")
+        self.play_track("gameplay_theme")
+        self.current_scene = "gameplay"
 
     def play_end_screen(self) -> None:
-        """
-        End screen audio:
-        - optional victory or soft closing theme
-        """
         if self.current_scene == "end":
             return
 

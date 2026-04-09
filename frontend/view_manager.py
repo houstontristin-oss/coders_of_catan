@@ -3,10 +3,11 @@
 
 from frontend.music_manager import MusicManager, TrackConfig
 from frontend.constants import (
-    MENU_WAVES_MUSIC, MENU_THEME_MUSIC, SETUP_THEME_MUSIC,
-    BOARD_THEME_MUSIC, END_THEME_MUSIC,
-    MENU_WAVES_VOLUME, MENU_THEME_VOLUME, SETUP_THEME_VOLUME,
-    BOARD_THEME_VOLUME, END_THEME_VOLUME, MASTER_MUSIC_VOLUME,
+    MENU_WAVES_MUSIC, MENU_THEME_MUSIC,
+    GAMEPLAY_THEME_MUSIC, END_THEME_MUSIC,
+    MENU_WAVES_VOLUME, MENU_THEME_VOLUME,
+    BOARD_WAVES_VOLUME, GAMEPLAY_THEME_VOLUME,
+    END_THEME_VOLUME, MASTER_MUSIC_VOLUME,
 )
 
 class ViewManager:
@@ -20,8 +21,10 @@ class ViewManager:
         self.music = MusicManager({
             "menu_waves": TrackConfig("menu_waves", MENU_WAVES_MUSIC, MENU_WAVES_VOLUME),
             "menu_theme": TrackConfig("menu_theme", MENU_THEME_MUSIC, MENU_THEME_VOLUME),
-            "setup_theme": TrackConfig("setup_theme", SETUP_THEME_MUSIC, SETUP_THEME_VOLUME),
-            "board_theme": TrackConfig("board_theme", BOARD_THEME_MUSIC, BOARD_THEME_VOLUME),
+
+            "board_waves": TrackConfig("board_waves", MENU_WAVES_MUSIC, BOARD_WAVES_VOLUME),
+            "gameplay_theme": TrackConfig("gameplay_theme", GAMEPLAY_THEME_MUSIC, GAMEPLAY_THEME_VOLUME),
+
             "end_theme": TrackConfig("end_theme", END_THEME_MUSIC, END_THEME_VOLUME),
         })
         self.music.set_master_volume(MASTER_MUSIC_VOLUME)
@@ -37,11 +40,17 @@ class ViewManager:
         self._history.append((name, kwargs))
         if name == "start":
             self.music.play_start_menu()
-        elif name == "setup":
-            self.music.play_setup()
-        elif name in ("catan", "computer_turn", "play_card", "maritime_trade", "barter_trade",
-                      "robber_place", "robber_res"):
-            self.music.play_main_board()
+        elif name in (
+                "setup",
+                "catan",
+                "computer_turn",
+                "play_card",
+                "maritime_trade",
+                "barter_trade",
+                "robber_place",
+                "robber_res",
+        ):
+            self.music.play_gameplay()
         elif name == "end":
             self.music.play_end_screen()
         self.window.show_view(view)
