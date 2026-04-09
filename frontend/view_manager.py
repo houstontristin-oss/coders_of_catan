@@ -1,18 +1,33 @@
 # ViewManager uses go_to() to handle all view transitions in one place.
 # Import this anywhere you need to switch views instead of importing views directly.
 
+from frontend.music_manager import MusicManager, TrackConfig
+from frontend.constants import (
+    MENU_WAVES_MUSIC, MENU_THEME_MUSIC,
+    GAMEPLAY_THEME_MUSIC, END_THEME_MUSIC,
+    MENU_WAVES_VOLUME, MENU_THEME_VOLUME,
+    BOARD_WAVES_VOLUME, GAMEPLAY_THEME_VOLUME,
+    END_THEME_VOLUME, MASTER_MUSIC_VOLUME,
+)
+
 class ViewManager:
     """
     Owns all view construction and transition logic.
-
-    Parameters
-    ----------
-    window : arcade.Window
-    """
+        """
 
     def __init__(self, window):
         self.window = window
         self._history = []  # stack of (name, kwargs) for back navigation
+        self.music = MusicManager({
+            "menu_waves": TrackConfig("menu_waves", MENU_WAVES_MUSIC, MENU_WAVES_VOLUME),
+            "menu_theme": TrackConfig("menu_theme", MENU_THEME_MUSIC, MENU_THEME_VOLUME),
+
+            "board_waves": TrackConfig("board_waves", MENU_WAVES_MUSIC, BOARD_WAVES_VOLUME),
+            "gameplay_theme": TrackConfig("gameplay_theme", GAMEPLAY_THEME_MUSIC, GAMEPLAY_THEME_VOLUME),
+
+            "end_theme": TrackConfig("end_theme", END_THEME_MUSIC, END_THEME_VOLUME),
+        })
+        self.music.set_master_volume(MASTER_MUSIC_VOLUME)
 
     def go_to(self, name, **kwargs):
         """
@@ -23,6 +38,21 @@ class ViewManager:
         if view is None:
             raise ValueError(f"ViewManager: unknown view name '{name}'")
         self._history.append((name, kwargs))
+        if name == "start":
+            self.music.play_start_menu()
+        elif name in (
+                "setup",
+                "catan",
+                "computer_turn",
+                "play_card",
+                "maritime_trade",
+                "barter_trade",
+                "robber_place",
+                "robber_res",
+        ):
+            self.music.play_gameplay()
+        elif name == "end":
+            self.music.play_end_screen()
         self.window.show_view(view)
 
     def go_back(self):

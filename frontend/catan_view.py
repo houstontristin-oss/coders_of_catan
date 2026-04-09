@@ -2,8 +2,6 @@
 Contains CatanView Class
     Parameters:
         All mighty viewing file
-
-
     Need to change Build and Trade button boolean to be false while other button is true to avoid
     having both menus open at the same time
 """
@@ -16,7 +14,7 @@ from backend.catan_board import CatanBoard
 from .port_manager import PortManager
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
-                      draw_board, draw_city, draw_ocean_background)
+                      draw_board, draw_city, draw_ocean_background, draw_die_face, draw_speaker_button)
 from .constants import (BUILD_NONE, DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DICE_SPRITES,
                         ROAD_CARD_SPRITE, ARMY_CARD_SPRITE, ROBBER_SPRITE, HEX_SIZE,
                         BOARD_CENTER_X, BOARD_CENTER_Y, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR,
@@ -72,6 +70,9 @@ from .view_constants import (CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD, CATAN_BTN_H
                              CATAN_CONFIRM_BTN_W, CATAN_CONFIRM_BTN_H, CATAN_CONFIRM_BTN_CENTER_Y,
                              CATAN_COLOR_POPUP_CANCEL, CATAN_PORT_HOVER_OUTER_RADIUS,
                              CATAN_COLOR_PORT_HOVER_OUTER, CATAN_PORT_HOVER_INNER_RADIUS,
+                             CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS, CATAN_MUTE_BTN_W,
+                             CATAN_MUTE_BTN_H, CATAN_MUTE_BTN_PAD)
+from .computer_turn_view import ComputerTurnView
                              CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS)
 
 CARD_SCALE = 0.25
@@ -769,16 +770,15 @@ class CatanView(arcade.View):
             spr1 = self._dice_sprites[face1]
             spr2 = self._dice_sprites[face2]
 
-            spr1.scale    = CATAN_DIE_SIZE / max(spr1.width, spr1.height)
+            spr1.scale = CATAN_DIE_SIZE / max(spr1.width, spr1.height)
             spr1.center_x = die1_x + CATAN_DIE_SIZE / 2
-            spr1.center_y = die_y  + CATAN_DIE_SIZE / 2
+            spr1.center_y = die_y + CATAN_DIE_SIZE / 2
 
-            spr2.scale    = CATAN_DIE_SIZE / max(spr2.width, spr2.height)
+            spr2.scale = CATAN_DIE_SIZE / max(spr2.width, spr2.height)
             spr2.center_x = die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2
-            spr2.center_y = die_y  + CATAN_DIE_SIZE / 2
+            spr2.center_y = die_y + CATAN_DIE_SIZE / 2
 
-            fill_rect(die1_x,                              die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
+            fill_rect(die1_x, die_y, CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
             fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
                       CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
 
@@ -796,26 +796,25 @@ class CatanView(arcade.View):
                              CATAN_DIE_SIZE, CATAN_DIE_SIZE,
                              (*CATAN_COLOR_SHAKE_OUTLINE, alpha), 2)
         else:
-            fill_rect(die1_x, die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
-            fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
+            shake_alpha = int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION)) if self._dice_animating else 0
 
-            arcade.Text(
-                str(face1),
-                die1_x + CATAN_DIE_SIZE / 2, die_y + CATAN_DIE_SIZE / 2,
-                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
-            arcade.Text(
-                str(face2),
-                die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2,
-                die_y + CATAN_DIE_SIZE / 2,
-                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
+            draw_die_face(
+                die1_x,
+                die_y,
+                CATAN_DIE_SIZE,
+                face1,
+                shaking=self._dice_animating,
+                shake_alpha=shake_alpha,
+            )
+
+            draw_die_face(
+                die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP,
+                die_y,
+                CATAN_DIE_SIZE,
+                face2,
+                shaking=self._dice_animating,
+                shake_alpha=shake_alpha,
+            )
 
         if not self._dice_animating:
             arcade.Text(
@@ -992,9 +991,17 @@ class CatanView(arcade.View):
             arcade.draw_circle_outline(px, py, CATAN_PORT_HOVER_OUTLINE_RADIUS,
                                        TEXT_GOLD, 2)
 
+    def _get_mute_button_rect(self):
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
+
+        left = dx - CATAN_MUTE_BTN_W - CATAN_MUTE_BTN_PAD
+        bottom = dy + DICE_AREA_HEIGHT - CATAN_MUTE_BTN_H
+
+        return left, bottom, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H
+
     # -----------------------------------------------------------------------
     # on_draw
-
     def on_draw(self):
         self.clear()
 
@@ -1028,6 +1035,16 @@ class CatanView(arcade.View):
         self._draw_player_panel()
         self._draw_player_summary_boxes()
         self._draw_dice_area()
+
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        draw_speaker_button(
+            mute_left,
+            mute_bottom,
+            mute_w,
+            mute_h,
+            self.vm.music.muted,
+        )
+
         self._draw_bottom_bar()
         self._draw_build_submenu()
         self._draw_trade_submenu()
@@ -1080,8 +1097,13 @@ class CatanView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Mouse press
-    # -----------------------------------------------------------------------
     def on_mouse_press(self, x, y, button, modifiers):
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        if (mute_left <= x <= mute_left + mute_w and
+                mute_bottom <= y <= mute_bottom + mute_h):
+            self.vm.music.toggle_mute()
+            return
+
         trade_bottom = CATAN_BTN_PAD
         build_bottom = trade_bottom + CATAN_BTN_H + CATAN_BTN_GAP
         card_bottom  = build_bottom + CATAN_BTN_H + CATAN_BTN_GAP

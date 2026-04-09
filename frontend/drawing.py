@@ -6,18 +6,7 @@
 """
 import math
 import arcade
-from .constants import (TOKEN_RED, TEXT_GOLD, SCREEN_WIDTH, SCREEN_HEIGHT,
-                        OCEAN_BASE_COLOR, OCEAN_DEEP_COLOR, OCEAN_MID_COLOR,
-                        OCEAN_BAND_COUNT, OCEAN_BAND_SPACING, OCEAN_BAND_AMPLITUDE,
-                        OCEAN_BAND_WAVELENGTH, OCEAN_BAND_THICKNESS, OCEAN_BAND_COLOR,
-                        OCEAN_BAND_PHASE_SPEED, OCEAN_RIPPLE_COUNT, OCEAN_RIPPLE_SPACING,
-                        OCEAN_RIPPLE_AMPLITUDE, OCEAN_RIPPLE_THICKNESS,
-                        OCEAN_RIPPLE_WAVELENGTH, OCEAN_RIPPLE_COLOR, HEX_SIZE,
-                        BOARD_CENTER_X, BOARD_CENTER_Y, SHORE_OUTER_RING_ONLY,
-                        SHORE_FOAM_OFFSET, SHORE_FOAM_PULSE_SPEED, SHORE_FOAM_COLOR,
-                        SHORE_FOAM_HIGHLIGHT_COLOR, SHORE_FOAM_HIGHLIGHT_WIDTH,
-                        SHORE_FOAM_WIDTH, HEX_TILE_SPRITES, HEX_TILE_SCALE, HEX_TILE_Y_OFFSET,
-                        RESOURCE_COLORS, HEX_TILE_OUTLINE_WIDTH)
+from .constants import *
 from .board_utils import cubic_to_pixel, get_hex_corners
 
 def draw_settlement(cx, cy, size, color):
@@ -43,6 +32,8 @@ def draw_road(x1, y1, x2, y2, color, width=6):
     arcade.draw_line(x1, y1, x2, y2, arcade.color.WHITE, width + 4)
     arcade.draw_line(x1, y1, x2, y2, arcade.color.BLACK, width + 2)
     arcade.draw_line(x1, y1, x2, y2, color, width)
+
+
 
 def draw_number_token(cx, cy, number):
     """Draw a classic Catan number token — cream circle with number inside.
@@ -77,11 +68,38 @@ def draw_number_token(cx, cy, number):
         font_name="MedievalSharp"
     ).draw()
 
+
+
 def fill_rect(left, bottom, width, height, color):
     arcade.draw_lrbt_rectangle_filled(left, left + width, bottom, bottom + height, color)
 
+def draw_speaker_button(left, bottom, width, height, muted):
+    fill_rect(left, bottom, width, height, (20, 20, 40, 220))
+    outline_rect(left, bottom, width, height, TEXT_GOLD, 2)
+
+    cx = left + width / 2
+    cy = bottom + height / 2
+
+    speaker = [
+        (cx - 10, cy - 6),
+        (cx - 4,  cy - 6),
+        (cx + 2,  cy - 12),
+        (cx + 2,  cy + 12),
+        (cx - 4,  cy + 6),
+        (cx - 10, cy + 6),
+    ]
+    arcade.draw_polygon_filled(speaker, TEXT_WHITE)
+
+    if muted:
+        arcade.draw_line(cx + 6, cy - 10, cx + 16, cy + 10, (220, 80, 80), 3)
+        arcade.draw_line(cx + 6, cy + 10, cx + 16, cy - 10, (220, 80, 80), 3)
+    else:
+        arcade.draw_arc_outline(cx + 6, cy, 10, 14, TEXT_WHITE, 1, -40, 40, 2)
+        arcade.draw_arc_outline(cx + 8, cy, 16, 20, TEXT_WHITE, 1, -40, 40, 2)
+
 def outline_rect(left, bottom, width, height, color, border=2):
     arcade.draw_lrbt_rectangle_outline(left, left + width, bottom, bottom + height, color, border)
+
 
 def draw_port_label(label_x, label_y, label):
     """Port label with a dark pill background so it's always legible."""
@@ -370,6 +388,72 @@ def _get_hex_sprite(resource_name: str):
             return None
 
     return sprite
+
+
+def _draw_die_pips(cx, cy, size, value):
+    pip_color = (180, 30, 30)
+    pip_radius = max(2, int(size * 0.08))
+    offset = size * 0.22
+
+    positions = {
+        "center": (cx, cy),
+        "tl": (cx - offset, cy + offset),
+        "tr": (cx + offset, cy + offset),
+        "ml": (cx - offset, cy),
+        "mr": (cx + offset, cy),
+        "bl": (cx - offset, cy - offset),
+        "br": (cx + offset, cy - offset),
+    }
+
+    pip_map = {
+        1: ["center"],
+        2: ["tl", "br"],
+        3: ["tl", "center", "br"],
+        4: ["tl", "tr", "bl", "br"],
+        5: ["tl", "tr", "center", "bl", "br"],
+        6: ["tl", "tr", "ml", "mr", "bl", "br"],
+    }
+
+    for key in pip_map.get(value, []):
+        px, py = positions[key]
+        arcade.draw_circle_filled(px, py, pip_radius, pip_color)
+
+
+def draw_die_face(left, bottom, size, value, shaking=False, shake_alpha=180):
+    face_color = (242, 236, 220)
+    outline_color = (55, 45, 35)
+    shadow_color = (0, 0, 0, 70)
+
+    # shadow
+    arcade.draw_lrbt_rectangle_filled(
+        left + 3, left + size + 3,
+        bottom - 3, bottom + size - 3,
+        shadow_color
+    )
+
+    # face
+    arcade.draw_lrbt_rectangle_filled(
+        left, left + size,
+        bottom, bottom + size,
+        face_color
+    )
+
+    # border
+    arcade.draw_lrbt_rectangle_outline(
+        left, left + size,
+        bottom, bottom + size,
+        outline_color, 2
+    )
+
+    # optional shake highlight
+    if shaking:
+        arcade.draw_lrbt_rectangle_outline(
+            left, left + size,
+            bottom, bottom + size,
+            (220, 190, 120, shake_alpha), 2
+        )
+
+    _draw_die_pips(left + size / 2, bottom + size / 2, size, value)
 
 
 def draw_board(board):
