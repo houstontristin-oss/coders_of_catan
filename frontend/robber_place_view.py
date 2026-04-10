@@ -217,7 +217,7 @@ class RobberPlaceView(arcade.View):
         # Account for if the tile number is better than another
         new_robber_tiles = []
         for tile, info in best_tiles.items():
-            if info >= 5 and info <= 9:
+            if 5 <= info <= 9:
                 new_robber_tiles.append(tile)
         if len(new_robber_tiles) == 0:
             new_robber_tile = random.choice(list(best_tiles.keys()))

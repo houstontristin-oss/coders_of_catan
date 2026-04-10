@@ -200,3 +200,4 @@ class MusicManager:
         self.stop_all()
         self.play_track("end_theme")
         self.current_scene = "end"
+        

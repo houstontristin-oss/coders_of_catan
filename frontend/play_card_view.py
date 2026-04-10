@@ -203,7 +203,7 @@ class PlayCardView(arcade.View):
     def _can_play_card(self, idx: int) -> bool:
         """Delegate to the DevCard's own can_play() logic."""
         p = self.players[self.current_player]
-        if idx is None or not (0 <= idx < len(p.development_cards)):
+        if idx is None or not 0 <= idx < len(p.development_cards):
             return False
         card_obj = DevCard.from_dict(p.development_cards[idx])
         return card_obj.can_play({"played_this_turn": self._played_this_turn})
@@ -268,8 +268,8 @@ class PlayCardView(arcade.View):
         for i, card in enumerate(cards):
             left, bottom, w, h = self._card_rect(i)
             card_obj = DevCard.from_dict(card)
-            is_selected = (i == self._selected_card)
-            is_hovered = (i == self._hovered_card)
+            is_selected = i == self._selected_card
+            is_hovered = i == self._hovered_card
 
             lift = CARD_LIFT_SELECTED if is_selected else (
                 CARD_LIFT_HOVERED if is_hovered else 0)
@@ -559,11 +559,11 @@ class PlayCardView(arcade.View):
                 self._notify("Road Building! You may place 2 free roads on the board.")
             self._go_back(card_dict["type"])
             return
-        elif action == ACTION_POPUP_YOP:
+        if action == ACTION_POPUP_YOP:
             self._sub_popup  = ACTION_POPUP_YOP
             self._yop_picked = 0
             return
-        elif action == ACTION_POPUP_MONOPOLY:
+        if action == ACTION_POPUP_MONOPOLY:
             self._sub_popup = ACTION_POPUP_MONOPOLY
             return
 
