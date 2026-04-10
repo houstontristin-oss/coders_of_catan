@@ -165,12 +165,6 @@ class RobberResView(arcade.View):
             self._handle_modal_click(x, y)
             return
 
-        # Back button
-        _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
-        if _PAD <= x <= _PAD + _BTN_W_BAR and _PAD <= y <= _PAD + _BTN_H_BAR:
-            self.vm.go_back()
-            return
-
         self._handle_spinner_click(x, y)
         self._handle_discard_click(x, y)
 
@@ -239,16 +233,6 @@ class RobberResView(arcade.View):
                 font_name="MedievalSharp",
             ))
 
-        # Back button label (bottom-left, same as PlayCardView)
-        _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
-        self._static_texts.append(arcade.Text(
-            "← Back to Board",
-            _PAD + _BTN_W_BAR / 2, _PAD + _BTN_H_BAR / 2,
-            TEXT_WHITE, _MED_TEXT_SIZE, bold=True,
-            anchor_x="center", anchor_y="center",
-            font_name="MedievalSharp",
-        ))
-
     # ------------------------------------------------------------------
     # Draw Helpers - called every frame
     # ------------------------------------------------------------------
@@ -257,9 +241,9 @@ class RobberResView(arcade.View):
         fill_rect(0, 0, SCREEN_WIDTH, _BAR_H, (18, 18, 42, 245))
         outline_rect(0, _BAR_H - 3, SCREEN_WIDTH, 3, (60, 60, 90, 200), 1)
 
-        _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
-        fill_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, BTN_TRADE)
-        outline_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, (255, 255, 255, 60), 1)
+        # _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
+        # fill_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, BTN_TRADE)
+        # outline_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, (255, 255, 255, 60), 1)
 
     def _draw_sections(self):
         """Draw offer + receive swatches, spinners, and dynamic counter labels."""
