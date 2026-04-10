@@ -6,7 +6,15 @@
 """
 import math
 import arcade
-from .constants import *
+from .constants import (TEXT_GOLD, TOKEN_RED, TEXT_WHITE, SCREEN_WIDTH, SCREEN_HEIGHT,
+                        OCEAN_BASE_COLOR, OCEAN_DEEP_COLOR, OCEAN_MID_COLOR,
+                        OCEAN_BAND_COUNT, OCEAN_BAND_SPACING, OCEAN_BAND_AMPLITUDE,
+                        OCEAN_BAND_WAVELENGTH, OCEAN_BAND_THICKNESS, OCEAN_BAND_COLOR,
+                        OCEAN_BAND_PHASE_SPEED, OCEAN_RIPPLE_COUNT, OCEAN_RIPPLE_SPACING,
+                        OCEAN_RIPPLE_AMPLITUDE, OCEAN_RIPPLE_WAVELENGTH,
+                        OCEAN_RIPPLE_THICKNESS, OCEAN_RIPPLE_COLOR, HEX_SIZE, BOARD_CENTER_X,
+                        BOARD_CENTER_Y, HEX_TILE_SPRITES, RESOURCE_COLORS,
+                        HEX_TILE_OUTLINE_WIDTH, HEX_TILE_SCALE, HEX_TILE_Y_OFFSET)
 from .board_utils import cubic_to_pixel, get_hex_corners
 
 def draw_settlement(cx, cy, size, color):
@@ -202,78 +210,6 @@ def draw_ocean_background(time_s: float):
             phase_shift=i * 1.35,
         )
 
-
-def draw_shoreline_shimmer(board, time_s: float):
-    """Draw foam only on the true outer coastline, not inward-facing gaps."""
-    tile_coords = set(board.tiles.keys())
-    max_ring = max(_tile_ring_radius(xyz) for xyz in tile_coords)
-
-    for xyz, tile in board.tiles.items():
-        cx, _, cz = xyz
-        px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-        corners = get_hex_corners(px, py, HEX_SIZE)
-        tile_ring = _tile_ring_radius(xyz)
-
-        for side_index, offset in enumerate(_OUTER_NEIGHBOR_OFFSETS):
-            neighbor_xyz = (cx + offset[0], xyz[1] + offset[1], cz + offset[2])
-
-            # If a tile exists there, this is not coastline.
-            if neighbor_xyz in tile_coords:
-                continue
-
-            # Only allow shimmer on edges that face outward from the island's
-            # maximum ring. This prevents flashing on inward-facing gaps.
-            neighbor_ring = _tile_ring_radius(neighbor_xyz)
-            if SHORE_OUTER_RING_ONLY and neighbor_ring <= tile_ring:
-                continue
-            if SHORE_OUTER_RING_ONLY and tile_ring < max_ring - 1:
-                continue
-
-            x1, y1 = corners[side_index]
-            x2, y2 = corners[(side_index + 1) % 6]
-
-            mid_x = (x1 + x2) / 2
-            mid_y = (y1 + y2) / 2
-
-            vec_x = mid_x - px
-            vec_y = mid_y - py
-            length = math.hypot(vec_x, vec_y) or 1.0
-            off_x = vec_x / length * SHORE_FOAM_OFFSET
-            off_y = vec_y / length * SHORE_FOAM_OFFSET
-
-            phase = (
-                time_s * SHORE_FOAM_PULSE_SPEED
-                + side_index * 0.9
-                + cx * 0.45
-                + cz * 0.45
-            )
-
-            foam_alpha = int(
-                SHORE_FOAM_COLOR[3] * (0.55 + 0.45 * math.sin(phase))
-            )
-            hi_alpha = int(
-                SHORE_FOAM_HIGHLIGHT_COLOR[3] * (0.48 + 0.52 * math.sin(phase + 0.8))
-            )
-
-            arcade.draw_line(
-                x1 + off_x,
-                y1 + off_y,
-                x2 + off_x,
-                y2 + off_y,
-                (*SHORE_FOAM_COLOR[:3], foam_alpha),
-                SHORE_FOAM_WIDTH,
-            )
-
-            arcade.draw_line(
-                x1 + off_x,
-                y1 + off_y,
-                x2 + off_x,
-                y2 + off_y,
-                (*SHORE_FOAM_HIGHLIGHT_COLOR[:3], hi_alpha),
-                SHORE_FOAM_HIGHLIGHT_WIDTH,
-            )
-
-
 def draw_port_dock(
     coast_x1, coast_y1,
     coast_x2, coast_y2,
@@ -307,68 +243,6 @@ def draw_port_dock(
     # Small post caps at the seaward ends
     arcade.draw_circle_filled(dock_end_x1, dock_end_y1, 2.5, wood_mid)
     arcade.draw_circle_filled(dock_end_x2, dock_end_y2, 2.5, wood_mid)
-
-def draw_shoreline_shimmer(board, time_s: float):
-    """Draw a faint foam shimmer only along the outer ring of land hexes."""
-    tile_coords = set(board.tiles.keys())
-
-    for xyz, tile in board.tiles.items():
-        cx, _, cz = xyz
-        px, py = cubic_to_pixel(cx, cz, HEX_SIZE, BOARD_CENTER_X, BOARD_CENTER_Y)
-        corners = get_hex_corners(px, py, HEX_SIZE)
-
-        for side_index, offset in enumerate(_OUTER_NEIGHBOR_OFFSETS):
-            neighbor_xyz = (cx + offset[0], xyz[1] + offset[1], cz + offset[2])
-
-            # Only shimmer on edges exposed to the ocean
-            if neighbor_xyz in tile_coords:
-                continue
-
-            x1, y1 = corners[side_index]
-            x2, y2 = corners[(side_index + 1) % 6]
-
-            mid_x = (x1 + x2) / 2
-            mid_y = (y1 + y2) / 2
-
-            # Push the foam slightly outward away from the tile center
-            vec_x = mid_x - px
-            vec_y = mid_y - py
-            length = math.hypot(vec_x, vec_y) or 1.0
-            off_x = vec_x / length * SHORE_FOAM_OFFSET
-            off_y = vec_y / length * SHORE_FOAM_OFFSET
-
-            phase = (
-                time_s * SHORE_FOAM_PULSE_SPEED
-                + side_index * 0.85
-                + cx * 0.55
-                + cz * 0.55
-            )
-
-            foam_alpha = int(
-                SHORE_FOAM_COLOR[3] * (0.58 + 0.42 * math.sin(phase))
-            )
-            hi_alpha = int(
-                SHORE_FOAM_HIGHLIGHT_COLOR[3] * (0.50 + 0.50 * math.sin(phase + 0.9))
-            )
-
-            arcade.draw_line(
-                x1 + off_x,
-                y1 + off_y,
-                x2 + off_x,
-                y2 + off_y,
-                (*SHORE_FOAM_COLOR[:3], foam_alpha),
-                SHORE_FOAM_WIDTH,
-            )
-
-            arcade.draw_line(
-                x1 + off_x,
-                y1 + off_y,
-                x2 + off_x,
-                y2 + off_y,
-                (*SHORE_FOAM_HIGHLIGHT_COLOR[:3], hi_alpha),
-                SHORE_FOAM_HIGHLIGHT_WIDTH,
-            )
-
 
 _HEX_SPRITE_CACHE = {}
 
