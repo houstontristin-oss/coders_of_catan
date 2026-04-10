@@ -352,7 +352,7 @@ SHEEP_BAA_SOUND = os.path.join(_AUDIO, "sheep.mp3")
 SHEEP_BAA_VOLUME = 0.75
 
 BUTTON_CLICK_SOUND = os.path.join(_AUDIO, "click_sound.mp3")
-BUTTON_CLICK_VOLUME = 0.5
+BUTTON_CLICK_VOLUME = 0.75
 
 BUTTON_QUIET_SOUND = os.path.join(_AUDIO, "click_quiet.mp3")
 BUTTON_QUIET_VOLUME = 1.0

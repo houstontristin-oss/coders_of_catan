@@ -134,8 +134,8 @@ START_SKIP_BTN_Y  = 20                                        # bottom edge
 
 # ---------------------------------------------------------------------------
 # Sun — slightly right of center, sitting in the upper sky
-START_SUN_X           = SCREEN_WIDTH  * 0.60
-START_SUN_Y           = SCREEN_HEIGHT * 0.72
+START_SUN_X           = SCREEN_WIDTH  * 0.65
+START_SUN_Y           = SCREEN_HEIGHT * 0.80
 START_SUN_RADIUS      = 52
 START_SUN_GLOW_RADIUS = 90
 START_SUN_COLOR       = (255, 230, 120)        # warm golden-white disc
@@ -212,7 +212,7 @@ START_SHEEP_FACE_COLOR       = (82, 70, 58, 245)
 START_SHEEP_LEG_COLOR        = (70, 56, 44, 245)
 
 START_SHADOW_COLOR = (45, 25, 10, 70)
-START_SHADOW_X_OFFSET = -18
+START_SHADOW_X_OFFSET = -8
 START_SHADOW_Y_OFFSET = -8
 START_SHADOW_Y_SCALE = 0.35
 
