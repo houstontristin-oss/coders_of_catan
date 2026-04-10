@@ -2,8 +2,6 @@
 Contains CatanView Class
     Parameters:
         All mighty viewing file
-
-
     Need to change Build and Trade button boolean to be false while other button is true to avoid
     having both menus open at the same time
 """
@@ -12,13 +10,68 @@ import random
 import math
 import arcade
 
-from .port_manager import PortManager
 from backend.catan_board import CatanBoard
-from .board_utils import cubic_to_pixel, node_to_pixel, get_hex_corners
+from .port_manager import PortManager
+from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
-                      draw_board, draw_city, draw_ocean_background)
-from .constants import *
-from .view_constants import *  # noqa: F401,F403
+                      draw_board, draw_city, draw_ocean_background, draw_die_face, draw_speaker_button)
+from .constants import (BUILD_NONE, DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DICE_SPRITES,
+                        ROAD_CARD_SPRITE, ARMY_CARD_SPRITE, ROBBER_SPRITE, HEX_SIZE,
+                        BOARD_CENTER_X, BOARD_CENTER_Y, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR,
+                        BACKGROUND_IMAGE, RESOURCE_SPRITES, SPRITE_SCALE, DICE_AREA_WIDTH,
+                        DICE_AREA_HEIGHT, TEXT_LIGHT_GRAY, HUD_PANEL_HEIGHT, HUD_PANEL_WIDTH,
+                        ICON_SIZE, ONE, SIX, BTN_BUILD_ACTIVE, BTN_BUILD, BTN_TRADE, BTN_CARD,
+                        BTN_ENDTURN, HUD_PANEL_BG, CITY_COST, SETTLEMENT_COST, ROAD_COST,
+                        TRADE_NONE, USE_DICE_SPRITES, BUILD_SETTLEMENT, BUILD_CITY, BUILD_ROAD,
+                        NODE_SNAP_RADIUS, EDGE_SNAP_RADIUS, GET_ROBBED, RESOURCE_ABBR,
+                        SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_WHITE, TEXT_GOLD)
+# noqa: F401,F403
+from .view_constants import (CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD, CATAN_BTN_H, CATAN_BTN_GAP,
+                             CATAN_LABEL_TRADE, CATAN_BTN_W, CATAN_TEXT_SIZE_BTN,
+                             CATAN_LABEL_BUILD, CATAN_LABEL_DEV_CARDS, CATAN_TEXT_SIZE_CARD_BTN,
+                             CATAN_LABEL_END_TURN, CATAN_END_BTN_W, CATAN_DICE_BOX_MARGIN,
+                             CATAN_LABEL_DICE_ROLL, CATAN_DICE_LABEL_TOP_PAD,
+                             CATAN_TEXT_SIZE_DICE_LABEL, CATAN_LABEL_DICE_HINT,
+                             CATAN_DICE_TOTAL_Y, CATAN_TEXT_SIZE_DICE_HINT,
+                             CATAN_TEXT_SIZE_SUBMENU, CATAN_TEXT_SIZE_POPUP_TITLE,
+                             CATAN_TEXT_SIZE_POPUP_BTN, CATAN_LABEL_CANCEL,
+                             CATAN_PLAYER_PANEL_MARGIN, CATAN_SUMMARY_BOX_GAP,
+                             CATAN_SUMMARY_BOX_TOP_INSET, CATAN_SUMMARY_BOX_W,
+                             CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG,
+                             CATAN_COLOR_SUMMARY_TEXT, CATAN_TEXT_SIZE_SUMMARY_LABEL,
+                             CATAN_SUMMARY_BOX_COUNT_Y_OFFSET, CATAN_COLOR_SUMMARY_COUNT,
+                             CATAN_TEXT_SIZE_SUMMARY_COUNT, CATAN_DIE_SIZE, CATAN_DIE_GAP,
+                             CATAN_DICE_Y_OFFSET, CATAN_TEXT_SIZE_DICE_NUM, CATAN_PLAYER_NAME_Y,
+                             CATAN_TEXT_SIZE_PLAYER_NAME, CATAN_PLAYER_ROW_H,
+                             CATAN_TEXT_SIZE_PLAYER_VP, CATAN_RESOURCE_ROW_GAP,
+                             CATAN_RESOURCE_TEXT_X_OFFSET, CATAN_TEXT_SIZE_RESOURCE,
+                             CATAN_DEV_CARD_COUNT_Y_OFFSET, CATAN_DEV_CARD_COUNT_COLOR,
+                             CATAN_COLOR_DROP_SHADOW, CATAN_COLOR_BTN_OUTLINE,
+                             CATAN_COLOR_FREE_ROADS, CATAN_TEXT_SIZE_FREE_ROADS,
+                             CATAN_BUILD_SUBMENU_Y_OFFSET, CATAN_BUILD_SUBMENU_W,
+                             CATAN_BUILD_SUBMENU_H, CATAN_COLOR_DISABLED, CATAN_COLOR_CITY_BTN,
+                             CATAN_BUILD_SUBMENU_BTN_INSET, CATAN_BUILD_SUBMENU_ROW_STEP,
+                             CATAN_BUILD_SUBMENU_BTN_H, CATAN_LABEL_CITY,
+                             CATAN_COLOR_SETTLEMENT_BTN, CATAN_LABEL_SETTLEMENT,
+                             CATAN_COLOR_ROAD_BTN, CATAN_LABEL_ROAD, CATAN_PLAYER_MARKER_RADIUS,
+                             CATAN_RESOURCE_ICON_X_OFFSET, CATAN_RESOURCE_ICON_ROW_GAP,
+                             CATAN_RESOURCE_ICON_Y_OFFSET, CATAN_COLOR_DIE_BG,
+                             CATAN_COLOR_SHAKE_OUTLINE, CATAN_COLOR_DIE_FALLBACK,
+                             CATAN_TEXT_SIZE_TOTAL, CATAN_SETTLEMENT_DRAW_SIZE,
+                             CATAN_CITY_DRAW_SIZE, CATAN_BOARD_TOP_CULL_Y,
+                             CATAN_HUD_LEFT_BLOCK_PAD, CATAN_DICE_RIGHT_BLOCK_PAD,
+                             CATAN_HIGHLIGHT_RADIUS_HOVER, CATAN_HIGHLIGHT_RADIUS_OUTLINE,
+                             CATAN_HIGHLIGHT_RADIUS_IDLE, CATAN_COLOR_GHOST_FILL,
+                             CATAN_COLOR_GHOST_OUTLINE, CATAN_EDGE_HIGHLIGHT_WIDTH,
+                             CATAN_EDGE_HOVER_DOT_RADIUS, CATAN_EDGE_IDLE_WIDTH,
+                             CATAN_CONFIRM_Y_OFFSET, CATAN_CONFIRM_POPUP_W, CATAN_CONFIRM_POPUP_H,
+                             CATAN_COLOR_POPUP_BG, CATAN_CONFIRM_TITLE_Y_PAD,
+                             CATAN_COLOR_POPUP_NO_RES, CATAN_CONFIRM_BTN_INSET,
+                             CATAN_CONFIRM_BTN_W, CATAN_CONFIRM_BTN_H, CATAN_CONFIRM_BTN_CENTER_Y,
+                             CATAN_COLOR_POPUP_CANCEL, CATAN_PORT_HOVER_OUTER_RADIUS,
+                             CATAN_COLOR_PORT_HOVER_OUTER, CATAN_PORT_HOVER_INNER_RADIUS,
+                             CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS, CATAN_MUTE_BTN_W,
+                             CATAN_MUTE_BTN_H, CATAN_MUTE_BTN_PAD)
 from .computer_turn_view import ComputerTurnView
 
 CARD_SCALE = 0.25
@@ -120,7 +173,7 @@ class CatanView(arcade.View):
         self._build_edge_pixel_cache()
         self._build_tile_pixel_cache()
 
-        if self.port_manager == None:
+        if self.port_manager is None:
             self.port_manager = PortManager(self.board, self._edge_pixel_cache)
 
         self._build_text_objects()   # rebuild after caches ready
@@ -359,8 +412,10 @@ class CatanView(arcade.View):
             left = start_x + i * (CATAN_SUMMARY_BOX_W + CATAN_SUMMARY_BOX_GAP)
             bottom = top_y - CATAN_SUMMARY_BOX_H
 
-            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, CATAN_COLOR_SUMMARY_BG)
-            outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, player.color, 2)
+            fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H,
+                      CATAN_COLOR_SUMMARY_BG)
+            outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H,
+                         player.color, 2)
 
             arcade.Text(
                 player.name,
@@ -714,16 +769,15 @@ class CatanView(arcade.View):
             spr1 = self._dice_sprites[face1]
             spr2 = self._dice_sprites[face2]
 
-            spr1.scale    = CATAN_DIE_SIZE / max(spr1.width, spr1.height)
+            spr1.scale = CATAN_DIE_SIZE / max(spr1.width, spr1.height)
             spr1.center_x = die1_x + CATAN_DIE_SIZE / 2
-            spr1.center_y = die_y  + CATAN_DIE_SIZE / 2
+            spr1.center_y = die_y + CATAN_DIE_SIZE / 2
 
-            spr2.scale    = CATAN_DIE_SIZE / max(spr2.width, spr2.height)
+            spr2.scale = CATAN_DIE_SIZE / max(spr2.width, spr2.height)
             spr2.center_x = die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2
-            spr2.center_y = die_y  + CATAN_DIE_SIZE / 2
+            spr2.center_y = die_y + CATAN_DIE_SIZE / 2
 
-            fill_rect(die1_x,                              die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
+            fill_rect(die1_x, die_y, CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
             fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
                       CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_BG)
 
@@ -741,26 +795,25 @@ class CatanView(arcade.View):
                              CATAN_DIE_SIZE, CATAN_DIE_SIZE,
                              (*CATAN_COLOR_SHAKE_OUTLINE, alpha), 2)
         else:
-            fill_rect(die1_x, die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
-            fill_rect(die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP, die_y,
-                      CATAN_DIE_SIZE, CATAN_DIE_SIZE, CATAN_COLOR_DIE_FALLBACK)
+            shake_alpha = int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION)) if self._dice_animating else 0
 
-            arcade.Text(
-                str(face1),
-                die1_x + CATAN_DIE_SIZE / 2, die_y + CATAN_DIE_SIZE / 2,
-                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
-            arcade.Text(
-                str(face2),
-                die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP + CATAN_DIE_SIZE / 2,
-                die_y + CATAN_DIE_SIZE / 2,
-                TEXT_WHITE, CATAN_TEXT_SIZE_DICE_NUM, bold=True,
-                anchor_x="center", anchor_y="center",
-                font_name="MedievalSharp",
-            ).draw()
+            draw_die_face(
+                die1_x,
+                die_y,
+                CATAN_DIE_SIZE,
+                face1,
+                shaking=self._dice_animating,
+                shake_alpha=shake_alpha,
+            )
+
+            draw_die_face(
+                die1_x + CATAN_DIE_SIZE + CATAN_DIE_GAP,
+                die_y,
+                CATAN_DIE_SIZE,
+                face2,
+                shaking=self._dice_animating,
+                shake_alpha=shake_alpha,
+            )
 
         if not self._dice_animating:
             arcade.Text(
@@ -937,9 +990,17 @@ class CatanView(arcade.View):
             arcade.draw_circle_outline(px, py, CATAN_PORT_HOVER_OUTLINE_RADIUS,
                                        TEXT_GOLD, 2)
 
+    def _get_mute_button_rect(self):
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
+
+        left = SCREEN_WIDTH - CATAN_MUTE_BTN_W - CATAN_DICE_BOX_MARGIN
+        bottom = dy - CATAN_MUTE_BTN_H - CATAN_MUTE_BTN_PAD
+
+        return left, bottom, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H
+
     # -----------------------------------------------------------------------
     # on_draw
-
     def on_draw(self):
         self.clear()
 
@@ -973,6 +1034,16 @@ class CatanView(arcade.View):
         self._draw_player_panel()
         self._draw_player_summary_boxes()
         self._draw_dice_area()
+
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        draw_speaker_button(
+            mute_left,
+            mute_bottom,
+            mute_w,
+            mute_h,
+            self.vm.music.muted,
+        )
+
         self._draw_bottom_bar()
         self._draw_build_submenu()
         self._draw_trade_submenu()
@@ -1025,8 +1096,13 @@ class CatanView(arcade.View):
 
     # -----------------------------------------------------------------------
     # Mouse press
-    # -----------------------------------------------------------------------
     def on_mouse_press(self, x, y, button, modifiers):
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        if (mute_left <= x <= mute_left + mute_w and
+                mute_bottom <= y <= mute_bottom + mute_h):
+            self.vm.music.toggle_mute()
+            return
+
         trade_bottom = CATAN_BTN_PAD
         build_bottom = trade_bottom + CATAN_BTN_H + CATAN_BTN_GAP
         card_bottom  = build_bottom + CATAN_BTN_H + CATAN_BTN_GAP
@@ -1058,7 +1134,7 @@ class CatanView(arcade.View):
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 44 <= y <= by + 72):
                 self._cancel_trade()
                 self.vm.go_to("maritime_trade",
-                    board=self.board, players=self.players, current_player=self.current_player, 
+                    board=self.board, players=self.players, current_player=self.current_player,
                     die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
                 return
@@ -1066,7 +1142,7 @@ class CatanView(arcade.View):
             if (bx + 8 <= x <= bx + menu_w - 8) and (by + 8 <= y <= by + 36):
                 self._cancel_trade()
                 self.vm.go_to("barter_trade",
-                    board=self.board, players=self.players, current_player=self.current_player, 
+                    board=self.board, players=self.players, current_player=self.current_player,
                     die1=self.die1, die2=self.die2, port_manager=self.port_manager
                 )
                 return
@@ -1160,7 +1236,8 @@ class CatanView(arcade.View):
 
 
         # Dev Cards button
-        if (CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and (card_bottom <= y <= card_bottom + CATAN_BTN_H):
+        if ((CATAN_BTN_PAD <= x <= CATAN_BTN_PAD + CATAN_BTN_W) and
+                (card_bottom <= y <= card_bottom + CATAN_BTN_H)):
             self.vm.go_to("play_card",
                 board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager,
@@ -1346,8 +1423,8 @@ class CatanView(arcade.View):
 
         #checks if roll is 7 and initiates robber placement phase
         if self.die1 + self.die2 == GET_ROBBED:
-            self.vm.go_to("robber_res", 
-                board=self.board, players=self.players, current_player=self.current_player, 
+            self.vm.go_to("robber_res",
+                board=self.board, players=self.players, current_player=self.current_player,
                 die1=self.die1, die2=self.die2, port_manager=self.port_manager,
             )
             return

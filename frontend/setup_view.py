@@ -10,23 +10,32 @@ import arcade
 from backend.catan_board import CatanBoard
 from .port_manager import PortManager
 from .drawing import (draw_board, draw_road, draw_settlement, fill_rect,
-                      outline_rect, draw_ocean_background, draw_shoreline_shimmer)
+                      outline_rect, draw_ocean_background, draw_shoreline_shimmer,
+                      draw_speaker_button)
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
-DICE_AREA_WIDTH, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD, EDGE_SNAP_RADIUS,
-NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR, GET_ROBBED, PROB)
+DICE_AREA_WIDTH, DICE_AREA_HEIGHT, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,
+EDGE_SNAP_RADIUS, NODE_SNAP_RADIUS, RESOURCE_ABBR, ONE, SIX, USE_OCEAN_BACKGROUND,
+OCEAN_BASE_COLOR, GET_ROBBED, PROB)
+from .view_constants import (
+    CATAN_DICE_BOX_MARGIN,
+    CATAN_MUTE_BTN_W,
+    CATAN_MUTE_BTN_H,
+    CATAN_MUTE_BTN_PAD,
+)
 
 class SetupView(arcade.View):
     """
     SetupView Class
     """
-    def __init__(self, vm, board, players, current_player, start_player, cycle, port_manager: PortManager | None):
+    def __init__(self, vm, board, players, current_player, start_player,
+                 cycle, port_manager: PortManager | None):
         super().__init__()
         self.vm = vm
         self.board = board # CatanBoard instance
         self.players = players # list of Player instances
         self.current_player = current_player # index of current player in players list
-        self.start_player = start_player # indec of the player that is going to go first and last for setup
+        self.start_player = start_player #index of player that's going to go first & last for setup
         self.cycle = cycle # 1 for first round of placements, 2 for second round of placements
         self.last_placed_settlement = None # track last placed settlement for edge verification
 
@@ -74,13 +83,13 @@ class SetupView(arcade.View):
                 if tile.resource != "desert":
                     res = RESOURCE_ABBR[tile.resource]
                     self.players[self.current_player].resource_cards[res] += 1
-        
+
         best_edge = None
         while best_node is not None and best_edge is None:
             edge = random.choice(best_node.edges)
             if edge.player is None and edge.is_valid_setup_road_placement(best_node):
                 best_edge = edge
-       
+
         self._place_road(best_edge)
         self._advance_player()
 
@@ -235,6 +244,7 @@ class SetupView(arcade.View):
         self._cancel_build()
         print(f"{player.name} built a road!")
 
+
     def _cancel_build(self):
         self.build_choice  = BUILD_SETTLEMENT
         self.hovered_node  = None
@@ -243,8 +253,20 @@ class SetupView(arcade.View):
         self.selected_edge = None
         self.show_confirm  = False
 
+
     def on_update(self, delta_time: float):
         self._ocean_time += delta_time
+
+
+    def _get_mute_button_rect(self):
+        dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
+        dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
+
+        left = SCREEN_WIDTH - CATAN_MUTE_BTN_W - CATAN_DICE_BOX_MARGIN
+        bottom = dy - CATAN_MUTE_BTN_H - CATAN_MUTE_BTN_PAD
+
+        return left, bottom, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H
+
 
     def on_draw(self):
         if self.players[self.current_player].computer:
@@ -276,9 +298,18 @@ class SetupView(arcade.View):
         if self.show_confirm:
             self._draw_confirm_popup()
 
+        # Mute button
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        draw_speaker_button(
+            mute_left,
+            mute_bottom,
+            mute_w,
+            mute_h,
+            self.vm.music.muted,
+        )
+
     # -----------------------------------------------------------------------
     # Mouse motion
-    # -----------------------------------------------------------------------
     def on_mouse_motion(self, x, y, dx, dy):
         if self.show_confirm:
             return
@@ -303,6 +334,12 @@ class SetupView(arcade.View):
             self.hovered_edge = closest
 
     def on_mouse_press(self, x, y, button, modifiers):
+        mute_left, mute_bottom, mute_w, mute_h = self._get_mute_button_rect()
+        if (mute_left <= x <= mute_left + mute_w and
+                mute_bottom <= y <= mute_bottom + mute_h):
+            self.vm.music.toggle_mute()
+            return
+
         # Confirmation popup for players placing their settlements and roads in a cycle
         if self.show_confirm:
             if self.build_choice == BUILD_SETTLEMENT and self.selected_node:
@@ -325,7 +362,8 @@ class SetupView(arcade.View):
                         for tile in self.selected_node.tiles:
                             if tile.resource != 'desert':
                                 resource = RESOURCE_ABBR[tile.resource]
-                                self.players[self.current_player].resource_cards[resource.upper()] += 1
+                                player = self.players[self.current_player]
+                                player.resource_cards[resource.upper()] += 1
                     self._place_settlement(self.selected_node)
                     self.build_choice = BUILD_ROAD
                     self.txt_title.text = (f"{self.players[self.current_player].name}: " +
@@ -374,9 +412,9 @@ class SetupView(arcade.View):
         self.vm.go_to("setup",
                 board=self.board, players=self.players, current_player=self.current_player,
                 start_player=self.start_player, cycle=self.cycle, port_manager=self.port_manager,
-            )
+                      )
         return
-        
+
     # Resource distribution
     def _give_resources(self, roll):
         for tile in self.board.tiles.values():
@@ -390,7 +428,7 @@ class SetupView(arcade.View):
                         )
 
     # After all players have completed setup
-    def _end_setup(self):    
+    def _end_setup(self):
         #setup dice for first player
         die1 = random.randint(ONE, SIX)
         die2 = random.randint(ONE, SIX)
@@ -398,8 +436,8 @@ class SetupView(arcade.View):
         roll = die1 + die2
         #checks if roll is 7 and initiates robber placement phase
         if die1 + die2 == GET_ROBBED:
-            self.vm.go_to("robber_res", 
-                board=self.board, players=self.players, current_player=self.current_player, 
+            self.vm.go_to("robber_res",
+                board=self.board, players=self.players, current_player=self.current_player,
                 die1=die1, die2=die2, port_manager=self.port_manager,
             )
             return

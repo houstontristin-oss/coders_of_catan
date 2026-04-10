@@ -3,7 +3,6 @@ Contains EndView Class
 """
 import arcade
 from .constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from .start_view import StartView
 
 class EndView(arcade.View):
     """

@@ -3,7 +3,7 @@ Catan view and other view constants subtracting dev card view
 All magic numbers, colors, paths, costs, and configuration.
 Every other file imports from here.
 """
-from .constants import *
+from .constants import TEXT_WHITE, TEXT_GOLD, SCREEN_WIDTH, SCREEN_HEIGHT
 
 # CatanView layout / HUD
 CATAN_BTN_W = 120
@@ -211,6 +211,11 @@ START_SHEEP_WOOL_SHADOW      = (220, 212, 198, 220)
 START_SHEEP_FACE_COLOR       = (82, 70, 58, 245)
 START_SHEEP_LEG_COLOR        = (70, 56, 44, 245)
 
+START_SHADOW_COLOR = (45, 25, 10, 70)
+START_SHADOW_X_OFFSET = -18
+START_SHADOW_Y_OFFSET = -8
+START_SHADOW_Y_SCALE = 0.35
+
 # Longest Road and Largest Army Constants
 CARD_SCALE = 0.25
 ARMY_ROAD_SPRITE_X = SCREEN_WIDTH - 70
@@ -219,3 +224,14 @@ ARMY_ROAD_SPRITE_Y2 = SCREEN_HEIGHT / 2
 
 ROADS_NEEDED = 5
 LONGEST_ROAD_VP = 2
+
+# StartView mute button
+START_MUTE_BTN_W = 48
+START_MUTE_BTN_H = 48
+START_MUTE_BTN_X = 20
+START_MUTE_BTN_Y = 20
+
+# Board-view mute button
+CATAN_MUTE_BTN_W = 42
+CATAN_MUTE_BTN_H = 42
+CATAN_MUTE_BTN_PAD = 10

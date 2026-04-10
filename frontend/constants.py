@@ -19,7 +19,7 @@ SCREEN_TITLE  = "Coders of Catan"
 BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "picture.png")
 
 # ---------------------------------------------------------------------------
-BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "ocean_background.png")
+# BACKGROUND_IMAGE = os.path.join(BASE_DIR, "sprites", "background", "ocean_background.png")
 BACKGROUND_IMAGE_SECRET = os.path.join(BASE_DIR, "sprites", "background", "background_secret.jpg")
 # Animated ocean background
 USE_OCEAN_BACKGROUND = True
@@ -164,7 +164,7 @@ DEV_CARD_LABELS = {
 
 ACTION_NONE           = "none"
 ACTION_BACK_TO_BOARD  = "back_to_board"
-ACTION_POPUP_YOP      = "popup_yop"         
+ACTION_POPUP_YOP      = "popup_yop"
 ACTION_POPUP_MONOPOLY = "popup_monopoly"
 
 DEV_CARD_DESCRIPTIONS = {
@@ -291,7 +291,7 @@ RESOURCE_ABBR = {
 # 18 tokens for 18 non-desert tiles:
 #   2×1, 3×2, 4×2, 5×2, 6×2, 8×2, 9×2, 10×2, 11×2, 12×1
 NUMBER_POOL = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
-PROB = {2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1} # pips 
+PROB = {2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1} # pips
 
 # Port types assigned clockwise from the top around the board perimeter.
 # None = 3:1 generic port, string = 2:1 specific resource port.
@@ -312,6 +312,28 @@ ROAD_COST       = {"BRICK": 1, "WOOD": 1}
 CITY_COST       = {"ORE": 3, "WHEAT": 2}
 
 
+# ---------------------------------------------------------------------------
+# Music
+_AUDIO = os.path.join(BASE_DIR, "audio")
+
+MENU_WAVES_MUSIC = os.path.join(_AUDIO, "menu_waves.mp3")
+MENU_THEME_MUSIC = os.path.join(_AUDIO, "menu_theme.mp3")
+SETUP_THEME_MUSIC = os.path.join(_AUDIO, "setup_theme.mp3")
+BOARD_THEME_MUSIC = os.path.join(_AUDIO, "board_theme.mp3")
+END_THEME_MUSIC = os.path.join(_AUDIO, "end_theme.mp3")
+
+MENU_WAVES_VOLUME = 0.22
+MENU_THEME_VOLUME = 0.42
+# SETUP_THEME_VOLUME = 0.35
+# BOARD_THEME_VOLUME = 0.45
+END_THEME_VOLUME = 0.40
+MASTER_MUSIC_VOLUME = 1.0
+
+GAMEPLAY_THEME_MUSIC = os.path.join(_AUDIO, "board_theme.mp3")
+GAMEPLAY_THEME_VOLUME = 0.42
+BOARD_WAVES_VOLUME = 0.14
+
+
 # Snap radii (pixels)
 NODE_SNAP_RADIUS = 18
 EDGE_SNAP_RADIUS = 14
@@ -321,8 +343,10 @@ EDGE_SNAP_RADIUS = 14
 ONE = 1
 SIX = 6
 
-
 # Set True to render dice-face sprites instead of plain colored squares
-USE_DICE_SPRITES = True
+USE_DICE_SPRITES = False
 
 GET_ROBBED = 7
+
+SHEEP_BAA_SOUND = os.path.join(_AUDIO, "sheep.mp3")
+SHEEP_BAA_VOLUME = 0.75

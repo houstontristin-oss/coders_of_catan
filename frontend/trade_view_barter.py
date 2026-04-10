@@ -532,12 +532,12 @@ class TradeViewBarter(arcade.View):
             self._result_msg = "Trade failed — insufficient resources."
             self._pending    = None
             return
-        
+
         self.vm.go_to("catan",
-            board=self.board, players=self.players, current_player=self.current_player, 
+            board=self.board, players=self.players, current_player=self.current_player,
             die1=self.die1, die2=self.die2, port_manager=self.port_manager
         )
-    
+
     def _no_resource_access(self):
         # find all res they have access to
         accessible_res = []
@@ -564,9 +564,9 @@ class TradeViewBarter(arcade.View):
         # 2. computer has more than 4 of any of the resources it would send
         # 3. computer has too many resources in hand and might want to get rid of some
         accepts = (
-            computer.can_afford_trade(self.receive)
+            computer.can_afford_trade(self._receive)
             and (
-                any(res in self._no_resource_access() for res in self._offer())
+                any(res in self._no_resource_access() for res in self._offer)
                 or any(computer.resource_cards[res] > EXCESS_RES_ONE for res in self._receive)
                 or computer.get_total_resources() >= EXCESS_RES_ALL
             )

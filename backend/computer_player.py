@@ -1,8 +1,9 @@
 # pylint: disable = R0902
 
 import random
-from .player import Player
 from frontend.constants import PROB
+from .player import Player
+
 
 class ComputerPlayer(Player):
     """Represents a computer player for Catan
@@ -36,7 +37,8 @@ class ComputerPlayer(Player):
                     self.resource_cards['SHEEP'] > 0)
 
     # returns edge to place road at or None
-    # Apr 6th - current versions is iterating the board incorrectly and also assumes edge.player / node.player
+    # Apr 6th - current versions is iterating the board incorrectly
+    # and also assumes edge.player / node.player
     # are player objects with .name, but in board code they are stored as player indices. Patched...
     def best_road_location(self):
         possible_roads = []

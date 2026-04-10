@@ -8,25 +8,29 @@ set players 2–4 to computer = True
 optionally rename them to AI 1, AI 2, AI 3
 then go to SetupView like normal
 """
-
-import math
 import random
 import arcade
 
 from backend.player import Player
 from backend.computer_player import ComputerPlayer
 
-""" From setup view, one should add a check to see if the next player is flagged as a computer"""
-from .constants import SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD, ONE, SIX
+from .constants import SCREEN_WIDTH, SCREEN_HEIGHT, TEXT_GOLD
 from .drawing import fill_rect, outline_rect
-
-# Reuse the same painted background helpers from StartView
 from .start_view import (
     _draw_sunset_gradient,
     _draw_clouds,
     _draw_sun,
     _draw_farmscape,
 )
+
+
+
+#From setup view, one should add a check to see if the next player is flagged as a computer
+
+
+
+# Reuse the same painted background helpers from StartView
+
 
 _FONT = "MedievalSharp"
 
