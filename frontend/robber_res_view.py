@@ -241,10 +241,6 @@ class RobberResView(arcade.View):
         fill_rect(0, 0, SCREEN_WIDTH, _BAR_H, (18, 18, 42, 245))
         outline_rect(0, _BAR_H - 3, SCREEN_WIDTH, 3, (60, 60, 90, 200), 1)
 
-        # _PAD, _BTN_W_BAR, _BTN_H_BAR = 18, 180, 44
-        # fill_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, BTN_TRADE)
-        # outline_rect(_PAD, _PAD, _BTN_W_BAR, _BTN_H_BAR, (255, 255, 255, 60), 1)
-
     def _draw_sections(self):
         """Draw offer + receive swatches, spinners, and dynamic counter labels."""
         player = self.players[self._active_discarder]
