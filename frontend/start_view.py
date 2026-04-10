@@ -7,8 +7,8 @@ import random
 import arcade
 from backend.catan_board import CatanBoard
 from backend.player import Player
-from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH,
-                        TEXT_GOLD, RESOURCE_ABBR, ONE, SIX)
+from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, TEXT_GOLD, RESOURCE_ABBR,
+                        ONE, SIX, SHEEP_BAA_SOUND, SHEEP_BAA_VOLUME)
 from .drawing import fill_rect, outline_rect, draw_speaker_button
 from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_X,
                              START_SUN_Y, START_SUN_GLOW_COLOR, START_SUN_RAY_COUNT,
@@ -28,7 +28,9 @@ from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_
                              START_FARM_CLOUD_COLOR, START_TITLE_Y, START_TITLE_FONT_SIZE,
                              START_SUBTITLE_Y, START_SUBTITLE_FONT_SIZE, START_SKIP_BTN_X,
                              START_SKIP_BTN_Y, START_SKIP_BTN_W, START_SKIP_BTN_H, START_MUTE_BTN_X,
-                             START_MUTE_BTN_Y, START_MUTE_BTN_W, START_MUTE_BTN_H)
+                             START_MUTE_BTN_Y, START_MUTE_BTN_W, START_MUTE_BTN_H,
+                             START_SHADOW_COLOR, START_SHADOW_X_OFFSET, START_SHADOW_Y_OFFSET, START_SHADOW_Y_SCALE,
+                             )
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +108,18 @@ def _draw_horizon_water(time_s: float):
                 )
             prev = (x, y)
 
+def _draw_ground_shadow(cx, cy, width, height,
+                        color=START_SHADOW_COLOR,
+                        x_offset=START_SHADOW_X_OFFSET,
+                        y_offset=START_SHADOW_Y_OFFSET):
+    arcade.draw_ellipse_filled(
+        cx + x_offset,
+        cy + y_offset,
+        width,
+        height * START_SHADOW_Y_SCALE,
+        color,
+    )
+
 
 def _draw_sheep():
     W = SCREEN_WIDTH
@@ -114,6 +128,8 @@ def _draw_sheep():
     cx = W * START_SHEEP_X_FRAC
     cy = H * START_SHEEP_Y_FRAC
 
+    # Shadow
+    _draw_ground_shadow(cx + 2, cy - 14, 58, 20)
     # Legs
     for lx in (-10, -4, 5, 11):
         arcade.draw_line(cx + lx, cy - 10, cx + lx, cy - 22, START_SHEEP_LEG_COLOR, 2)
@@ -192,6 +208,7 @@ def _draw_farmscape(time_s: float):
     roof_pts = [(bx - 8, by + bh),
                 (bx + bw / 2, by + bh + 44),
                 (bx + bw + 8, by + bh)]
+    _draw_ground_shadow(bx + bw * 0.5, by + 6, 135, 42)
     arcade.draw_polygon_filled(roof_pts, START_FARM_ROOF_COLOR)
     arcade.draw_polygon_outline(roof_pts, START_FARM_BARN_DARK_COLOR, 2)
     dw, dh = 22, 32
@@ -214,6 +231,7 @@ def _draw_farmscape(time_s: float):
     arcade.draw_lrbt_rectangle_outline(
         silo_cx - silo_w / 2, silo_cx + silo_w / 2,
         silo_base_y, silo_base_y + silo_h, START_FARM_SILO_DARK_COLOR, 2)
+    _draw_ground_shadow(silo_cx, silo_base_y + 5, 70, 30)
     arcade.draw_ellipse_filled(silo_cx, silo_base_y + silo_h,
                                 silo_w, silo_w * 0.4, START_FARM_SILO_DARK_COLOR)
 
@@ -237,6 +255,7 @@ def _draw_farmscape(time_s: float):
             tx - trunk_half_w, tx + trunk_half_w,
             trunk_bot, trunk_top,
             (90, 55, 25, 245))
+        _draw_ground_shadow(tx, ty + 4, tr * 2.2, tr * 0.9)
         arcade.draw_circle_filled(tx, ty + th * 0.72, tr * 1.0,
                                    (*START_FARM_TREE_DARK_COLOR[:3], 245))
         arcade.draw_circle_filled(tx - tr * 0.3, ty + th * 0.78, tr * 0.75,
@@ -400,6 +419,22 @@ class StartView(arcade.View):
         self.vm = vm
         self._time = 0.0
         self._build_text_objects()
+        self._sheep_click_count = 0
+        try:
+            self._sheep_baa = arcade.load_sound(SHEEP_BAA_SOUND)
+        except Exception:
+            self._sheep_baa = None
+
+    def _sheep_hit(self, x, y) -> bool:
+        cx = SCREEN_WIDTH * START_SHEEP_X_FRAC
+        cy = START_FARM_HORIZON_Y * START_SHEEP_Y_FRAC
+
+        left = cx - 28
+        right = cx + 32
+        bottom = cy - 26
+        top = cy + 18
+
+        return left <= x <= right and bottom <= y <= top
 
     def _build_text_objects(self):
         btn_cx = START_SKIP_BTN_X + START_SKIP_BTN_W / 2
@@ -449,6 +484,16 @@ class StartView(arcade.View):
         return board, players
 
     def on_mouse_press(self, x, y, button, modifiers):
+        if self._sheep_hit(x, y):
+            self._sheep_click_count += 1
+
+            if self._sheep_click_count >= 3:
+                if self._sheep_baa is not None:
+                    arcade.play_sound(self._sheep_baa, volume=SHEEP_BAA_VOLUME)
+                self._sheep_click_count = 0
+            return
+        else:
+            self._sheep_click_count = 0
         board, players = self._make_board_and_players()
 
         if (START_MUTE_BTN_X <= x <= START_MUTE_BTN_X + START_MUTE_BTN_W and

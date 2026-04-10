@@ -827,13 +827,15 @@ class CatanView(arcade.View):
     # -----------------------------------------------------------------------
     # Largest Army and Longest Road drawing
     # -----------------------------------------------------------------------
-    def _draw_cards(self):
+    def _load_cards(self):
         player = self.players[self.current_player]
         if self._army_card_sprite not in self._card_list and player.largest_army:
             self._army_card_sprite.center_y = ARMY_ROAD_SPRITE_Y1 if not player.longest_road else ARMY_ROAD_SPRITE_Y2
             self._card_list.append(self._army_card_sprite)
         if self._road_card_sprite not in self._card_list and player.longest_road:
             self._card_list.append(self._road_card_sprite)
+
+    def _draw_cards(self):
         self._card_list.draw()
 
     # -----------------------------------------------------------------------
@@ -995,8 +997,8 @@ class CatanView(arcade.View):
         dx = SCREEN_WIDTH - DICE_AREA_WIDTH - CATAN_DICE_BOX_MARGIN
         dy = SCREEN_HEIGHT - DICE_AREA_HEIGHT - CATAN_DICE_BOX_MARGIN
 
-        left = dx - CATAN_MUTE_BTN_W - CATAN_MUTE_BTN_PAD
-        bottom = dy + DICE_AREA_HEIGHT - CATAN_MUTE_BTN_H
+        left = SCREEN_WIDTH - CATAN_MUTE_BTN_W - CATAN_DICE_BOX_MARGIN
+        bottom = dy - CATAN_MUTE_BTN_H - CATAN_MUTE_BTN_PAD
 
         return left, bottom, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H
 
@@ -1264,6 +1266,8 @@ class CatanView(arcade.View):
         player.victory_points += 1
         self._cancel_build()
         self._build_player_texts()
+        self._check_post_settlement_longest_road(node)
+        self._load_cards()
         print(f"{player.name} built a settlement! VP: {player.victory_points}")
 
     def _place_city(self, node):
@@ -1300,22 +1304,52 @@ class CatanView(arcade.View):
         self._build_player_texts()
         print(f"{player.name} built a road!")
         self._check_longest_road(edge)
+        self._load_cards()
 
-    def _check_longest_road(self, edge):
+    def _check_post_settlement_longest_road(self, node):
+        players_to_check = {}
+        for edge in node.edges:
+            players_to_check[edge.player] = edge
+        # update all the players road length who were impacted by settlement placement
+        for p, e in players_to_check.items():
+            self._check_longest_road(e, p)
+        # find the player with the max road length and give them
+        deserving_of_longest_road = None
+        max_len = 0
+        for p in self.players:
+            if p.road_length > max_len:
+                deserving_of_longest_road = p
+                max_len = p.road_length
+            if p.longest_road:
+                p.longest_road = False
+                p.victory_points -= LONGEST_ROAD_VP
+        # give the most deserving player longest road card
+        if (deserving_of_longest_road is not None and 
+            deserving_of_longest_road.road_length >= ROADS_NEEDED):
+            print(f"{deserving_of_longest_road.name} gets longest road")
+            deserving_of_longest_road.longest_road = True
+            deserving_of_longest_road.victory_points += LONGEST_ROAD_VP
+        
+
+    def _check_longest_road(self, edge, p: int | None=None):
         player = self.players[self.current_player]
+        if p is not None:
+            player = self.players[p]
+        else:
+            p = self.current_player
         #check if player has longest road
         edge_lists = [[edge]]
         for edge_list in edge_lists:
             for e in edge_list:
                 for node in e.nodes:
                     # do not keep searching if another player has a settlement on the node
-                    if node.player == self.current_player or node.player is None:
+                    if node.player == p or node.player is None:
                         branches = 0
                         for neighbor_edge in node.edges:
                             #check if edge has been explored before & if player owns another edge
                             if (neighbor_edge not in edge_list and
                                     neighbor_edge is not e and
-                                    neighbor_edge.player == self.current_player):
+                                    neighbor_edge.player == p):
                                 branches += 1
                                 edge_list.append(neighbor_edge)
                         if branches == 2:
@@ -1328,15 +1362,15 @@ class CatanView(arcade.View):
                 max_length = length
         player.road_length = max_length
 
+        # loop through opponents to see if any have the largest army card
+        holder_of_card = None
+        for opponent in self.players:
+            if opponent.longest_road:
+                holder_of_card = opponent
+
         #if player has played more than 5 connected roads
         if player.road_length >= ROADS_NEEDED:
-            # loop through opponents to see if any have the largest army card
-            holder_of_card = None
-            for opponent in self.players:
-                print(f"{player.name}: {opponent.road_length} cont. roads")
-                if opponent.longest_road:
-                    holder_of_card = opponent
-                    # If no one holds the card yet
+            # If no one holds the card yet
             if holder_of_card is None:
                 player.longest_road = True
                 player.victory_points += LONGEST_ROAD_VP
@@ -1346,6 +1380,11 @@ class CatanView(arcade.View):
                 holder_of_card.victory_points -= LONGEST_ROAD_VP
                 player.longest_road = True
                 player.victory_points += LONGEST_ROAD_VP
+        elif (holder_of_card is not None and 
+              holder_of_card == self.players[p] and 
+              player.road_length < ROADS_NEEDED):
+            holder_of_card.longest_road = False
+            holder_of_card.victory_points -= LONGEST_ROAD_VP
 
     def _place_road_free(self, edge):
         """Place a road using a free-road grant from Road Building card."""
