@@ -14,7 +14,8 @@ from backend.catan_board import CatanBoard
 from .port_manager import PortManager
 from .board_utils import cubic_to_pixel, node_to_pixel
 from .drawing import (fill_rect, outline_rect, draw_settlement, draw_road,
-                      draw_board, draw_city, draw_ocean_background, draw_die_face, draw_speaker_button)
+                      draw_board, draw_city, draw_ocean_background, draw_die_face,
+                      draw_speaker_button)
 from .constants import (BUILD_NONE, DICE_ROLL_DURATION, DICE_ROLL_FLIP_RATE, DICE_SPRITES,
                         ROAD_CARD_SPRITE, ARMY_CARD_SPRITE, ROBBER_SPRITE, HEX_SIZE,
                         BOARD_CENTER_X, BOARD_CENTER_Y, USE_OCEAN_BACKGROUND, OCEAN_BASE_COLOR,
@@ -56,8 +57,8 @@ from .view_constants import (CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD, CATAN_BTN_H
                              CATAN_COLOR_ROAD_BTN, CATAN_LABEL_ROAD, CATAN_PLAYER_MARKER_RADIUS,
                              CATAN_RESOURCE_ICON_X_OFFSET, CATAN_RESOURCE_ICON_ROW_GAP,
                              CATAN_RESOURCE_ICON_Y_OFFSET, CATAN_COLOR_DIE_BG,
-                             CATAN_COLOR_SHAKE_OUTLINE, CATAN_COLOR_DIE_FALLBACK,
-                             CATAN_TEXT_SIZE_TOTAL, CATAN_SETTLEMENT_DRAW_SIZE,
+                             CATAN_COLOR_SHAKE_OUTLINE, CATAN_TEXT_SIZE_TOTAL,
+                             CATAN_SETTLEMENT_DRAW_SIZE,
                              CATAN_CITY_DRAW_SIZE, CATAN_BOARD_TOP_CULL_Y,
                              CATAN_HUD_LEFT_BLOCK_PAD, CATAN_DICE_RIGHT_BLOCK_PAD,
                              CATAN_HIGHLIGHT_RADIUS_HOVER, CATAN_HIGHLIGHT_RADIUS_OUTLINE,
@@ -70,9 +71,9 @@ from .view_constants import (CATAN_ROBBER_SCALE_MULT, CATAN_BTN_PAD, CATAN_BTN_H
                              CATAN_CONFIRM_BTN_W, CATAN_CONFIRM_BTN_H, CATAN_CONFIRM_BTN_CENTER_Y,
                              CATAN_COLOR_POPUP_CANCEL, CATAN_PORT_HOVER_OUTER_RADIUS,
                              CATAN_COLOR_PORT_HOVER_OUTER, CATAN_PORT_HOVER_INNER_RADIUS,
-                             CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS, CATAN_MUTE_BTN_W,
+                             CATAN_COLOR_PORT_HOVER_INNER, CATAN_PORT_HOVER_OUTLINE_RADIUS,
+                             CATAN_MUTE_BTN_W,
                              CATAN_MUTE_BTN_H, CATAN_MUTE_BTN_PAD)
-from .computer_turn_view import ComputerTurnView
 
 
 CARD_SCALE = 0.25
@@ -796,7 +797,8 @@ class CatanView(arcade.View):
                              CATAN_DIE_SIZE, CATAN_DIE_SIZE,
                              (*CATAN_COLOR_SHAKE_OUTLINE, alpha), 2)
         else:
-            shake_alpha = int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION)) if self._dice_animating else 0
+            shake_alpha = (int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION))
+                           if self._dice_animating else 0)
 
             draw_die_face(
                 die1_x,
@@ -830,7 +832,8 @@ class CatanView(arcade.View):
     def _load_cards(self):
         player = self.players[self.current_player]
         if self._army_card_sprite not in self._card_list and player.largest_army:
-            self._army_card_sprite.center_y = ARMY_ROAD_SPRITE_Y1 if not player.longest_road else ARMY_ROAD_SPRITE_Y2
+            self._army_card_sprite.center_y = (ARMY_ROAD_SPRITE_Y1 if not player.longest_road
+                                               else ARMY_ROAD_SPRITE_Y2)
             self._card_list.append(self._army_card_sprite)
         if self._road_card_sprite not in self._card_list and player.longest_road:
             self._card_list.append(self._road_card_sprite)
@@ -1324,12 +1327,11 @@ class CatanView(arcade.View):
                 p.longest_road = False
                 p.victory_points -= LONGEST_ROAD_VP
         # give the most deserving player longest road card
-        if (deserving_of_longest_road is not None and 
+        if (deserving_of_longest_road is not None and
             deserving_of_longest_road.road_length >= ROADS_NEEDED):
             print(f"{deserving_of_longest_road.name} gets longest road")
             deserving_of_longest_road.longest_road = True
             deserving_of_longest_road.victory_points += LONGEST_ROAD_VP
-        
 
     def _check_longest_road(self, edge, p: int | None=None):
         player = self.players[self.current_player]
@@ -1380,8 +1382,8 @@ class CatanView(arcade.View):
                 holder_of_card.victory_points -= LONGEST_ROAD_VP
                 player.longest_road = True
                 player.victory_points += LONGEST_ROAD_VP
-        elif (holder_of_card is not None and 
-              holder_of_card == self.players[p] and 
+        elif (holder_of_card is not None and
+              holder_of_card == self.players[p] and
               player.road_length < ROADS_NEEDED):
             holder_of_card.longest_road = False
             holder_of_card.victory_points -= LONGEST_ROAD_VP

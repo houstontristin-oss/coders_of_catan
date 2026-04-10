@@ -46,10 +46,10 @@ from .view_constants import (CARD_SCALE, ARMY_ROAD_SPRITE_Y1, ARMY_ROAD_SPRITE_X
                              CATAN_COLOR_BTN_OUTLINE, CATAN_PLAYER_MARKER_RADIUS,
                              CATAN_RESOURCE_ICON_ROW_GAP, CATAN_RESOURCE_ICON_X_OFFSET,
                              CATAN_RESOURCE_ICON_Y_OFFSET, CATAN_COLOR_DIE_BG,
-                             CATAN_COLOR_SHAKE_OUTLINE, CATAN_COLOR_DIE_FALLBACK,
-                             CATAN_TEXT_SIZE_TOTAL, CATAN_SETTLEMENT_DRAW_SIZE,
-                             CATAN_CITY_DRAW_SIZE, CATAN_BTN_W, LONGEST_ROAD_VP, ROADS_NEEDED,
-                             CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H, CATAN_MUTE_BTN_PAD)
+                             CATAN_COLOR_SHAKE_OUTLINE, CATAN_TEXT_SIZE_TOTAL,
+                             CATAN_SETTLEMENT_DRAW_SIZE, CATAN_CITY_DRAW_SIZE, CATAN_BTN_W,
+                             LONGEST_ROAD_VP, ROADS_NEEDED, CATAN_MUTE_BTN_W, CATAN_MUTE_BTN_H,
+                             CATAN_MUTE_BTN_PAD)
 
 FAST_FORWARD = "Next Player"
 NEXT_MOVE = "Next Move"
@@ -60,6 +60,20 @@ RES_PORT = 2
 MARITIME_TRADE = 4
 
 class ComputerTurnView(arcade.View):
+    """Represents the screen view of a computer player's turn
+
+        This class is used to create a view specific to a computer player
+
+        Attributes:
+            vm: a view manager
+            board: the current game board
+            players: all players in the game
+            current_player: player whose turn it is currently
+            die1: first die for rolling
+            die2: cities second die for rolling
+            port_manager: color of player
+            shared_deck: name of player
+        """
     def __init__(self,
         vm,
         board,
@@ -370,7 +384,7 @@ class ComputerTurnView(arcade.View):
             fill_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H,
                       CATAN_COLOR_SUMMARY_BG)
 
-            is_current_ai = (player_idx == self.current_player)
+            is_current_ai = player_idx == self.current_player
 
             if is_current_ai:
                 outline_rect(left, bottom, CATAN_SUMMARY_BOX_W, CATAN_SUMMARY_BOX_H, TEXT_GOLD, 4)
@@ -738,7 +752,8 @@ class ComputerTurnView(arcade.View):
                              CATAN_DIE_SIZE, CATAN_DIE_SIZE,
                              (*CATAN_COLOR_SHAKE_OUTLINE, alpha), 2)
         else:
-            shake_alpha = int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION)) if self._dice_animating else 0
+            shake_alpha = (int(180 * (self._dice_anim_timer / DICE_ROLL_DURATION))
+                           if self._dice_animating else 0)
 
             draw_die_face(
                 die1_x,
@@ -957,7 +972,7 @@ class ComputerTurnView(arcade.View):
 
             if move == "Build":
                 # place free road
-                while (self._free_roads > 0):
+                while self._free_roads > 0:
                     road_edge = player.best_road_location()
                     if road_edge is not None:
                         self._place_road_free(road_edge)
@@ -1041,7 +1056,6 @@ class ComputerTurnView(arcade.View):
                     move_success = True
                 else:
                     print("computer_turn_view.py: Unrecognised dev card type:", card["type"])
-                
                 self._played_card_this_turn = True
                 self._build_player_texts()
 
@@ -1334,13 +1348,16 @@ class ComputerTurnView(arcade.View):
                 for resource, amount in player.resource_cards.items():
                     giving_resources[resource] = 0
                     if amt_to_discard > 0:
-                        get_rid_of = random.randint(0, amount if amount < amt_to_discard else amt_to_discard)
+                        get_rid_of = random.randint(0, amount
+                        if amount < amt_to_discard else amt_to_discard)
                         amt_to_discard -= get_rid_of
                         giving_resources[resource] += get_rid_of
                 while amt_to_discard > 0:
                     for resource, amount in player.resource_cards.items():
                         if amt_to_discard > 0:
-                            get_rid_of = random.randint(0, amount - giving_resources[resource] if amount - giving_resources[resource] < amt_to_discard else amt_to_discard)
+                            get_rid_of = random.randint(0, amount - giving_resources[resource]
+                            if amount - giving_resources[resource] < amt_to_discard
+                            else amt_to_discard)
                             amt_to_discard -= get_rid_of
                             giving_resources[resource] += get_rid_of
 
@@ -1386,7 +1403,7 @@ class ComputerTurnView(arcade.View):
             self.vm.go_to(
                     "robber_res",
                     board=self.board,
-                    players=self.players, 
+                    players=self.players,
                     current_player=self.current_player,
                     die1=self.die1,
                     die2=self.die2,
