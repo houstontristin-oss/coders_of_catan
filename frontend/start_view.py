@@ -29,7 +29,8 @@ from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_
                              START_SUBTITLE_Y, START_SUBTITLE_FONT_SIZE, START_SKIP_BTN_X,
                              START_SKIP_BTN_Y, START_SKIP_BTN_W, START_SKIP_BTN_H, START_MUTE_BTN_X,
                              START_MUTE_BTN_Y, START_MUTE_BTN_W, START_MUTE_BTN_H,
-                             START_SHADOW_COLOR, START_SHADOW_X_OFFSET, START_SHADOW_Y_OFFSET, START_SHADOW_Y_SCALE,
+                             START_SHADOW_COLOR, START_SHADOW_X_OFFSET, START_SHADOW_Y_OFFSET,
+                             START_SHADOW_Y_SCALE,
                              )
 
 

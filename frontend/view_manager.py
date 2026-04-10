@@ -23,7 +23,8 @@ class ViewManager:
             "menu_theme": TrackConfig("menu_theme", MENU_THEME_MUSIC, MENU_THEME_VOLUME),
 
             "board_waves": TrackConfig("board_waves", MENU_WAVES_MUSIC, BOARD_WAVES_VOLUME),
-            "gameplay_theme": TrackConfig("gameplay_theme", GAMEPLAY_THEME_MUSIC, GAMEPLAY_THEME_VOLUME),
+            "gameplay_theme": TrackConfig("gameplay_theme", GAMEPLAY_THEME_MUSIC,
+                                          GAMEPLAY_THEME_VOLUME),
 
             "end_theme": TrackConfig("end_theme", END_THEME_MUSIC, END_THEME_VOLUME),
         })

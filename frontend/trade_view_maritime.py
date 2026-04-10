@@ -185,8 +185,7 @@ class TradeViewMaritime(arcade.View):
         # used to build text objects
         if res in self.trade_amount.keys():
             return self.trade_amount[res]
-        else:
-            return self.trade_amount["base"]
+        return self.trade_amount["base"]
 
     def _check_valid_trade(self):
         valid_offer = False
@@ -216,8 +215,10 @@ class TradeViewMaritime(arcade.View):
 
     def _afford_trade(self):
         #check if player can afford any trades
+        player = self.players[self.current_player]
         for res in RESOURCE_ABBR.values():
-            self.affordable_trades[res] = self.players[self.current_player].can_afford_trade({res: self._get_trade_amount(res)})
+            trade_amount = player.trade_amount[res]
+            self.affordable_trades[res] = player.can_afford_trade({res: trade_amount})
 
     def on_show_view(self):
         self._build_static_text_objects()

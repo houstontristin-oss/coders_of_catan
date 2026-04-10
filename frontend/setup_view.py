@@ -10,8 +10,7 @@ import arcade
 from backend.catan_board import CatanBoard
 from .port_manager import PortManager
 from .drawing import (draw_board, draw_road, draw_settlement, fill_rect,
-                      outline_rect, draw_ocean_background, draw_shoreline_shimmer,
-                      draw_speaker_button)
+                      outline_rect, draw_ocean_background, draw_speaker_button)
 from .board_utils import node_to_pixel
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, HUD_BOTTOM_HEIGHT, HUD_PANEL_WIDTH,
 DICE_AREA_WIDTH, DICE_AREA_HEIGHT, BUILD_SETTLEMENT, BUILD_ROAD, TEXT_WHITE, TEXT_GOLD,
@@ -277,7 +276,6 @@ class SetupView(arcade.View):
         # --- Animated ocean background (mirrors CatanView) ---
         if USE_OCEAN_BACKGROUND:
             draw_ocean_background(self._ocean_time)
-            draw_shoreline_shimmer(self.board, self._ocean_time)
         else:
             arcade.set_background_color(OCEAN_BASE_COLOR)
 
