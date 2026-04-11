@@ -46,6 +46,21 @@ Ideas for future development...
     * **Windows**: Download and install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and during installation make sure the, **"Desktop development with C++"** workload is checked
     * **macOS**: Open your terminal and run ```xcode-select --install.```
     * **Linux (Ubuntu/Debian)**: Run ```sudo apt update && sudo apt install build-essential python3-dev.```
+ 
+## Pylint Suppression Codes
+* C0114: missing module docstring
+* C0116: missing method/function docstring
+* R0801: similar lines in 2 files
+* R0902: too many instance attributes
+* R0911: too many return statements 
+* R0912: too many branches
+* R0913: too many arguments
+* R0914: too many local variables
+* R0915: too many statements 
+* R0917: too many positional arguments 
+* R1702: too many nested blocks
+* W0201: attribute defined outside init
+* W0718: catching too broad exception
 
 ## Resources
 
