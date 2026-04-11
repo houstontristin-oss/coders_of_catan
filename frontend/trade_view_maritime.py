@@ -215,7 +215,7 @@ class TradeViewMaritime(arcade.View):
         #check if player can afford any trades
         player = self.players[self.current_player]
         for res in RESOURCE_ABBR.values():
-            trade_amount = player.trade_amount[res]
+            trade_amount = self.trade_amount.get(res, self.trade_amount["base"])
             self.affordable_trades[res] = player.can_afford_trade({res: trade_amount})
 
     def on_show_view(self):
