@@ -950,15 +950,15 @@ class ComputerTurnView(arcade.View):
                                 self._trade_computer_player = player
                                 self._trade_pending         = True
                                 return   # modal click resumes move processing
-                            else:
-                                accept = random.randint(0,1) # 50% chance other comp will accept
-                                if accept:
-                                    player.exchange_resources(to_trade, to_get)
-                                    player_to_trade_with.exchange_resources(to_get, to_trade)
-                                    self._add_log(
-                                        f"{player.name} traded {amt_to_offer} {res_to_trade} "
-                                        f"for {amt_to_get} {res_to_get}.", player.color)
-                                    move_success = True
+
+                            accept = random.randint(0,1) # 50% chance other comp will accept
+                            if accept:
+                                player.exchange_resources(to_trade, to_get)
+                                player_to_trade_with.exchange_resources(to_get, to_trade)
+                                self._add_log(
+                                    f"{player.name} traded {amt_to_offer} {res_to_trade} "
+                                    f"for {amt_to_get} {res_to_get}.", player.color)
+                                move_success = True
                     else:
                         to_trade = player.max_resource()
                         if player.resource_cards[to_trade] >= MARITIME_TRADE:
@@ -1430,18 +1430,18 @@ class ComputerTurnView(arcade.View):
                 shared_deck=self._deck,
             )
             return
-        else:
-            self.vm.go_to(
-                "catan",
-                board=self.board,
-                players=self.players,
-                current_player=self.current_player,
-                die1=self.die1,
-                die2=self.die2,
-                port_manager=self.port_manager,
-                start_of_turn=True,
-            )
-            return
+
+        self.vm.go_to(
+            "catan",
+            board=self.board,
+            players=self.players,
+            current_player=self.current_player,
+            die1=self.die1,
+            die2=self.die2,
+            port_manager=self.port_manager,
+            start_of_turn=True,
+        )
+        return
 
     def _execute_trade(self):
         computer = self._trade_computer_player

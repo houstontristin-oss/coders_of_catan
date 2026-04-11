@@ -8,7 +8,8 @@ import arcade
 from backend.catan_board import CatanBoard
 from backend.player import Player
 from .constants import (SCREEN_HEIGHT, SCREEN_WIDTH, TEXT_GOLD, RESOURCE_ABBR, ONE, SIX,
-                        SHEEP_BAA_SOUND, SHEEP_BAA_VOLUME, BUTTON_CLICK_SOUND, BUTTON_CLICK_VOLUME, BUTTON_QUIET_SOUND, BUTTON_QUIET_VOLUME)
+                        SHEEP_BAA_SOUND, SHEEP_BAA_VOLUME, BUTTON_CLICK_SOUND,
+                        BUTTON_CLICK_VOLUME, BUTTON_QUIET_SOUND, BUTTON_QUIET_VOLUME)
 from .drawing import fill_rect, outline_rect, draw_speaker_button
 from .view_constants import (START_GRAD_BANDS, START_SUN_GLOW_RADIUS, START_SUN_X,
                              START_SUN_Y, START_SUN_GLOW_COLOR, START_SUN_RAY_COUNT,
@@ -501,8 +502,8 @@ class StartView(arcade.View):
                     arcade.play_sound(self._sheep_baa, volume=SHEEP_BAA_VOLUME)
                 self._sheep_click_count = 0
             return
-        else:
-            self._sheep_click_count = 0
+
+        self._sheep_click_count = 0
         board, players = self._make_board_and_players()
 
         if (START_MUTE_BTN_X <= x <= START_MUTE_BTN_X + START_MUTE_BTN_W and
@@ -514,7 +515,8 @@ class StartView(arcade.View):
 
         if self._skip_button_hit(x, y):
             _auto_place_setup(board, players)
-            if self.click_quiet: arcade.play_sound(self.click_quiet, volume=BUTTON_QUIET_VOLUME)
+            if self.click_quiet:
+                arcade.play_sound(self.click_quiet, volume=BUTTON_QUIET_VOLUME)
             self.vm.go_to("catan",
                 board=board, players=players, current_player=0, die1=random.randint(ONE, SIX),
                 die2=random.randint(ONE, SIX), port_manager=None)
