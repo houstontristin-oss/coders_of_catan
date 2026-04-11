@@ -48,6 +48,7 @@ Ideas for future development...
     * **Linux (Ubuntu/Debian)**: Run ```sudo apt update && sudo apt install build-essential python3-dev.```
  
 ## Pylint Suppression Codes
+* C0103: invalid name
 * C0114: missing module docstring
 * C0116: missing method/function docstring
 * R0801: similar lines in 2 files
