@@ -90,31 +90,31 @@ class RobberResView(arcade.View):
     # Computer Players Discarding half their hand when a 7 is rolled
     # -----------------------------------------------------------------------
     def _comp_robber_discard(self):
-        for i in range(len(self.players)):
-            # print(f"{self.players[i].name}: {self.players[i].computer} :
-            # {self.players[i].get_total_resources()}: {self.players[i].development_cards}")
-            if self.players[i].computer and self.players[i].get_total_resources() > GET_ROBBED:
-                # discard half of the comp players resources
+        for player in self.players:
+            if player.computer and player.get_total_resources() > GET_ROBBED:
                 giving_resources = {}
-                amt_to_discard = self.players[i].get_total_resources() // 2
-                for resource, amount in self.players[i].resource_cards.items():
+                amt_to_discard = player.get_total_resources() // 2
+
+                for resource, amount in player.resource_cards.items():
                     giving_resources[resource] = 0
                     if amt_to_discard > 0:
                         get_rid_of = random.randint(0, amount if amount < amt_to_discard
-                        else amt_to_discard)
+                                                    else amt_to_discard)
                         amt_to_discard -= get_rid_of
                         giving_resources[resource] += get_rid_of
+
                 while amt_to_discard > 0:
-                    for resource, amount in self.players[i].resource_cards.items():
+                    for resource, amount in player.resource_cards.items():
                         if amt_to_discard > 0:
-                            get_rid_of = random.randint(0, amount - giving_resources[resource]
-                            if (amount - giving_resources[resource] < amt_to_discard)
-                            else amt_to_discard)
+                            # Logic remains the same, just cleaner access
+                            diff = amount - giving_resources[resource]
+                            get_rid_of = random.randint(0, diff if diff < amt_to_discard
+                                                        else amt_to_discard)
                             amt_to_discard -= get_rid_of
                             giving_resources[resource] += get_rid_of
 
-                self.players[i].exchange_resources(giving_resources, {})
-                print(f"ROBBER! {self.players[i].name} discarded {giving_resources}")
+                player.exchange_resources(giving_resources, {})
+                print(f"ROBBER! {player.name} discarded {giving_resources}")
 
     # ------------------------------------------------------------------
     # Arcade lifecycle

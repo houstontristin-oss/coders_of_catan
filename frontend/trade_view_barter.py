@@ -8,8 +8,7 @@ from .constants import (
     HUD_PANEL_BG, BTN_ENDTURN, LARGE_TEXT_SIZE, RESOURCE_ABBR
                         )
 
-#TODO add a view board feature
-#TODO add the trade receiving player's resources to the accept decline modal
+# NOTE add the trade receiving player's resources to the accept decline modal
 # ---------------------------------------------------------------------------
 # Resource constants
 # ---------------------------------------------------------------------------

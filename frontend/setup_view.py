@@ -222,7 +222,7 @@ class SetupView(arcade.View):
         node.player = self.current_player
         node.building = "settlement"
         self.last_placed_settlement = node # can be used to verify correct road placement in setup
-        for port in self.port_manager._port_data:
+        for port in self.port_manager.port_data:
             node_ids = port["port"].get_port_nodes()
             if node.node_id in node_ids:
                 print(f"{player.name} built on port {port["port"]}")

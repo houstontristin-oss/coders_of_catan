@@ -40,7 +40,7 @@ class PortManager:
         self._port_sprite_list = arcade.SpriteList()
         self._label_texts = []
         self._fallback_dots = []
-        self._port_data = []
+        self.port_data = []
 
         self._ship_ok = self._test_sprite()
 
@@ -51,7 +51,7 @@ class PortManager:
     # ------------------------------------------------------------------
     # Public API
     def draw(self):
-        for entry in self._port_data:
+        for entry in self.port_data:
             draw_port_dock(
                 entry["x1"], entry["y1"],
                 entry["x2"], entry["y2"],
@@ -72,7 +72,7 @@ class PortManager:
             txt.draw()
 
     def get_hover_nodes(self, mx, my):
-        for entry in self._port_data:
+        for entry in self.port_data:
             if math.hypot(mx - entry["ship_x"], my - entry["ship_y"]) <= _PORT_HOVER_RADIUS:
                 return entry["port"].get_port_nodes()
         return []
@@ -143,7 +143,7 @@ class PortManager:
             edge_obj = self._board.edges[edge_id]
             node_ids = [n.node_id for n in edge_obj.nodes]
 
-            self._port_data.append({
+            self.port_data.append({
                 "x1": x1,
                 "y1": y1,
                 "x2": x2,

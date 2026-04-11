@@ -221,7 +221,7 @@ class CatanView(arcade.View):
         self._place_robber_on_tile()
 
     def _place_robber_on_desert(self):
-        for xyz, tile in self.board.tiles.items():
+        for tile in self.board.tiles.values():
             if tile.resource == "desert":
                 tile.robber = True
                 print("setting desert robber to true")
@@ -1262,7 +1262,7 @@ class CatanView(arcade.View):
         player.build_settlement(CatanBoard, node)
         node.player   = self.current_player
         node.building = "settlement"
-        for port in self.port_manager._port_data:
+        for port in self.port_manager.port_data:
             node_ids = port["port"].get_port_nodes()
             if node.node_id in node_ids:
                 player.ports.append(port["port"])
@@ -1456,8 +1456,7 @@ class CatanView(arcade.View):
         self._played_card_this_turn  = False
         # NOTE: free_roads intentionally carries over if a Road Building card was
         # played and not fully used (edge case — keep count until exhausted)
-        if self._free_roads < 0:
-            self._free_roads = 0
+        self._free_roads = max(self._free_roads, 0)
 
         # Roll dice and start animation
         self.die1 = random.randint(ONE, SIX)

@@ -258,7 +258,7 @@ class RobberPlaceView(arcade.View):
     def _get_victims(self, tile):
         victim_list = set() #make sure a player isn't listed twice
 
-        for node_id, node_obj in self.board.nodes.items():
+        for node_obj in self.board.nodes.values():
             if tile in node_obj.tiles and node_obj.player is not None:
                 if node_obj.player != self.current_player:
                     vic = self.players[node_obj.player]

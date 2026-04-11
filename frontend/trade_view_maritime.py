@@ -183,9 +183,7 @@ class TradeViewMaritime(arcade.View):
     def _get_trade_amount(self, res):
         # update the trade amount to reflects the ports the player has
         # used to build text objects
-        if res in self.trade_amount.keys():
-            return self.trade_amount[res]
-        return self.trade_amount["base"]
+        return self.trade_amount.get(res, self.trade_amount["base"])
 
     def _check_valid_trade(self):
         valid_offer = False
