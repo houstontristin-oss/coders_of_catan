@@ -13,7 +13,6 @@ def main():
     pyglet.font.add_file('fonts/MedievalSharp-Regular.ttf')
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     window.background_color = arcade.color.OCEAN_BOAT_BLUE
-    from frontend.view_manager import ViewManager
     vm = ViewManager(window)
     window.vm = vm
     vm.go_to("start")
