@@ -9,6 +9,17 @@ from frontend.constants import (
     BOARD_WAVES_VOLUME, GAMEPLAY_THEME_VOLUME,
     END_THEME_VOLUME, MASTER_MUSIC_VOLUME,
 )
+from frontend import start_view
+from frontend import setup_view
+from frontend import catan_view
+from frontend import gamemode_view
+from frontend import computer_turn_view
+from frontend import play_card_view
+from frontend import robber_place_view
+from frontend import robber_res_view
+from frontend import trade_view_maritime
+from frontend import trade_view_barter
+from frontend import end_view
 
 class ViewManager:
     """
@@ -18,14 +29,25 @@ class ViewManager:
     def __init__(self, window):
         self.window = window
         self._history = []  # stack of (name, kwargs) for back navigation
+        self._view_registry = {
+            "start": start_view.StartView,
+            "setup": setup_view.SetupView,
+            "catan": catan_view.CatanView,
+            "gamemode": gamemode_view.GamemodeView,
+            "computer_turn": computer_turn_view.ComputerTurnView,
+            "play_card": play_card_view.PlayCardView,
+            "robber_place": robber_place_view.RobberPlaceView,
+            "robber_res": robber_res_view.RobberResView,
+            "maritime_trade": trade_view_maritime.TradeViewMaritime,
+            "barter_trade": trade_view_barter.TradeViewBarter,
+            "end": end_view.EndView,
+        }
         self.music = MusicManager({
             "menu_waves": TrackConfig("menu_waves", MENU_WAVES_MUSIC, MENU_WAVES_VOLUME),
             "menu_theme": TrackConfig("menu_theme", MENU_THEME_MUSIC, MENU_THEME_VOLUME),
-
             "board_waves": TrackConfig("board_waves", MENU_WAVES_MUSIC, BOARD_WAVES_VOLUME),
             "gameplay_theme": TrackConfig("gameplay_theme", GAMEPLAY_THEME_MUSIC,
                                           GAMEPLAY_THEME_VOLUME),
-
             "end_theme": TrackConfig("end_theme", END_THEME_MUSIC, END_THEME_VOLUME),
         })
         self.music.set_master_volume(MASTER_MUSIC_VOLUME)
@@ -33,27 +55,25 @@ class ViewManager:
     def go_to(self, name, **kwargs):
         """
         Transition to a named view, passing any kwargs to its constructor.
-        Known views: "start", "setup", "catan", "play_card", "robber_place", "robber_res", "end"
         """
         view = self._build_view(name, kwargs)
         if view is None:
             raise ValueError(f"ViewManager: unknown view name '{name}'")
+
         self._history.append((name, kwargs))
+
+        gameplay_views = {
+            "setup", "catan", "computer_turn", "play_card", 
+            "maritime_trade", "barter_trade", "robber_place", "robber_res"
+        }
+
         if name == "start":
             self.music.play_start_menu()
-        elif name in (
-                "setup",
-                "catan",
-                "computer_turn",
-                "play_card",
-                "maritime_trade",
-                "barter_trade",
-                "robber_place",
-                "robber_res",
-        ):
+        elif name in gameplay_views:
             self.music.play_gameplay()
         elif name == "end":
             self.music.play_end_screen()
+
         self.window.show_view(view)
 
     def go_back(self):
@@ -70,38 +90,13 @@ class ViewManager:
             self.go_to("start")
 
     def _build_view(self, name, kwargs):
-        """Construct and return the view object for the given name."""
+        """Construct and return the view object using the registry."""
+        view_class = self._view_registry.get(name)
+        if not view_class:
+            return None
+            
+        # StartView is the only one not accepting **kwargs
         if name == "start":
-            from frontend.start_view import StartView
-            return StartView(self)
-        elif name == "setup":
-            from frontend.setup_view import SetupView
-            return SetupView(self, **kwargs)
-        elif name == "catan":
-            from frontend.catan_view import CatanView
-            return CatanView(self, **kwargs)
-        elif name == "gamemode":
-            from frontend.gamemode_view import GamemodeView
-            return GamemodeView(self, **kwargs)
-        elif name == "computer_turn":
-            from frontend.computer_turn_view import ComputerTurnView
-            return ComputerTurnView(self, **kwargs)
-        elif name == "play_card":
-            from frontend.play_card_view import PlayCardView
-            return PlayCardView(self, **kwargs)
-        elif name == "robber_place":
-            from frontend.robber_place_view import RobberPlaceView
-            return RobberPlaceView(self, **kwargs)
-        elif name == "robber_res":
-            from frontend.robber_res_view import RobberResView
-            return RobberResView(self, **kwargs)
-        elif name == "maritime_trade":
-            from frontend.trade_view_maritime import TradeViewMaritime
-            return TradeViewMaritime(self, **kwargs)
-        elif name == "barter_trade":
-            from frontend.trade_view_barter import TradeViewBarter
-            return TradeViewBarter(self, **kwargs)
-        elif name == "end":
-            from frontend.end_view import EndView
-            return EndView(self, **kwargs)
-        return None
+            return view_class(self)
+            
+        return view_class(self, **kwargs)
