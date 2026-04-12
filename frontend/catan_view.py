@@ -170,6 +170,7 @@ class CatanView(arcade.View):
         self._build_text_objects()
         self._load_resource_icons()
         self._load_card_sprites()
+        self._load_cards()
         self._assign_number_tokens()
         self._build_node_pixel_cache()
         self._build_edge_pixel_cache()
