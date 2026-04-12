@@ -4,6 +4,7 @@ Software Engineering Final Project - Recreating the board game Catan within pyth
 
 Created by Tristin Houston, Amanda Barth, Apoorva Joshi, and Nicolas Fay
 
+[Link to Game Rules](https://www.catan.com/sites/default/files/2025-03/CN3081%20CATAN%E2%80%93The%20Game%20Rulebook%20secure%20%281%29.pdf)
 ## State of the Game
 
 #### Sunday 4/12/2026
@@ -20,9 +21,18 @@ If anyone rolls a seven, the robber protocol is triggered. First, the computer p
 
 Once a player gets to 10 victory points and selects either 'Next Player' or 'End Turn', the game will end.
 
-## Coming Soon
+## Ideas for future development...
 
-Ideas for future development...
+- Create a parent CatanView class and then extend to human and computer player turn view classes.
+- Allow for two huamns and two computers or three humans and one computer
+- Connect the game to a server to allow people to play together from different computers
+- Increase complexity of computer player deicsions
+- Catan expansion packs:
+  - 5-6 player version
+  - Seafarers
+  - Explorers & Pirates
+  - Cities & Knights
+  - Traders & Barbarians
 
 
 ## Setup
