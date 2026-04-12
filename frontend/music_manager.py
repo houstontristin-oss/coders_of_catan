@@ -193,10 +193,11 @@ class MusicManager:
         self.play_track("gameplay_theme")
         self.current_scene = "gameplay"
 
-    def play_end_screen(self) -> None:
+     """ def play_end_screen(self) -> None:
         if self.current_scene == "end":
             return
 
         self.stop_all()
         self.play_track("end_theme")
         self.current_scene = "end"
+""" 
