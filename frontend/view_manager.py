@@ -4,10 +4,10 @@
 from frontend.music_manager import MusicManager, TrackConfig
 from frontend.constants import (
     MENU_WAVES_MUSIC, MENU_THEME_MUSIC,
-    GAMEPLAY_THEME_MUSIC, END_THEME_MUSIC,
+    GAMEPLAY_THEME_MUSIC,
     MENU_WAVES_VOLUME, MENU_THEME_VOLUME,
     BOARD_WAVES_VOLUME, GAMEPLAY_THEME_VOLUME,
-    END_THEME_VOLUME, MASTER_MUSIC_VOLUME,
+    MASTER_MUSIC_VOLUME,
 )
 from frontend import start_view
 from frontend import setup_view
@@ -48,7 +48,7 @@ class ViewManager:
             "board_waves": TrackConfig("board_waves", MENU_WAVES_MUSIC, BOARD_WAVES_VOLUME),
             "gameplay_theme": TrackConfig("gameplay_theme", GAMEPLAY_THEME_MUSIC,
                                           GAMEPLAY_THEME_VOLUME),
-            "end_theme": TrackConfig("end_theme", END_THEME_MUSIC, END_THEME_VOLUME),
+            # "end_theme": TrackConfig("end_theme", END_THEME_MUSIC, END_THEME_VOLUME),
         })
         self.music.set_master_volume(MASTER_MUSIC_VOLUME)
 

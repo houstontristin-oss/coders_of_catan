@@ -320,13 +320,13 @@ MENU_WAVES_MUSIC = os.path.join(_AUDIO, "menu_waves.mp3")
 MENU_THEME_MUSIC = os.path.join(_AUDIO, "menu_theme.mp3")
 SETUP_THEME_MUSIC = os.path.join(_AUDIO, "setup_theme.mp3")
 BOARD_THEME_MUSIC = os.path.join(_AUDIO, "board_theme.mp3")
-END_THEME_MUSIC = os.path.join(_AUDIO, "end_theme.mp3")
+# END_THEME_MUSIC = os.path.join(_AUDIO, "end_theme.mp3")
 
 MENU_WAVES_VOLUME = 0.22
 MENU_THEME_VOLUME = 0.42
 # SETUP_THEME_VOLUME = 0.35
 # BOARD_THEME_VOLUME = 0.45
-END_THEME_VOLUME = 0.40
+# END_THEME_VOLUME = 0.40
 MASTER_MUSIC_VOLUME = 1.0
 
 GAMEPLAY_THEME_MUSIC = os.path.join(_AUDIO, "board_theme.mp3")
