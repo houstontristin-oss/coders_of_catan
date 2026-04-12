@@ -469,7 +469,7 @@ class StartView(arcade.View):
         _draw_sun(self._time)        # 3. Animated sun
         _draw_farmscape(self._time)            # 4. Farmscape (fades at horizon)
         _draw_title()                # 5. Title + subtitle
-        _draw_skip_button(self.txt_skip)  # 6. Skip button
+        # _draw_skip_button(self.txt_skip)  # 6. Skip button
         draw_speaker_button(
             START_MUTE_BTN_X,
             START_MUTE_BTN_Y,
@@ -478,9 +478,9 @@ class StartView(arcade.View):
             self.vm.music.muted)
 
     # ------------------------------------------------------------------
-    def _skip_button_hit(self, x, y) -> bool:
-        return (START_SKIP_BTN_X <= x <= START_SKIP_BTN_X + START_SKIP_BTN_W and
-                START_SKIP_BTN_Y <= y <= START_SKIP_BTN_Y + START_SKIP_BTN_H)
+    # def _skip_button_hit(self, x, y) -> bool:
+    #     return (START_SKIP_BTN_X <= x <= START_SKIP_BTN_X + START_SKIP_BTN_W and
+    #             START_SKIP_BTN_Y <= y <= START_SKIP_BTN_Y + START_SKIP_BTN_H)
 
     def _make_board_and_players(self):
         board = CatanBoard()
@@ -513,13 +513,13 @@ class StartView(arcade.View):
                 arcade.play_sound(self._click_sound, volume=BUTTON_CLICK_VOLUME)
             return
 
-        if self._skip_button_hit(x, y):
-            _auto_place_setup(board, players)
-            if self.click_quiet:
-                arcade.play_sound(self.click_quiet, volume=BUTTON_QUIET_VOLUME)
-            self.vm.go_to("catan",
-                board=board, players=players, current_player=0, die1=random.randint(ONE, SIX),
-                die2=random.randint(ONE, SIX), port_manager=None)
-            return
+        # if self._skip_button_hit(x, y):
+        #     _auto_place_setup(board, players)
+        #     if self.click_quiet:
+        #         arcade.play_sound(self.click_quiet, volume=BUTTON_QUIET_VOLUME)
+        #     self.vm.go_to("catan",
+        #         board=board, players=players, current_player=0, die1=random.randint(ONE, SIX),
+        #         die2=random.randint(ONE, SIX), port_manager=None)
+        #     return
 
         self.vm.go_to("gamemode", board=board)
